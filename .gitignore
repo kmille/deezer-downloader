@@ -1,0 +1,6 @@
+*.pyc
+venv
+credentials.py
+session.pickle
+downloads
+SMLoadr/

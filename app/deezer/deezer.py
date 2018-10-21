@@ -1,5 +1,18 @@
 #!python2
+# encoding=utf8
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 #coding:latin
+from ipdb import set_trace
+from deezer_login import DeezerLogin
+from os.path import basename
+
+import arrow
+import requests
+from settings import download_dir, music_dir
+deezer = DeezerLogin()
 """
   Author:   --<>
   Purpose: 
@@ -19,7 +32,7 @@
 
 """
 
-config_DL_Dir 			= 'downloads'
+config_DL_Dir 			= download_dir
 config_topsongs_limit	= 50
 
 import sys
@@ -38,7 +51,6 @@ import csv
 import threading
 import time
 import httplib
-import requests
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, APIC, error
 from decimal import Decimal
@@ -53,7 +65,8 @@ import string
 
 #load AVBin
 try:
-    pyglet.lib.load_library('avbin')
+    #pyglet.lib.load_library('avbin')
+    pass
 except Exception as e:
     print 'Trying to load avbin64...'
     pyglet.lib.load_library('avbin64')
@@ -65,10 +78,6 @@ pyglet.have_avbin=True
 # global variable
 host_stream_cdn = "http://e-cdn-proxy-%s.deezer.com/mobile/1"
 setting_domain_img = "http://cdn-images.deezer.com/images"
-
-
-httplib.HTTPConnection._http_vsn = 10
-httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
 
 
 def enabletor():
@@ -143,8 +152,14 @@ def parse_deezer_page(url):
     """
     extracts download host, and yields any songs found in a page.
     """
-    f = urllib2.urlopen(url)
-    data = f.read()
+    #f = urllib2.URlopen(url)
+    #data = f.read()
+    data = deezer.session.get(url).text
+    if not "MD5_ORIGIN" in data:
+        print("We are not logged in")
+        deezer.login()
+        data = deezer.session.get(url).text
+
 
     parser = ScriptExtractor()
     parser.feed(data.decode('utf-8'))
@@ -170,6 +185,7 @@ def parse_deezer_page(url):
      #.*MD5_ORIGIN -> PLAYER_INIT & __DZR_APP_STATE__
      #.*LABEL_NAME -> __DZR_APP_STATE__ 
 
+        # type: album_page
         jsondata = find_re(script, r'\{.*LABEL_NAME.*\}')
         if jsondata:
             
@@ -187,7 +203,18 @@ def parse_deezer_page(url):
             for song in find_songs( DZR_APP_STATE.get("SONGS") ):
                 if song["SNG_ID"] not in foundsongs:
                     yield song
-                    foundsongs.add(song["SNG_ID"])
+                    #foundsongs.add(song["SNG_ID"])
+
+        # type: track_page
+        jsondata = find_re(script, r'\{.*SNG_ID.*\}')
+        if jsondata:
+            DZR_APP_STATE = json.loads( jsondata )
+            songs = DZR_APP_STATE.get('data', None)
+            if songs:
+                for song in songs:
+                    if song["SNG_ID"] not in foundsongs:
+                        yield song
+
 
 
 def md5hex(data):
@@ -252,8 +279,9 @@ def decryptfile(fh, key, fo):
     blockSize = 0x800 #2048 byte
     i = 0
     
-    while True:
-        data = fh.read( blockSize )
+    #while True:
+    for data in fh.iter_content(blockSize):
+        #data = fh.read( blockSize )
         if not data:
             break
 
@@ -288,6 +316,7 @@ def decryptfile(fh, key, fo):
 
 def getformat(song):
     """ return format id for a song """
+    #return 8 if song.get("FILESIZE_FLAC") else \
     return 3 if song.get("FILESIZE_MP3_320") else \
            5 if song.get("FILESIZE_MP3_256") else \
            1
@@ -519,7 +548,7 @@ def FileNameClean( FileName ):
 
 
 
-def download(args, song, fname=""):
+def download(song, album, fname="", ):
     """ download and save a song to a local file, given the json dict describing the song """
 
 
@@ -539,43 +568,42 @@ def download(args, song, fname=""):
             exec("%s = str(song[\"%s\"])" %(i, i))
         except UnicodeEncodeError:
             exec("%s = song[\"%s\"]" %(i, i))
-    #outname = "%s - %s - %s%s - %010d.mp3" % (
-    #str(song["ART_NAME"]), 
-    #str(song["ALB_TITLE"]), 
-    #tracknum, 
-    #str(song["SNG_TITLE"]), 
-    #int(song["SNG_ID"]))
     
     if not fname:
-        outname = FileNameClean ("%s_%s - %s.mp3" % (tracknum, SNG_TITLE, ART_NAME))
+        if album:
+            album_dir = "{} - {}".format(song['ART_NAME'], song['ALB_TITLE'])
+            outname = album_dir + "/" + FileNameClean ("%s - %s - %s.mp3" % (song['TRACK_NUMBER'], ART_NAME, SNG_TITLE))
+        else:
+            outname = FileNameClean ("%s - %s.mp3" % (ART_NAME, SNG_TITLE))
+            album_dir = ""
         
       # Make DL dir
         try: 
-            os.makedirs( config_DL_Dir )
-        except:
+            #print("Creating dir", (config_DL_Dir + "/" + album_dir))
+            os.makedirs( config_DL_Dir + "/" + album_dir )
+        except Exception as e:
+            #print(e)
             pass
         
+        print("Downloading song {}".format(outname))
+        f = outname
         outname = config_DL_Dir + "/%s" %outname
     else:
         outname = fname
 
-    if not args.overwrite and os.path.exists(outname):
-        print "        already there: %s" % outname
-        return
+    # wont work with time stamp in filename...
+    if os.path.exists(os.path.join(config_DL_Dir, outname)):
+        print("File {} already there. skipping".format(basename(outname)))
+        return os.path.join(download_dir[len(music_dir) + 1 :] ,f)
+
     try:
-        fh = urllib2.urlopen( (host_stream_cdn + "/%s") 
-                              % (
-                                  str( song["MD5_ORIGIN"] )[0], 
-                                  urlkey ) 
-                              )
-        
+        url = (host_stream_cdn + "/%s") % (str( song["MD5_ORIGIN"] )[0],urlkey )
+        fh  = deezer.session.get(url)
+
         with open(outname, "w+b") as fo:
-            
           # add songcover and DL first 30 sec's that are unencrypted             
             writeid3v2 ( fo, song)
-            
             decryptfile( fh, key, fo)
-            
             writeid3v1_1 ( fo, song)
             
         ##############################################
@@ -596,7 +624,6 @@ def download(args, song, fname=""):
         )
         toWS.save( v2_version = 3 )
             
-            
 
     except IOError as e:
         print "IO_ERROR: %s" % (e)
@@ -604,14 +631,18 @@ def download(args, song, fname=""):
         
     except Exception as e:
         print "ERROR downloading from %s: %s" % (host_stream_cdn, e)
-        raise
+        #raise
+    else:
+        print("Dowload finished. Dest: {}".format(outname))
+    return os.path.join(download_dir[len(music_dir) + 1 :] ,f) # (deezer download dir - download dir) + file name of the downloaded file
+
 
 
 def printinfo(song):
     """ print info for a song """
     print "%9s %s %-5s %-30s %-30s %s" % (
         song["SNG_ID"], 
-        song["MD5_ORIGIN"], 
+        song["MD5_ORIGIN"],
         song["MEDIA_VERSION"], 
         song["ART_NAME"], 
         song["ALB_TITLE"], 
@@ -621,7 +652,7 @@ def printinfo(song):
 
 parser, args = (None, None)
 def main():
-    global parser, args
+    global parser, args, session
 
     import argparse
     parser = argparse.ArgumentParser(description='Deezer downloader')
@@ -631,6 +662,7 @@ def main():
     parser.add_argument('urls', nargs='*', type=str)
     args = parser.parse_args()
 
+    
     if args.tor:
         enabletor()
 
@@ -645,7 +677,7 @@ def main():
                 #print "...", song
                 try:
                     #raise Exception("Test Exception")
-                    download(args, song)
+                    download(song)
                 except Exception as e:
                     print e
                     traceback.print_exc()
@@ -691,10 +723,6 @@ def scriptDownload(id, fname=None):
     completedSongs += 1
     act_threads -= 1
     return downloaded
-
-
-print ''
-print ''
 
 
 init() #Start Colorama's init'
@@ -782,9 +810,8 @@ Try using the Deezer playlist instead!'''
         return ['JUNK'] + sPlaylist, True
 
     elif int(res) == 2:
-        track = raw_input('Song name? > ')
-        artist = raw_input('Artist name? > ')
-        return deezerSearch(track, artist)
+        search = raw_input('Search? > ')
+        return deezerSearch(search)
         # return ('JUNK_DISCARD',(song_name, track))
 
     else:
@@ -956,22 +983,44 @@ def MakeUrlItem(item):
     except:
         return ''
 
-def deezerSearch(title, artist=''):
+def deezerSearch(search, type):
+    search = urllib.quote_plus(search)
+    resp = requests.get("https://api.deezer.com/search/{}?q={}".format(type,  search))
+    return_nice = []
+    for item in resp.json()['data'][:10]:
+        i = {}
+        i['id'] = str(item['id'])
+        if type == "album":
+            #set_trace()
+            i['album'] = item['title']
+            i['artist'] = item['artist']['name']
+            i['title'] = ''
+        if type == "track":
+            i['title'] = item['title']
+            i['album'] = item['album']['title']
+            i['artist'] = item['artist']['name']
+        return_nice.append(i)
+    return return_nice
+    
+
+
+
+
     'Searches for a song using the Deezer API.'
 
-    query = 'http://api.deezer.com/search?q=%s%s%s' %  \
-        ( MakeUrlItem( title) , \
-          r'%20', \
-          MakeUrlItem( artist ) \
-          )
+    """
+    query = 'http://api.deezer.com/search?q=%s' %  \
+        ( MakeUrlItem( search))
     #print query
     qResultRaw = urllib2.urlopen(
         query).read()
     cnt = 1
+    """
 
     #print qResultRaw
     try:
         qResult = json.loads(qResultRaw)['data']
+        return qResult
     except ValueError:
         print 'Things went wrong. There was NOTHING returned for your search! :O'
         return None
@@ -1058,7 +1107,98 @@ act_threads = 1
 completedSongs = 0
 totalSongs = 0
 
+import re
+def sorted_nicely( l ):
+    """ Sorts the given iterable in the way that is expected.
+ 
+    Required arguments:
+    l -- The iterable to be sorted.
+ 
+    """
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key = alphanum_key)
 
+
+import mpd
+
+def mpd_update(songs, add_to_playlist):
+        print("Updating mpd")
+	c = mpd.MPDClient(use_unicode=True)
+	c.connect("localhost", 6600)
+	c.update()
+	if add_to_playlist:
+            for song in songs:
+		print("Adding {}".format(song))
+	        c.add(song)
+
+#songs = [ "deezer/Die Toten Hosen - Wannsee.mp3" ]
+#mpd_update(songs, True)
+
+def my_search():
+    results = deezerSearch("coldplay", 'track')
+    for item in results:
+        print("   ".join(item.values()))
+    results = deezerSearch("greatest hits", 'album')
+    for item in results:
+        print("   ".join(item.values()))
+
+def my_list_album(album_id):
+    print("doing my_list_album")
+    url = "https://www.deezer.com/de/album/{}".format(album_id)
+    songs = list(parse_deezer_page(url))
+    print("Got {} songs for album {}".format(len(songs), album_id))
+    nice = []
+    for song in songs:
+        s = {}
+        s['id'] = str(song["SNG_ID"])
+        s['artist'] = song["ART_NAME"]
+        s['album'] = song["ALB_TITLE"]
+        s['title'] = song["SNG_TITLE"]
+        #print("Adding", s)
+        nice.append(s)
+    return nice
+
+def my_download_playlist(playlist_id):
+    url = "https://www.deezer.com/de/playlist/{}".format(playlist_id)
+    for i,song in enumerate(parse_deezer_page(url)):
+        #print("Downloading {} {}".format(i, song['SNG_TITLE']))
+        #set_trace()
+        download(song)
+
+def my_download_from_json_file():
+    import json
+    songs = json.load(open("/tmp/songs.json"))
+    for song in songs['results']['SONGS']['data']:
+        print("Downloading {}".format(song['SNG_TITLE']))
+        download(song)
+
+def my_download_album(album_id, add_to_playlist):
+    url = "https://www.deezer.com/de/album/{}".format(album_id)
+    song_locations = []
+    for song in parse_deezer_page(url):
+        song_locations.append(download(song, album=True))
+    mpd_update(set(song_locations), add_to_playlist)
+    return sorted_nicely(set(song_locations))
+
+def my_download_song(track_id, add_to_playlist):
+    url = "https://www.deezer.com/de/track/{}".format(track_id)
+    song = list(parse_deezer_page(url))[0]
+    print("Downloading song {}".format(track_id))
+    song_location = download(song, album=False)
+    print("song location", song_location)
+    mpd_update([song_location], add_to_playlist)
 
 if __name__ == '__main__':
-    sys.exit( main() )
+    pass
+    #print(my_list_album(str("7242092")))
+    #my_download_song(str(14299589))
+    #my_download_album("72251042")
+    
+    
+    #my_download_playlist("4865594344")
+    #my_download_from_json_file()
+    #song = list(parse_deezer_page(results[0]['link']))[0]
+    #song = list(parse_deezer_page("https://www.deezer.com/de/track/3135556"))[0]
+    #download(song)
+    #sys.exit( main() )

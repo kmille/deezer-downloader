@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+	<style>
+		.footer {
+		  position: fixed;
+		  bottom: 0;
+		  width: 80%;
+		  left: 10%;
+		  height: 40px;
+		  background-color: #f5f5f5;
+		  text-align: center;
+		}
+	</style>
+
+    <title>Good Music - Good Feeling</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="/deezer/static/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="shortcut icon" type="image/png" href="/deezer/static/favicon.ico">
+	<link rel="stylesheet" href="/deezer/static/css/font-awesome.min.css">
+
+  </head>
+
+  <body id="body" >
+
+        <div class="container">
+         
+            <div class="row">
+              &nbsp; <!-- we all love html -->
+            </div>
+            <div class="row">
+               &nbsp;<!-- we all love html -->
+            </div>
+            
+            <div class="input-group">
+                <input type="text" class="form-control" id="query" placeholder="Search for .." />
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" id="search_track" >Search Track</button>
+                        <button class="btn btn-defautl" id="search_album" >Search Album</button>
+                    </span>
+            </div>
+
+            <table id="results" class="table" >
+                <thead>
+                    <tr>
+                        <th>Artist</th>
+                        <th>Title</th>
+                        <th>Album</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+
+		</div> <!-- end container -->
+
+    <footer class="footer">
+      <div class="container">
+		<i class="fa fa-angellist" ></i> |
+        <span class="text-muted">
+			ctrl+m: focus search bar |
+			Enter: search for songs |
+			Alt+Enter: search for albums | 
+			ctrl+b: go BACK to ympd |
+        </span>
+		<i class="fa fa-cc-paypal" title="Donate: " ></i>
+      </div>
+    </footer>
+
+    
+    <!-- Bootstrap core JavaScript -->
+    <script src="/deezer/static/js/jquery.min.js"></script>
+    <script src="/deezer/static/js/custom.js"></script>
+    <script>
+        function drawTableEntry(rowData, mtype) {
+            var row = $("<tr />")
+            console.log(rowData);
+            $("#results").append(row); 
+            row.append($("<td>" + rowData.artist + "</td>"));
+            row.append($("<td>" + rowData.title + "</td>"));
+            row.append($("<td>" + rowData.album + "</td>"));
+                row.append($("<td>" + 
+                    '<button class="btn btn-default" id="music-' + rowData.music_id + '" onclick="download(\'' + rowData.id  + '\', \''+ mtype + '\', false);" > <i class="fa fa-download" title="download" ></i> </button>'  +
+
+                "</td>"));
+                row.append($("<td>" + 
+                    '<button class="btn btn-default" id="music-' + rowData.music_id + '" onclick="download(\'' + rowData.id  + '\', \''+ mtype + '\', true);" > <i class="fa fa-play-circle" title="download and add to playlist" ></i> </button>'  +
+                "</td>"));
+            if(mtype == "album") {
+                row.append($("<td>" + 
+                   '<button class="btn btn-default" id="music-' + rowData.music_id + '" onclick="list_album(\'' + rowData.id  + '\');" >list album </button>'  +
+                   "</td>"));
+            }
+        }
+        
+        function download(music_id, type, add) {
+            $.post('/api/v1/deezer/download', 
+                JSON.stringify({ type: type, music_id: parseInt(music_id), add: add}),
+                function(data) {
+					if(type == "album") {
+						if(add == true) {
+							text = "Good choice! The album will be downloaded and queued to the playlist";
+						} else {
+							text = "Good choice! The album will be downloaded.";
+						}
+					} else {
+						if(add == true) {
+							text = "Good choice! The song will be downloaded and queued to the playlist";
+						} else {
+							text = "Good choice! The song will be downloaded.";
+						}
+					}
+					$.jGrowl(text, { life: 4000 });
+            });
+        }
+
+        function list_album(music_id) {
+            $.post('/api/v1/deezer/album/list', 
+                JSON.stringify({ music_id: parseInt(music_id) }),
+                function(data) {
+                    $("#results > tbody").html("");
+                    for (var i = 0; i < data.length; i++) {
+                        drawTableEntry(data[i], "album");
+                    }
+            });
+        }
+    </script>
+
+<link rel="stylesheet" type="text/css" href="/deezer/static/css/jquery.jgrowl.min.css" />
+<script src="/deezer/static/js/jquery.jgrowl.min.js"></script>
+
+
+  </body>
+
+</html>

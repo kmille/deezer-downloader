@@ -1,0 +1,15 @@
+[Unit]
+Description = Deezer music
+After = network.target
+
+[Service]
+User = deezer
+Group = deezer
+WorkingDirectory = /opt/deezer/app
+ExecStart = /opt/deezer/venv/bin/gunicorn --bind 127.0.0.1:8081 app:app
+PrivateTmp = true
+
+[Install]
+WantedBy = multi-user.target
+
+
