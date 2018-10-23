@@ -7,7 +7,7 @@ python2 -m virtualenv venv
 source venv/bin/activate
 pip install -r requirements.txt
 cd app
-insert your deezer credentials to settings.py
+insert your deezer credentials to credentials.py
 python app.py
 ```
 
