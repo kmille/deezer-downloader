@@ -152,6 +152,7 @@ def parse_deezer_page(url):
     """
     extracts download host, and yields any songs found in a page.
     """
+    print(url)
     #f = urllib2.URlopen(url)
     #data = f.read()
     data = deezer.session.get(url).text
@@ -209,12 +210,15 @@ def parse_deezer_page(url):
         jsondata = find_re(script, r'\{.*SNG_ID.*\}')
         if jsondata:
             DZR_APP_STATE = json.loads( jsondata )
-            songs = DZR_APP_STATE.get('data', None)
-            if songs:
-                for song in songs:
-                    if song["SNG_ID"] not in foundsongs:
-                        yield song
-
+            #set_trace()
+            song = DZR_APP_STATE.get('DATA', None)
+            yield song
+#            songs = DZR_APP_STATE.get('DATA', None)
+#            if songs:
+#                for song in songs:
+#                    if song["SNG_ID"] not in foundsongs:
+#                        yield song
+#
 
 
 def md5hex(data):
@@ -551,6 +555,9 @@ def FileNameClean( FileName ):
 def download(song, album, fname="", ):
     """ download and save a song to a local file, given the json dict describing the song """
 
+    if not song.get("SNG_ID"):
+        print("Invalid song")
+        return
 
     urlkey = genurlkey( int(song.get("SNG_ID")), 
                         str(song.get("MD5_ORIGIN")), 
@@ -1173,21 +1180,25 @@ def my_download_from_json_file():
         print("Downloading {}".format(song['SNG_TITLE']))
         download(song)
 
-def my_download_album(album_id, add_to_playlist):
+
+
+
+def my_download_album(album_id, update_mpd, add_to_playlist):
     url = "https://www.deezer.com/de/album/{}".format(album_id)
     song_locations = []
     for song in parse_deezer_page(url):
         song_locations.append(download(song, album=True))
-    mpd_update(set(song_locations), add_to_playlist)
+    if update_mpd:
+        mpd_update(set(song_locations), add_to_playlist)
     return sorted_nicely(set(song_locations))
 
-def my_download_song(track_id, add_to_playlist):
+def my_download_song(track_id, update_mpd, add_to_playlist):
     url = "https://www.deezer.com/de/track/{}".format(track_id)
     song = list(parse_deezer_page(url))[0]
     print("Downloading song {}".format(track_id))
     song_location = download(song, album=False)
-    print("song location", song_location)
-    mpd_update([song_location], add_to_playlist)
+    if update_mpd:
+        mpd_update([song_location], add_to_playlist)
 
 if __name__ == '__main__':
     pass

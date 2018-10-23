@@ -6,6 +6,7 @@ from threading import Thread
 
 from flask import Flask, render_template, request, jsonify
 from deezer.deezer import deezerSearch, my_list_album, my_download_song, my_download_album 
+from settings import update_mpd
 
 from ipdb import set_trace
 
@@ -78,9 +79,9 @@ def download():
     """
     add, music_id, type = request.get_json(force=True).values()
     if type == "track":
-        t = Thread(target=my_download_song, args=(music_id, add))
+        t = Thread(target=my_download_song, args=(music_id, update_mpd, add))
     else:
-        t = Thread(target=my_download_album, args=(music_id, add))
+        t = Thread(target=my_download_album, args=(music_id, update_mpd, add))
     t.start()
     return jsonify({"state": "have fun"})
 
