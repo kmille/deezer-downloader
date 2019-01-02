@@ -55,7 +55,7 @@ from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, APIC, error
 from decimal import Decimal
 from colorama import Fore, Back, Style, init
-from tkFileDialog import askopenfilename as openfile
+#from tkFileDialog import askopenfilename as openfile
 import pyglet
 import feedparser
 import unicodedata
