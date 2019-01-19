@@ -1160,13 +1160,15 @@ def my_list_album(album_id):
     print("Got {} songs for album {}".format(len(songs), album_id))
     nice = []
     for song in songs:
-        s = {}
-        s['id'] = str(song["SNG_ID"])
-        s['artist'] = song["ART_NAME"]
-        s['album'] = song["ALB_TITLE"]
-        s['title'] = song["SNG_TITLE"]
-        #print("Adding", s)
-        nice.append(s)
+        print len(song)
+        if "SNG_ID" in song.keys():
+            s = {}
+            s['id'] = str(song["SNG_ID"])
+            s['artist'] = song["ART_NAME"]
+            s['album'] = song["ALB_TITLE"]
+            s['title'] = song["SNG_TITLE"]
+            nice.append(s)
+            #print("Adding", s)
     return nice
 
 def my_download_playlist(playlist_id):
