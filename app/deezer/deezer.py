@@ -1160,7 +1160,6 @@ def my_list_album(album_id):
     print("Got {} songs for album {}".format(len(songs), album_id))
     nice = []
     for song in songs:
-        print len(song)
         if "SNG_ID" in song.keys():
             s = {}
             s['id'] = str(song["SNG_ID"])
