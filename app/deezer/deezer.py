@@ -1,8 +1,10 @@
-#!python2
-# encoding=utf8
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+
 import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
+
 
 #coding:latin
 from ipdb import set_trace
@@ -163,7 +165,7 @@ def parse_deezer_page(url):
 
 
     parser = ScriptExtractor()
-    parser.feed(data.decode('utf-8'))
+    parser.feed(data.encode('utf-8'))
     parser.close()
 
     # note: keeping track of songs by songid, this might still lead to duplicate downloads,
@@ -592,7 +594,7 @@ def download(song, album, fname="", ):
             #print(e)
             pass
         
-        print("Downloading song {}".format(outname))
+        print("Downloading song {}".format(outname.encode('utf-8')))
         f = outname
         outname = config_DL_Dir + "/%s" %outname
     else:
@@ -991,6 +993,7 @@ def MakeUrlItem(item):
         return ''
 
 def deezerSearch(search, type):
+    search = search.encode('utf-8')
     search = urllib.quote_plus(search)
     resp = requests.get("https://api.deezer.com/search/{}?q={}".format(type,  search))
     return_nice = []
