@@ -78,8 +78,8 @@ except Exception as e:
 pyglet.have_avbin=True
 
 # global variable
-host_stream_cdn = "https://e-cdn-proxy-%s.deezer.com/mobile/1"
-setting_domain_img = "https://cdn-images.deezer.com/images"
+host_stream_cdn = "https://e-cdns-proxy-%s.dzcdn.net/mobile/1"
+setting_domain_img = "https://e-cdns-images.dzcdn.net/images"
 
 
 def enabletor():
