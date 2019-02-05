@@ -78,8 +78,8 @@ except Exception as e:
 pyglet.have_avbin=True
 
 # global variable
-host_stream_cdn = "http://e-cdn-proxy-%s.deezer.com/mobile/1"
-setting_domain_img = "http://cdn-images.deezer.com/images"
+host_stream_cdn = "https://e-cdn-proxy-%s.deezer.com/mobile/1"
+setting_domain_img = "https://cdn-images.deezer.com/images"
 
 
 def enabletor():
@@ -607,6 +607,7 @@ def download(song, album, fname="", ):
 
     try:
         url = (host_stream_cdn + "/%s") % (str( song["MD5_ORIGIN"] )[0],urlkey )
+        print(url)
         fh  = deezer.session.get(url)
 
         with open(outname, "w+b") as fo:
@@ -704,7 +705,7 @@ def scriptDownload(id, fname=None):
 
     act_threads += 1
     progress(completedSongs * 100. / totalSongs, '  DL (total) > ')
-    url = "http://www.deezer.com/track/%s" %id
+    url = "https://www.deezer.com/track/%s" %id
     try:
         song = parse_deezer_page(url).next()
     except:
@@ -793,7 +794,7 @@ Try using the Deezer playlist instead!'''
             return 'NoFile'
     elif int(res) == 1:
         deezerLink = raw_input('What\'s the link/ID to the Deezer playlist? > ')
-        deezerAPILink = 'http://api.deezer.com/playlist/%s' %deezerLink.split('/')[-1]
+        deezerAPILink = 'https://api.deezer.com/playlist/%s' %deezerLink.split('/')[-1]
             #print deezerAPILink
             #link_data_json = urllib2.urlopen(deezerAPILink).read()
         try:
@@ -928,7 +929,7 @@ def download_songs(sPlaylist, url=False):
             songTitle  = song[0]
             artistName = song[1]
 
-            url = 'http://api.deezer.com/search?q=%s%%20%s' %(
+            url = 'https://api.deezer.com/search?q=%s%%20%s' %(
                 MakeUrlItem( songTitle),
                 MakeUrlItem(artistName) )
 
@@ -1019,7 +1020,7 @@ def deezerSearch(search, type):
     'Searches for a song using the Deezer API.'
 
     """
-    query = 'http://api.deezer.com/search?q=%s' %  \
+    query = 'https://api.deezer.com/search?q=%s' %  \
         ( MakeUrlItem( search))
     #print query
     qResultRaw = urllib2.urlopen(
