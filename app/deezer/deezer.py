@@ -1127,6 +1127,7 @@ def sorted_nicely( l ):
     """
     convert = lambda text: int(text) if text.isdigit() else text
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    l = [x for x in l if x]
     return sorted(l, key = alphanum_key)
 
 
@@ -1138,9 +1139,14 @@ def mpd_update(songs, add_to_playlist):
 	c.connect("localhost", 6600)
 	c.update()
 	if add_to_playlist:
+            songs = [s for s in songs if s]
+            while len(c.search("file", song)) == 0:
+                # c.update() does not block wait for it 
+                sleep(1)
             for song in songs:
-		print("Adding {}".format(song))
-	        c.add(song)
+                if song:
+                    print("Adding '{}' to mpd playlist".format(song))
+                    c.add(song)
 
 #songs = [ "deezer/Die Toten Hosen - Wannsee.mp3" ]
 #mpd_update(songs, True)
@@ -1152,6 +1158,7 @@ def my_search():
     results = deezerSearch("greatest hits", 'album')
     for item in results:
         print("   ".join(item.values()))
+
 
 def my_list_album(album_id):
     print("doing my_list_album")
@@ -1185,8 +1192,6 @@ def my_download_from_json_file():
         download(song)
 
 
-
-
 def my_download_album(album_id, update_mpd, add_to_playlist):
     url = "https://www.deezer.com/de/album/{}".format(album_id)
     song_locations = []
@@ -1195,6 +1200,7 @@ def my_download_album(album_id, update_mpd, add_to_playlist):
     if update_mpd:
         mpd_update(set(song_locations), add_to_playlist)
     return sorted_nicely(set(song_locations))
+
 
 def my_download_song(track_id, update_mpd, add_to_playlist):
     url = "https://www.deezer.com/de/track/{}".format(track_id)
