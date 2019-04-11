@@ -78,8 +78,8 @@ except Exception as e:
 pyglet.have_avbin=True
 
 # global variable
-host_stream_cdn = "http://e-cdn-proxy-%s.deezer.com/mobile/1"
-setting_domain_img = "http://cdn-images.deezer.com/images"
+host_stream_cdn = "https://e-cdns-proxy-%s.dzcdn.net/mobile/1"
+setting_domain_img = "https://e-cdns-images.dzcdn.net/images"
 
 
 def enabletor():
@@ -154,15 +154,11 @@ def parse_deezer_page(url):
     """
     extracts download host, and yields any songs found in a page.
     """
-    print(url)
-    #f = urllib2.URlopen(url)
-    #data = f.read()
     data = deezer.session.get(url).text
     if not "MD5_ORIGIN" in data:
         print("We are not logged in")
         deezer.login()
         data = deezer.session.get(url).text
-
 
     parser = ScriptExtractor()
     parser.feed(data.encode('utf-8'))
@@ -174,53 +170,15 @@ def parse_deezer_page(url):
     foundsongs = set()
     for script in parser.scripts:
         
-      # http://e-cdn-proxy-%s.deezer.com/mobile/1/  
-        var = find_re(script, r'var HOST_STREAM_CDN\s*=\s*\'(.*?)\';')
-        if var:
-            global host_stream_cdn
-            host_stream_cdn = var.replace("{0}", "%s")
-
-      # http://cdn-images.deezer.com/images
-        var = find_re(script, r'var SETTING_DOMAIN_IMG\s*=\s*\'(.*?)\';')
-        if var:
-            global setting_domain_img
-            setting_domain_img = var
-     #.*MD5_ORIGIN -> PLAYER_INIT & __DZR_APP_STATE__
-     #.*LABEL_NAME -> __DZR_APP_STATE__ 
-
-        # type: album_page
-        jsondata = find_re(script, r'\{.*LABEL_NAME.*\}')
+        jsondata = find_re(script, r'{"DATA":.*')
         if jsondata:
-            
             DZR_APP_STATE = json.loads( jsondata )
-            
-            global album_Data
-            album_Data = DZR_APP_STATE.get("DATA")
-            
-            # Add num of tracks 
-            try:
-                album_Data["TRACKS"] = DZR_APP_STATE["SONGS"]["total"]
-            except:
-                pass
-            
-            for song in find_songs( DZR_APP_STATE.get("SONGS") ):
-                if song["SNG_ID"] not in foundsongs:
+            if DZR_APP_STATE['DATA']['__TYPE__'] == 'playlist' or DZR_APP_STATE['DATA']['__TYPE__'] == 'album':
+                for song in DZR_APP_STATE['SONGS']['data']:
                     yield song
-                    #foundsongs.add(song["SNG_ID"])
+            elif DZR_APP_STATE['DATA']['__TYPE__'] == 'song':
+                    yield DZR_APP_STATE['DATA']
 
-        # type: track_page
-        jsondata = find_re(script, r'\{.*SNG_ID.*\}')
-        if jsondata:
-            DZR_APP_STATE = json.loads( jsondata )
-            #set_trace()
-            song = DZR_APP_STATE.get('DATA', None)
-            yield song
-#            songs = DZR_APP_STATE.get('DATA', None)
-#            if songs:
-#                for song in songs:
-#                    if song["SNG_ID"] not in foundsongs:
-#                        yield song
-#
 
 
 def md5hex(data):
@@ -607,6 +565,7 @@ def download(song, album, fname="", ):
 
     try:
         url = (host_stream_cdn + "/%s") % (str( song["MD5_ORIGIN"] )[0],urlkey )
+        print(url)
         fh  = deezer.session.get(url)
 
         with open(outname, "w+b") as fo:
@@ -704,7 +663,7 @@ def scriptDownload(id, fname=None):
 
     act_threads += 1
     progress(completedSongs * 100. / totalSongs, '  DL (total) > ')
-    url = "http://www.deezer.com/track/%s" %id
+    url = "https://www.deezer.com/track/%s" %id
     try:
         song = parse_deezer_page(url).next()
     except:
@@ -793,7 +752,7 @@ Try using the Deezer playlist instead!'''
             return 'NoFile'
     elif int(res) == 1:
         deezerLink = raw_input('What\'s the link/ID to the Deezer playlist? > ')
-        deezerAPILink = 'http://api.deezer.com/playlist/%s' %deezerLink.split('/')[-1]
+        deezerAPILink = 'https://api.deezer.com/playlist/%s' %deezerLink.split('/')[-1]
             #print deezerAPILink
             #link_data_json = urllib2.urlopen(deezerAPILink).read()
         try:
@@ -928,7 +887,7 @@ def download_songs(sPlaylist, url=False):
             songTitle  = song[0]
             artistName = song[1]
 
-            url = 'http://api.deezer.com/search?q=%s%%20%s' %(
+            url = 'https://api.deezer.com/search?q=%s%%20%s' %(
                 MakeUrlItem( songTitle),
                 MakeUrlItem(artistName) )
 
@@ -1019,7 +978,7 @@ def deezerSearch(search, type):
     'Searches for a song using the Deezer API.'
 
     """
-    query = 'http://api.deezer.com/search?q=%s' %  \
+    query = 'https://api.deezer.com/search?q=%s' %  \
         ( MakeUrlItem( search))
     #print query
     qResultRaw = urllib2.urlopen(
@@ -1179,10 +1138,11 @@ def my_list_album(album_id):
 
 def my_download_playlist(playlist_id):
     url = "https://www.deezer.com/de/playlist/{}".format(playlist_id)
+    hans =  list(parse_deezer_page(url))
     for i,song in enumerate(parse_deezer_page(url)):
         #print("Downloading {} {}".format(i, song['SNG_TITLE']))
         #set_trace()
-        download(song)
+        download(song, False)
 
 def my_download_from_json_file():
     import json
@@ -1210,16 +1170,9 @@ def my_download_song(track_id, update_mpd, add_to_playlist):
     if update_mpd:
         mpd_update([song_location], add_to_playlist)
 
+
 if __name__ == '__main__':
     pass
-    #print(my_list_album(str("7242092")))
-    #my_download_song(str(14299589))
-    #my_download_album("72251042")
-    
-    
-    #my_download_playlist("4865594344")
-    #my_download_from_json_file()
-    #song = list(parse_deezer_page(results[0]['link']))[0]
-    #song = list(parse_deezer_page("https://www.deezer.com/de/track/3135556"))[0]
-    #download(song)
-    #sys.exit( main() )
+    my_download_song("917265", False, False)
+    my_download_album("72251042", False, False)
+    my_download_playlist("5434472702")

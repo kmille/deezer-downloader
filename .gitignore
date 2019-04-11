@@ -3,3 +3,4 @@ venv
 session.pickle
 downloads
 SMLoadr/
+*.swp
