@@ -1099,9 +1099,10 @@ def mpd_update(songs, add_to_playlist):
 	c.update()
 	if add_to_playlist:
             songs = [s for s in songs if s]
-            while len(c.search("file", song)) == 0:
+            while len(c.search("file", songs[0])) == 0:
                 # c.update() does not block wait for it 
-                sleep(1)
+                print("'{}' not found in the music db. Let's wait a second for it".format(songs[0]))
+                time.sleep(1)
             for song in songs:
                 if song:
                     print("Adding '{}' to mpd playlist".format(song))
@@ -1157,9 +1158,10 @@ def my_download_album(album_id, update_mpd, add_to_playlist):
     song_locations = []
     for song in parse_deezer_page(url):
         song_locations.append(download(song, album=True))
+    songs_locations = sorted_nicely(set(song_locations))
     if update_mpd:
-        mpd_update(set(song_locations), add_to_playlist)
-    return sorted_nicely(set(song_locations))
+        mpd_update(song_locations, add_to_playlist)
+    return song_locations
 
 
 def my_download_song(track_id, update_mpd, add_to_playlist):
