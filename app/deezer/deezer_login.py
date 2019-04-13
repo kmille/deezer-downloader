@@ -36,12 +36,14 @@ class DeezerLogin():
     
     def login(self):
         print("Do the login")
-        data = { 'type':'login',
-                 'mail': email,
-                 'password': password,
-                 'checkFormLogin': self.get_csrf_token()
-                }
-        resp = self.session.post(base % "/ajax/action.php", data=data)
+#        data = { 'type':'login',
+#                 'mail': email,
+#                 'password': password,
+#                 'checkFormLogin': self.get_csrf_token()
+#                }
+#        resp = self.session.post(base % "/ajax/action.php", data=data)
+        self.session.cookies.clear()
+        self.session.cookies.update({'sid': 'fr019cf438642a7378aec18e8d101b92db73cb68', 'comeback':'1'})
         return self.test_login()
 
     def test_login(self):
