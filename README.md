@@ -1,6 +1,41 @@
 # Simple web app writting in flask for downloading songs/albums from deezer.com
 - a valid Deezer login credentials are required (free plan)
 
+Update April 2019:  
+The login is broken as Deezer now uses a Google Captcha for the login. Quick fix: login manually in the browser and copy the cookie:
+Quick fix patch  
+```diff
+diff --git a/app/deezer/deezer_login.py b/app/deezer/deezer_login.py
+index 7e28650..6df65df 100644
+--- a/app/deezer/deezer_login.py
++++ b/app/deezer/deezer_login.py
+@@ -36,12 +36,14 @@ class DeezerLogin():
+     
+     def login(self):
+         print("Do the login")
+-        data = { 'type':'login',
+-                 'mail': email,
+-                 'password': password,
+-                 'checkFormLogin': self.get_csrf_token()
+-                }
+-        resp = self.session.post(base % "/ajax/action.php", data=data)
++#        data = { 'type':'login',
++#                 'mail': email,
++#                 'password': password,
++#                 'checkFormLogin': self.get_csrf_token()
++#                }
++#        resp = self.session.post(base % "/ajax/action.php", data=data)
++        self.session.cookies.clear()
++        self.session.cookies.update({'sid': 'fr019cf438642a7378aec18e8d101b92db73cb68', 'comeback':'1'})
+         return self.test_login()
+ 
+     def test_login(self):
+```
+
+
+
+
+
 # Deployment
 ```
 python2 -m virtualenv venv
