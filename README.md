@@ -1,40 +1,7 @@
 # Simple web app writting in flask for downloading songs/albums from deezer.com
-- a valid Deezer login credentials are required (free plan)
-
-Update April 2019:  
-The login is broken as Deezer now uses a Google Captcha for the login. Quick fix: login manually in the browser and copy the cookie:
-Quick fix patch  
-```diff
-diff --git a/app/deezer/deezer_login.py b/app/deezer/deezer_login.py
-index 7e28650..6df65df 100644
---- a/app/deezer/deezer_login.py
-+++ b/app/deezer/deezer_login.py
-@@ -36,12 +36,14 @@ class DeezerLogin():
-     
-     def login(self):
-         print("Do the login")
--        data = { 'type':'login',
--                 'mail': email,
--                 'password': password,
--                 'checkFormLogin': self.get_csrf_token()
--                }
--        resp = self.session.post(base % "/ajax/action.php", data=data)
-+#        data = { 'type':'login',
-+#                 'mail': email,
-+#                 'password': password,
-+#                 'checkFormLogin': self.get_csrf_token()
-+#                }
-+#        resp = self.session.post(base % "/ajax/action.php", data=data)
-+        self.session.cookies.clear()
-+        self.session.cookies.update({'sid': 'fr019cf438642a7378aec18e8d101b92db73cb68', 'comeback':'1'})
-         return self.test_login()
- 
-     def test_login(self):
-```
-
-
-
-
+- a Deezer account is required (free plan)
+- earlier versions of this tool logged in manually and dumped the session
+- after Deezer now uses a captcha during the login: login manually in the browser and get the sid cookie
 
 # Deployment
 ```
@@ -42,8 +9,20 @@ python2 -m virtualenv venv
 source venv/bin/activate
 pip install -r requirements.txt
 cd app
-insert your deezer credentials to app/credentials.py
+insert your sid cookie value to to app/credentials.py
 python app.py
+
+
+# Add systemd timer which regularly sends a request to deezer 
+# the backend will extend our session
+cd systemd/
+cp deezer-stay-loggedin.service /etc/systemd/system
+cp deezer-stay-loggedin.timer /etc/systemd/system
+systemctl daemon-reload
+systemctl enable deezer-stay-loggedin.timer
+systemctl start deezer-stay-loggedin.timer
+systemctl list-timers | grep deezer
+
 ```
 
 # Usage
