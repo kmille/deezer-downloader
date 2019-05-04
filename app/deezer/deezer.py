@@ -156,9 +156,7 @@ def parse_deezer_page(url):
     """
     data = deezer.session.get(url).text
     if not "MD5_ORIGIN" in data:
-        print("We are not logged in")
-        deezer.login()
-        data = deezer.session.get(url).text
+        raise Exception("We are not logged in.")
 
     parser = ScriptExtractor()
     parser.feed(data.encode('utf-8'))
@@ -1175,6 +1173,6 @@ def my_download_song(track_id, update_mpd, add_to_playlist):
 
 if __name__ == '__main__':
     pass
-    my_download_song("917265", False, False)
-    my_download_album("72251042", False, False)
-    my_download_playlist("5434472702")
+    #my_download_song("917265", False, False)
+    #my_download_album("72251042", False, False)
+    #my_download_playlist("5434472702")

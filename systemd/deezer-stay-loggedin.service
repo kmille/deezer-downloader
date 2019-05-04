@@ -1,0 +1,14 @@
+[Unit]
+Description = Test Deezer login and let the session not run out by sending a request regularly
+After = network.target
+
+[Service]
+User = deezer
+Group = deezer
+WorkingDirectory = /opt/deezer/app
+ExecStart = /opt/deezer/venv/bin/python test_login
+
+[Install]
+WantedBy = multi-user.target
+
+

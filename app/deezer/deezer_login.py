@@ -1,10 +1,10 @@
+import sys
 import requests
 from ipdb import set_trace
 import os.path
 import pickle
-from credentials import email, password
+from credentials import sid
 
-pickle_file = "session.pickle"
 base = "https://www.deezer.com%s"
 header = {
     'Pragma': 'no-cache' ,
@@ -26,36 +26,22 @@ class DeezerLogin():
     def __init__(self):
         self.session = requests.session()
         self.session.headers.update(header)
-        if os.path.exists(pickle_file):
-            self.session.cookies = pickle.load(open(pickle_file))
-
-    def get_csrf_token(self):
-        self.session.get(base % "/login")
-        resp = self.session.post(base % "/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token=&cid=")
-        return resp.json()['results']['checkFormLogin']
-    
-    def login(self):
-        print("Do the login")
-#        data = { 'type':'login',
-#                 'mail': email,
-#                 'password': password,
-#                 'checkFormLogin': self.get_csrf_token()
-#                }
-#        resp = self.session.post(base % "/ajax/action.php", data=data)
-        self.session.cookies.clear()
-        self.session.cookies.update({'sid': 'fr019cf438642a7378aec18e8d101b92db73cb68', 'comeback':'1'})
-        return self.test_login()
+        self.session.cookies.update({'sid': sid, 'comeback':'1'})
 
     def test_login(self):
+        # sid cookie has no expire date. Session will be extended on the server side
+        # so we will just send a request regularly to not get logged out
         resp = self.session.get(base % "/us/artist/542")
         login_successfull =  "MD5_ORIGIN" in resp.text
         if login_successfull:
-            #print("Dumping cookies for later use")
-            pickle.dump(self.session.cookies, open(pickle_file, "wb"))
+            print("Login is still working.")
         else:
-            print("Login was not successfull")
-        return login_successfull
+            print("Login is not working anymore.")
+        return not login_successfull
 
     
 if __name__ == '__main__':
-    DeezerLogin()
+    if len(sys.argv) > 1 and sys.argv[1] == "test_login":
+        sys.exit(DeezerLogin().test_login())
+    else:
+        DeezerLogin()
