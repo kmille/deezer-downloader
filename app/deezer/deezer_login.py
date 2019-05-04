@@ -3,6 +3,7 @@ import requests
 from ipdb import set_trace
 import os.path
 import pickle
+sys.path.append("..")
 from credentials import sid
 
 base = "https://www.deezer.com%s"
