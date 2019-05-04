@@ -5,8 +5,8 @@ After = network.target
 [Service]
 User = deezer
 Group = deezer
-WorkingDirectory = /opt/deezer/app
-ExecStart = /opt/deezer/venv/bin/python test_login
+WorkingDirectory = /home/deezer/deezer-downloader/app
+ExecStart = /home/deezer/deezer-downloader/venv/bin/python deezer/deezer_login.py test_login
 
 [Install]
 WantedBy = multi-user.target
