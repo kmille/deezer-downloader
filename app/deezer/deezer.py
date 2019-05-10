@@ -563,7 +563,6 @@ def sorted_nicely( l ):
     return sorted(l, key = alphanum_key)
 
 
-import mpd
 
 def mpd_update(songs, add_to_playlist):
         print("Updating mpd")
@@ -581,16 +580,6 @@ def mpd_update(songs, add_to_playlist):
                     print("Adding '{}' to mpd playlist".format(song))
                     c.add(song)
 
-#songs = [ "deezer/Die Toten Hosen - Wannsee.mp3" ]
-#mpd_update(songs, True)
-
-def my_search():
-    results = deezerSearch("coldplay", 'track')
-    for item in results:
-        print("   ".join(item.values()))
-    results = deezerSearch("greatest hits", 'album')
-    for item in results:
-        print("   ".join(item.values()))
 
 def my_list_album(album_id):
     songs = list(parse_deezer_page("album", album_id))
@@ -615,9 +604,8 @@ def my_download_from_json_file():
 
 
 def my_download_album(album_id, update_mpd, add_to_playlist):
-    url = "https://www.deezer.com/de/album/{}".format(album_id)
     song_locations = []
-    for song in parse_deezer_page(url):
+    for song in parse_deezer_page("album", album_id):
         song_locations.append(download(song, album=True))
     songs_locations = sorted_nicely(set(song_locations))
     if update_mpd:
@@ -626,15 +614,13 @@ def my_download_album(album_id, update_mpd, add_to_playlist):
 
 
 def my_download_song(track_id, update_mpd, add_to_playlist):
-    url = "https://www.deezer.com/de/track/{}".format(track_id)
-    song = list(parse_deezer_page(url))[0]
-    print("Downloading song {}".format(track_id))
+    song = list(parse_deezer_page("track", track_id))[0]
     song_location = download(song, album=False)
     if update_mpd:
         mpd_update([song_location], add_to_playlist)
 
 
 if __name__ == '__main__':
-    my_download_song("917265")
+    my_download_song("2271563", True, True)
     my_download_album("93769922", create_zip=True)
-    #my_download_playlist("5434472702")
+    pass
