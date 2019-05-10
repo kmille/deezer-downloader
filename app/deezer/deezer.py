@@ -613,7 +613,7 @@ def my_download_album(album_id, update_mpd, add_to_playlist):
     return song_locations
 
 
-def my_download_song(track_id, update_mpd, add_to_playlist):
+def my_download_song(track_id, update_mpd=True, add_to_playlist=False):
     song = list(parse_deezer_page("track", track_id))[0]
     song_location = download(song, album=False)
     if update_mpd:
