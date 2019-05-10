@@ -32,8 +32,18 @@ class DeezerLogin():
     def test_login(self):
         # sid cookie has no expire date. Session will be extended on the server side
         # so we will just send a request regularly to not get logged out
-        resp = self.session.get(base % "/us/artist/542")
-        login_successfull =  "MD5_ORIGIN" in resp.text
+        sys.path.append("..")
+        from deezer import my_download_song
+        
+        login_successfull = True
+        try:
+            my_download_song("917265")
+        except Exception as e:
+            if e.args[0] == 'We are not logged in.':
+                login_successfull = False
+            else:
+                raise Exception("Error during my_download_song. {}".format(e))
+
         if login_successfull:
             print("Login is still working.")
         else:
