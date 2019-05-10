@@ -2,14 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import sys
+sys.path.append("deezer")
 import os
 import time
 from functools import wraps
 from threading import Thread
 
 from flask import Flask, render_template, request, jsonify
-from deezer.deezer import deezerSearch, my_list_album, my_download_song, my_download_album 
 from settings import update_mpd
+from deezer import deezerSearch, my_list_album, my_download_song, my_download_album 
 
 from ipdb import set_trace
 
