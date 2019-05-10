@@ -4,3 +4,4 @@ session.pickle
 downloads
 SMLoadr/
 *.swp
+credentials.py
