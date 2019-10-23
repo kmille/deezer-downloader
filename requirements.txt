@@ -15,6 +15,7 @@ idna==2.7
 ipdb==0.11
 ipython==5.8.0
 ipython-genutils==0.2.0
+itsdangerous==1.1.0
 Jinja2==2.10
 MarkupSafe==1.0
 mutagen==1.41.1
@@ -30,9 +31,11 @@ python-dateutil==2.7.3
 python-mpd2==1.0.0
 requests==2.20.0
 scandir==1.9.0
+shellescape==3.4.1
 simplegeneric==0.8.1
 six==1.11.0
 traitlets==4.3.2
 urllib3==1.24
 wcwidth==0.1.7
 Werkzeug==0.14.1
+youtube-dl==2019.10.22

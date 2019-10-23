@@ -565,16 +565,21 @@ def sorted_nicely( l ):
 
 
 def mpd_update(songs, add_to_playlist):
+        trys = 0
         print("Updating mpd")
-	c = mpd.MPDClient(use_unicode=True)
-	c.connect("localhost", 6600)
-	c.update()
-	if add_to_playlist:
+        c = mpd.MPDClient(use_unicode=True)
+        c.connect("localhost", 6600)
+        c.update()
+        if add_to_playlist:
             songs = [s for s in songs if s]
             while len(c.search("file", songs[0])) == 0:
+                if trys == 15:
+                    print("OK we waited {} times. We will stop here".format(trys))
+                    return
                 # c.update() does not block wait for it 
                 print("'{}' not found in the music db. Let's wait a second for it".format(songs[0]))
                 time.sleep(1)
+                trys += 1
             for song in songs:
                 if song:
                     print("Adding '{}' to mpd playlist".format(song))

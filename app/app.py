@@ -11,6 +11,7 @@ from threading import Thread
 from flask import Flask, render_template, request, jsonify
 from settings import update_mpd
 from deezer import deezerSearch, my_list_album, my_download_song, my_download_album 
+from youtube import youtubedl_download
 
 from ipdb import set_trace
 
@@ -32,10 +33,13 @@ def validate_schema(*parameters_to_check):
                     return jsonify({"Error": "music_id must be a digit"}),400
             if "add" in j.keys():
                 if not isinstance(j['add'], bool):
-                    return jsonify({"Error": "all must be a boolean"}),400
+                    return jsonify({"Error": "add must be a boolean"}),400
             if "query" in j.keys():
                 if j['query'] == "":
                     return jsonify({"Error": "query is empty"}),400
+            if "url" in j.keys():
+                if (type(j['url']) != unicode) or (not j['url'].startswith("http")):
+                    return jsonify({"Error": "url is not a url"}),400
             return f(*args, **kw)
         return wrapper
     return decorator
@@ -82,10 +86,23 @@ def download():
         add: true|false (add to mpd playlist)
     """
     add, music_id, type = request.get_json(force=True).values()
-    if type == "track":
-        t = Thread(target=my_download_song, args=(music_id, update_mpd, add))
-    else:
-        t = Thread(target=my_download_album, args=(music_id, update_mpd, add))
+    target = my_download_song if type == "track" else my_download_album
+    t = Thread(target=target, args=(music_id, update_mpd, add))
+    t.start()
+    return jsonify({"state": "have fun"})
+
+
+@app.route('/api/v1/youtube-dl/download', methods=['POST'])
+@validate_schema("url", "add")
+def download_youtubedl():
+    """
+    downloads music from with youtube-dl
+    para:
+        url: url that goes into youtube-dl
+        add: true|false (add to mpd playlist)
+    """
+    url, add = request.get_json(force=True).values()
+    t = Thread(target=youtubedl_download, args=(url, add))
     t.start()
     return jsonify({"state": "have fun"})
 
@@ -99,6 +116,11 @@ def serve_static(filename):
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/youtube-dl")
+def show_youtube():
+    return render_template("youtube.html")
 
 
 if __name__ == '__main__':
