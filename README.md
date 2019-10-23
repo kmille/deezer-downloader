@@ -2,6 +2,8 @@
 - a Deezer account is required (free plan)
 - earlier versions of this tool logged in manually and dumped the session
 - after Deezer now uses a captcha during the login: login manually in the browser and get the sid cookie
+- master branch: connect to mpd and add song/album to queue
+- download_as_zip brach: just download a song oder download an album and zip ist
 
 # Deployment
 ```
@@ -9,12 +11,13 @@ python2 -m virtualenv venv
 source venv/bin/activate
 pip install -r requirements.txt
 cd app
-insert your sid cookie value to to app/credentials.py
+insert your sid cookie value to to app/credentials.py (login via Browser and take the sid cookie; begins with fr...)
 python app.py
 
 
 # Add systemd timer which regularly sends a request to deezer 
-# the backend will extend our session
+# if not: the cookie will expire and we are logged automatically 
+# earlier version logged in but Deezer now uses a Captcha for the login
 cd systemd/
 cp deezer-stay-loggedin.service /etc/systemd/system
 cp deezer-stay-loggedin.timer /etc/systemd/system
