@@ -1,4 +1,5 @@
 arrow==0.12.1
+bs4=0.0.1
 backports.functools-lru-cache==1.5
 backports.shutil-get-terminal-size==1.0.0
 certifi==2018.10.15
