@@ -31,6 +31,17 @@ systemctl list-timers | grep deezer
 # Usage
 You can specify the download dir in the settings.py (download_dir). Pressing the download button only downloads the song/album. If you set update_mpd=True in the settings.py the backend will connect to mpd (localhost:6600) and update the music database. Pressing the play button will download the music. If update_mpd=True the mpd database will be updated and the song/album will be added to the playlist. In settings.py music_dir should be the root of the music for mpd. The download_dir is a directory in the music_dir. Both directories should not end with a trailing slash.
 
+# Spotify 
+To Download Spotify Playlist, follow all steps above, then edit app/deezer/spotify.py. 
+in there paste the playlist ID in the 
+playlist = ".." 
+field. You can get it from sharing the playlist/coping playlist link:
+```
+https://open.spotify.com/user/yourusername/playlist/6eiS5fdsjffjkfjsQX0IPxea?si=ZZhC2_sdfnFJ2IQtsem_rw
+```
+There just copy the ID (beginning after playlist/, ending with the ?, so in this chase 6eiS5fdsjffjkfjsQX0IPxea. 
+Then running spotiy.py will download all songs in your music folder.
+
 # Shortcuts
 ctrl-m: focus search bar  
 Enter: serach for songs  
@@ -45,3 +56,7 @@ https://github.com/kmille/music-ansible
 
 # Screenshot
 ![Alt text](https://image.ibb.co/cjBC30/screen.png "KISS")
+
+TODO 
+- [] Better spotify support :)
+- [] Spotify Download frontend
