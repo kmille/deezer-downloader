@@ -46,5 +46,5 @@ playlist = "0wl9Q3oedquNlBAJ4MGZtS?si=jmdvnQSyRYCxDTWzrZARJg"
 songs = parse_spotify_playlist(playlist)
 for song in songs:
     print(song)
-    #download_fqdn_song(song, False, False)
+    download_fqdn_song(song, False, False)
     #todo: put everything in a dedicated folder
