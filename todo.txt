@@ -1,0 +1,42 @@
+aktueller Stand:
+läuft soweit mit python3. Schmeißt beim Downloaden eines Songs keinen Fehler. Der Song kann aber nicht abgespielt werden in vlc => beim decrypten läuft wohl noch was falsch mit bytes/Strings
+
+urgs todo:
+Suche => User Agent
+app.py .values() beim user input => explizit machen
+
+
+
+[] auf python3 umstellen
+    - [] fix: FileNameClean
+    - [] fix: calcbfkey durcheinander
+[] Routing
+    - [] flask
+    - [] javascript
+[] Idee für ein Frontend
+    - [] mal weg von JQuery
+    - [] Design?
+[] gescheites Frontent
+[] Doku schreiben
+
+
+
+
+whish whish
+- flake8
+- flaq
+- raise Exception("we are not logged in") => unsauber
+
+
+
+
+
+
+
+
+improvements: 
+unten shortcuts raus => gehen eh nicht
+template umbenenen -dl noch mit rein
+print stdout und stderr
+
+

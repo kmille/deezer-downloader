@@ -52,8 +52,8 @@ def search():
     return:
         [ { artist, music_id, (title|album) } ]
     """
-    query, type = request.get_json(force=True).values()
-    results = deezerSearch(query, type)
+    user_input = request.get_json(force=True)
+    results = deezerSearch(user_input['query'], user_input['type'])
     return jsonify(results)
 
 
@@ -81,11 +81,12 @@ def download():
         music_id: id of the album or track
         add: true|false (add to mpd playlist)
     """
-    add, music_id, type = request.get_json(force=True).values()
-    if type == "track":
-        t = Thread(target=my_download_song, args=(music_id, update_mpd, add))
+    user_input = request.get_json(force=True)
+    args = (user_input['music_id'], update_mpd, user_input['add'])
+    if user_input['type'] == "track":
+        t = Thread(target=my_download_song, args=args)
     else:
-        t = Thread(target=my_download_album, args=(music_id, update_mpd, add))
+        t = Thread(target=my_download_album, args=args)
     t.start()
     return jsonify({"state": "have fun"})
 
