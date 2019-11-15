@@ -6,6 +6,9 @@ Suche => User Agent
 app.py .values() beim user input => explizit machen
 
 
+- rewrite: 
+    - login (eigens file gerade)
+    - kann man diesen md5 hash nicht pre computen? dann kann man sich den login sparen
 
 [] auf python3 umstellen
     - [] fix: FileNameClean
@@ -18,6 +21,7 @@ app.py .values() beim user input => explizit machen
     - [] Design?
 [] gescheites Frontent
 [] Doku schreiben
+    - Verzeichnis: trailing slash
 
 
 
@@ -26,6 +30,7 @@ whish whish
 - flake8
 - flaq
 - raise Exception("we are not logged in") => unsauber
+
 
 
 

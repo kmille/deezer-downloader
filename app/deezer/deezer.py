@@ -134,12 +134,12 @@ def parse_songs_from_website(search_type, id):
     extracts download host, and yields any songs found in a page.
     """
     url = "https://www.deezer.com/de/{}/{}".format(search_type, id)
-    data = deezer.session.get(url).text
-    if "MD5_ORIGIN" not in data:
+    resp = deezer.session.get(url)
+    if "MD5_ORIGIN" not in resp.text:
         raise Exception("We are not logged in.")
 
     parser = ScriptExtractor()
-    parser.feed(data)
+    parser.feed(resp.text)
     parser.close()
 
     for script in parser.scripts:
@@ -204,10 +204,10 @@ def calcbfkey(songid):
 
 def blowfishDecrypt(data, key):
     """ CBC decrypt data with key """
-    c = Blowfish.new( key , 
-                      Blowfish.MODE_CBC, 
-                      a2b_hex( "0001020304050607" )
-                      )
+    c = Blowfish.new(key,
+                     Blowfish.MODE_CBC, 
+                     a2b_hex("0001020304050607")
+                     )
     return c.decrypt(data)
 
 
@@ -217,21 +217,20 @@ def decryptfile(fh, key, fo):
     decrypt using blowfish with <key>.
     Only every third 2048 byte block is encrypted.
     """
-    blockSize = 0x800 #2048 byte
+    blockSize = 0x800  #2048 byte
     i = 0
-    
-    #while True:
+
     for data in fh.iter_content(blockSize):
         #data = fh.read( blockSize )
         if not data:
             break
 
-        isEncrypted  = ( (i % 3) == 0 )
+        isEncrypted = ((i % 3) == 0)
         isWholeBlock = len(data) == blockSize
-        
+
         if isEncrypted and isWholeBlock:
             data = blowfishDecrypt(data, key)
-            
+
         fo.write(data)
         i += 1
 
@@ -309,7 +308,7 @@ def downloadpicture(id):
         return fh.read()
     
     except Exception as e:
-        print( "no pic", e)
+        print("no pic", e)
     
 
 def writeid3v2(fo, song):
@@ -469,10 +468,6 @@ def download(song, album, fname="", ):
     urlkey = genurlkey(song["SNG_ID"], song["MD5_ORIGIN"], song["MEDIA_VERSION"], getformat(song))
     key = calcbfkey(song["SNG_ID"])
 
-    tracknum = ("%02i" % int(song["TRACK_NUMBER"])) \
-                 if "TRACK_NUMBER" in song \
-                 else ""
-
     for i in ("ART_NAME", "ALB_TITLE", "SNG_TITLE", "SNG_ID"):
         try:
             exec("%s = str(song[\"%s\"])" %(i, i))
@@ -496,7 +491,7 @@ def download(song, album, fname="", ):
             #print(e)
             pass
         
-        print("Downloading song '{}'".format(outname.encode('utf-8')))
+        print("Downloading song '{}'".format(outname))
         f = outname
         outname = config_DL_Dir + "/%s" %outname
     else:
@@ -505,42 +500,41 @@ def download(song, album, fname="", ):
     # wont work with time stamp in filename...
     if os.path.exists(os.path.join(config_DL_Dir, outname)):
         print("File {} already there. skipping".format(basename(outname)))
-        return os.path.join(download_dir[len(music_dir) + 1 :] ,f)
+        return os.path.join(download_dir[len(music_dir) + 1:], f)
 
     try:
-        url = (host_stream_cdn + "/%s") % (str( song["MD5_ORIGIN"] )[0],urlkey )
-        # print(url)
-        fh  = deezer.session.get(url)
+        url = (host_stream_cdn + "/%s") % (song["MD5_ORIGIN"][0], urlkey.decode())
+        print(url)
+        fh = deezer.session.get(url)
+        assert fh.status_code == 200
 
         with open(outname, "w+b") as fo:
-          # add songcover and DL first 30 sec's that are unencrypted             
-            writeid3v2 ( fo, song)
-            decryptfile( fh, key, fo)
-            writeid3v1_1 ( fo, song)
-            
-        ##############################################
-        toWS = MP3( outname , ID3 = ID3)
-        
-        try: 
-            toWS.add_tags()
-        except: pass
-    
-        toWS.tags.add(
-            APIC(
-                encoding = 3,        # 3 is for utf-8
-                mime = 'image/jpeg', # image/jpeg or image/png
-                type = 3,            # 3 is for the cover image
-                desc = u'Cover',
-                data = downloadpicture( song["ALB_PICTURE"] )
-            )
-        )
-        toWS.save( v2_version = 3 )
-            
+            # add songcover and DL first 30 sec's that are unencrypted             
+            writeid3v2(fo, song)
+            decryptfile(fh, key, fo)
+            writeid3v1_1(fo, song)
+
+#        toWS = MP3(outname, ID3=ID3)
+#        try:
+#            toWS.add_tags()
+#        except:
+#            pass
+#
+#        toWS.tags.add(
+#            APIC(
+#                encoding=3,         # 3 is for utf-8
+#                mime='image/jpeg',  # image/jpeg or image/png
+#                type=3,             # 3 is for the cover image
+#                desc=u'Cover',
+#                data=downloadpicture(song["ALB_PICTURE"])
+#            )
+#        )
+#        toWS.save(v2_version=3)
 
     except IOError as e:
-        print( "IO_ERROR: %s" % (e))
-        raise        
-        
+        print("IO_ERROR: %s" % (e))
+        raise       
+
     except Exception as e:
         print( "ERROR downloading from %s: %s" % (host_stream_cdn, e))
         raise
