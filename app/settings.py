@@ -1,5 +1,18 @@
 from credentials import sid
-music_dir = "/tmp/music"
-download_dir = "/tmp/music/deezer"
-update_mpd = False
 
+use_mpd = False
+mpd_host = "localhost"
+mpd_port = 6600
+
+behind_reverse_proxy = False
+reverse_proxy_path = "/foo"
+
+
+mpd_music_dir_root = "/tmp/music"
+# TODO: docs: for songs and albums
+deezer_download_dir = "/tmp/music/deezer" 
+download_dir_zips = "/tmp/music/deezer/zips"
+spotify_download_dir_playlists = "/tmp/music/deezer/spotify-playlists"
+youtubedl_download_dir = "/tmp/music/deezer/youtube-dl"
+
+deezer_download_dir_playlists = "/tmp/music/deezer/deezer-playlists"

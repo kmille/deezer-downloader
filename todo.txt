@@ -1,47 +1,60 @@
-aktueller Stand:
-läuft soweit mit python3. Schmeißt beim Downloaden eines Songs keinen Fehler. Der Song kann aber nicht abgespielt werden in vlc => beim decrypten läuft wohl noch was falsch mit bytes/Strings
+im Backend ist jetzt alles drin außer deezer-playlists
+next steps:
+- m3u8 File Für spotify Playlist
+- beim starten checken ob die Ordner alle existieren
+- Suche mal testen
+- app.py neue backends definieren
+
 
 urgs todo:
-Suche => User Agent
+[X] Suche => User Agent
 app.py .values() beim user input => explizit machen
+[] beim starten checken ob alle Verzeichnisse da sind
+[] Ordnestruktur für den source code überdenken
 
 
 - rewrite: 
-    - login (eigens file gerade)
-    - kann man diesen md5 hash nicht pre computen? dann kann man sich den login sparen
+    [X] login (eigenes file gerade)
+        [] Test ob man eingeloggt ist kann man noch schöner machen
+    - zu den hässlichsten Funktionen gehören:
+        - writeid3v1_1
+        - writeid3v2
 
+[] requirements.txt aktualisieren
 [] auf python3 umstellen
     - [] fix: FileNameClean
-    - [] fix: calcbfkey durcheinander
+    - [X] fix: calcbfkey durcheinander
 [] Routing
-    - [] flask
+    - [X] flask
     - [] javascript
 [] Idee für ein Frontend
     - [] mal weg von JQuery
     - [] Design?
-[] gescheites Frontent
 [] Doku schreiben
     - Verzeichnis: trailing slash
+    - Changelog
 
-
+Problem bei der Playlist: muss da alles holen (Javascript nachladen)
+Playlist => mpd m3u file geben?
 
 
 whish whish
 - flake8
-- flaq
+- flac
 - raise Exception("we are not logged in") => unsauber
+- durch n Proxy jagen
+- kann man diesen md5 hash nicht pre computen? dann kann man sich den login sparen
+- mpd update auf Unterordner beschränken?
+- tests für die einzelnen Funktionen
 
 
 
 
 
-
-
-
-
-improvements: 
-unten shortcuts raus => gehen eh nicht
-template umbenenen -dl noch mit rein
-print stdout und stderr
+Design für Youtube-DL:
+- improvements: 
+- unten shortcuts raus => gehen eh nicht
+- template umbenenen -dl noch mit rein
+- print stdout und stderr
 
 
