@@ -1,15 +1,19 @@
-im Backend ist jetzt alles drin außer deezer-playlists
-next steps:
-- m3u8 File Für spotify Playlist
-- beim starten checken ob die Ordner alle existieren
-- Suche mal testen
-- app.py neue backends definieren
+Stand:
+- check of file existiert nicht (wird nur festgestellt und geprintet)
+- mpd-Anbindung funktioniert nicht
+- icon für zip file download
+- qualität muss man noch anpassen für deezer
+- browser -> click -> message muss kommen
+- Album runterladne -> Name ist nur Name des Albums. da fehlt der Interpret
+
+
+nochn paar coole Icons?
 
 
 urgs todo:
 [X] Suche => User Agent
 app.py .values() beim user input => explizit machen
-[] beim starten checken ob alle Verzeichnisse da sind
+[X] beim starten checken ob alle Verzeichnisse da sind
 [] Ordnestruktur für den source code überdenken
 
 

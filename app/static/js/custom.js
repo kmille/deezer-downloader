@@ -1,64 +1,158 @@
-$(document).ready(function() {
 
-    function search_track() {
+function deezer_download(music_id, type, add_to_playlist, create_zip) {
+    $.post('/api/v1/deezer/download', 
+        JSON.stringify({ type: type, music_id: parseInt(music_id), add_to_playlist: add_to_playlist, create_zip: create_zip}),
+        function(data) {
+            if(create_zip == true) {
+                text = "You will get a zip file";
+            }
+            else if(type == "album") {
+                if(add_to_playlist == true) {
+                    text = "Good choice! The album will be downloaded and queued to the playlist";
+                } else {
+                    text = "Good choice! The album will be downloaded.";
+                }
+            } else {
+                if(add_to_playlist == true) {
+                    text = "Good choice! The song will be downloaded and queued to the playlist";
+                } else {
+                    text = "Good choice! The song will be downloaded.";
+                }
+            }
+            // TODO
+            //$.jGrowl(text, { life: 4000 });
+    });
+}
+
+
+
+
+$(document).ready(function() {
+        
+
+    function youtubedl_download(add_to_playlist) {
+        $.post('/api/v1/youtubedl', 
+            JSON.stringify({ url: $('#youtubedl-query').val(), add_to_playlist: add_to_playlist }),
+            function(data) {
+                console.log(data);
+            });
+    }
+    
+    
+    function spotify_playlist_download(add_to_playlist, create_zip) {
+        $.post('/api/v1/spotify', 
+            JSON.stringify({ playlist_name: $('#spotify-playlistname').val(), 
+                             playlist_url: $('#spotify-playlist-url').val(),
+                             add_to_playlist: add_to_playlist,
+                             create_zip: create_zip}),
+            function(data) {
+                console.log(data);
+            });
+    }
+    
+
+    function search(type) {
         $.post('/api/v1/deezer/search', 
-            JSON.stringify({ type: "track", query: $('#query').val() }),
+            JSON.stringify({ type: type, query: $('#deezer-query').val() }),
             function(data) {
                 $("#results > tbody").html("");
                 for (var i = 0; i < data.length; i++) {
-                    drawTableEntry(data[i], "track");
+                    drawTableEntry(data[i], type);
                 }
         });
     }
 
-    function search_album() {
-        $.post('/api/v1/deezer/search', 
-            JSON.stringify({ type: "album", query: $('#query').val() }),
-            function(data) {
-                $("#results > tbody").html("");
-                for (var i = 0; i < data.length; i++) {
-                    drawTableEntry(data[i], "album");
-                }
+
+        function drawTableEntry(rowData, mtype) {
+            var row = $("<tr>")
+            console.log(rowData);
+            $("#results").append(row); 
+            row.append($("<td>" + rowData.artist + "</td>"));
+            row.append($("<td>" + rowData.title + "</td>"));
+            row.append($("<td>" + rowData.album + "</td>"));
+            row.append($('<td> <button class="btn btn-default" onclick="deezer_download(\'' +
+                         rowData.id  + '\', \''+ mtype +
+                         '\', true, false);" > <i class="fa fa-play-circle" title="download and queue to mpd" ></i> </button> </td>'));
+
+            row.append($('<td> <button class="btn btn-default" onclick="deezer_download(\'' +
+                       rowData.id  + '\', \''+ mtype + 
+                       '\', false, false);" > <i class="fa fa-download" title="download" ></i> </button> </td>'));
+
+            if(mtype == "album") {
+                row.append($('<td> <button class="btn btn-default" onclick="deezer_download(\'' +
+                           rowData.id  + '\', \''+ mtype + 
+                           '\', false, true);" > <i class="fa fa-download" title="give me a zip file" ></i> </button> </td>'));
+            }
+        }
+
+    function show_debug_log() {
+        $.get('/debug', function(data) {
+            $("#ta-debug-log").val(data.debug_msg);
         });
     }
 
     $("#search_track").click(function() {
-        search_track();
+        search("track");
     });
 
     $("#search_album").click(function() {
-        search_album();
+        search("album");
+    });
+    
+    $("#yt_download").click(function() {
+        youtubedl_download(false);
+    });
+    
+    $("#yt_download_play").click(function() {
+        youtubedl_download(true);
+    });
+    
+    $("#btn-show-debug").click(function() {
+        show_debug_log();
+    });
+    
+    $("#spotify_download_play").click(function() {
+        spotify_playlist_download(true, false);
     });
 
+    $("#spotify_download").click(function() {
+        spotify_playlist_download(false, false);
+    });
 
+    $("#spotify_zip").click(function() {
+        spotify_playlist_download(false, true);
+    });
+
+    /*
+    var bbody = document.getElementById('body');
+    bbody.onkeydown = function (event) {
+        if (event.key !== undefined) {
+           if (event.key === 'Enter' && event.altKey) {
+             $.post('/api/v1/deezer/search', 
+                JSON.stringify({ type: "album", query: $('#query').val() }),
+                function(data) {
+                    $("#results > tbody").html("");
+                    for (var i = 0; i < data.length; i++) {
+                        drawTableEntry(data[i], "album");
+                    }
+             });
+           }  else if (event.key === 'Enter' ) {
+              $.post('/api/v1/deezer/search', 
+                  JSON.stringify({ type: "track", query: $('#query').val() }),
+                  function(data) {
+                      $("#results > tbody").html("");
+                      for (var i = 0; i < data.length; i++) {
+                          drawTableEntry(data[i], "track");
+                      }
+              });
+           } else if (event.key === 'm' && event.ctrlKey) {
+              $("#query").val("");
+              $("#query").focus();
+           } else if (event.key === 'b' && event.ctrlKey) {
+              window.location = "/";
+           }
+        }
+            
+    };
+    */
 });
-
-var bbody = document.getElementById('body');
-bbody.onkeydown = function (event) {
-    if (event.key !== undefined) {
-       if (event.key === 'Enter' && event.altKey) {
-         $.post('/api/v1/deezer/search', 
-            JSON.stringify({ type: "album", query: $('#query').val() }),
-            function(data) {
-                $("#results > tbody").html("");
-                for (var i = 0; i < data.length; i++) {
-                    drawTableEntry(data[i], "album");
-                }
-         });
-       }  else if (event.key === 'Enter' ) {
-          $.post('/api/v1/deezer/search', 
-              JSON.stringify({ type: "track", query: $('#query').val() }),
-              function(data) {
-                  $("#results > tbody").html("");
-                  for (var i = 0; i < data.length; i++) {
-                      drawTableEntry(data[i], "track");
-                  }
-          });
-       } else if (event.key === 'm' && event.ctrlKey) {
-          $("#query").val("");
-          $("#query").focus();
-       } else if (event.key === 'b' && event.ctrlKey) {
-          window.location = "/";
-       }
-    }
-};

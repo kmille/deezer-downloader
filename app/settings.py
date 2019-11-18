@@ -1,6 +1,6 @@
 from credentials import sid
 
-use_mpd = False
+use_mpd = True
 mpd_host = "localhost"
 mpd_port = 6600
 
@@ -16,3 +16,5 @@ spotify_download_dir_playlists = "/tmp/music/deezer/spotify-playlists"
 youtubedl_download_dir = "/tmp/music/deezer/youtube-dl"
 
 deezer_download_dir_playlists = "/tmp/music/deezer/deezer-playlists"
+
+debug_command = "journalctl -u wpa_supplicant@wlp3s0.service --output=cat -n 50"

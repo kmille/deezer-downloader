@@ -1,20 +1,11 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-import sys
-#reload(sys)
-#sys.setdefaultencoding('utf8')
 
 from ipdb import set_trace
 from deezer_login import DeezerLogin
 from os.path import basename
 
-import arrow
-import requests
-from settings import deezer_download_dir, use_mpd, mpd_host, mpd_port, download_dir_zips, spotify_download_dir_playlists, youtubedl_download_dir
+from settings import deezer_download_dir, use_mpd, mpd_host, mpd_port, download_dir_zips, spotify_download_dir_playlists, youtubedl_download_dir, deezer_download_dir_playlists
 deezer = DeezerLogin()
-
-config_DL_Dir                   = deezer_download_dir
 
 from Crypto.Hash import MD5
 from Crypto.Cipher import AES, Blowfish
@@ -22,7 +13,7 @@ import re
 import os
 import json
 import struct
-import urllib
+#import urllib
 import urllib.parse
 import html.parser
 import time
@@ -33,19 +24,25 @@ from binascii import a2b_hex, b2a_hex
 import mpd
 from zipfile import ZipFile, ZIP_DEFLATED
 
-from spotify import get_songs_from_spotify_website
 from youtube import youtubedl_download, YoutubeDLFailedException, DownloadedFileNotFoundException
+from spotify import get_songs_from_spotify_website
 
 
 # BEGIN TYPES
-
 TYPE_TRACK = "track"
 TYPE_ALBUM = "album"
 TYPE_PLAYLIST = "playlist"
 # END TYPES
 
 
-setting_domain_img = "https://e-cdns-images.dzcdn.net/images"
+def check_download_dirs_exist():
+    for directory in [deezer_download_dir, download_dir_zips,
+                      spotify_download_dir_playlists, youtubedl_download_dir,
+                      deezer_download_dir_playlists]:
+        os.makedirs(directory, exist_ok=True)
+
+
+check_download_dirs_exist()
 
 
 class ScriptExtractor(html.parser.HTMLParser):
@@ -82,17 +79,17 @@ def FileNameClean(FileName):
 
 def find_re(txt, regex):
     """ Return either the first regex group, or the entire match """
-    print("TODO: find_re -> Das muss schöner gehen")
-    #print(txt, regex)
+    #print("TODO: find_re -> Das muss schöner gehen")
+    #print(regex)
     m = re.search(regex, txt)
     if not m:
-        print("CASE 'not m'")
+        #print("CASE 'not m'")
         return
     gr = m.groups()
     if gr:
-        print("CASE 'gr[0]'")
+        #print("CASE 'gr[0]'")
         return gr[0]
-    print("CASE 'm.group()'")
+    #print("CASE 'm.group()'")
     return m.group()
 
 
@@ -247,6 +244,7 @@ def writeid3v1_1(fo, song):
 
 
 def downloadpicture(id):
+    setting_domain_img = "https://e-cdns-images.dzcdn.net/images"
     url = setting_domain_img + "/cover/" + id + "/1200x1200.jpg"
     resp = deezer.session.get(url)
     # TODO: funktioniert das?
@@ -409,18 +407,18 @@ def writeid3v2(fo, song):
     fo.write(id3data)
 
 
-def deezerSearch(search, type):
+def deezer_search(search, type):
     search = urllib.parse.quote_plus(search)
     resp = deezer.session.get("https://api.deezer.com/search/{}?q={}".format(type, search))
     return_nice = []
     for item in resp.json()['data'][:10]:
         i = {}
         i['id'] = str(item['id'])
-        if type == "album":
+        if type == TYPE_ALBUM:
             i['album'] = item['title']
             i['artist'] = item['artist']['name']
             i['title'] = ''
-        if type == "track":
+        if type == TYPE_TRACK:
             i['title'] = item['title']
             i['album'] = item['album']['title']
             i['artist'] = item['artist']['name']
@@ -455,8 +453,8 @@ def update_mpd_db(songs, add_to_playlist):
         while len(mpd_client.search("file", songs[0])) == 0:
             # c.update() does not block wait for it 
             if timeout_counter == 5:
-                print("Tried it {} times. Give up now".format(timeout_counter))
-                break
+                print("Tried it {} times. Give up now.".format(timeout_counter))
+                return
             print("'{}' not found in the music db. Let's wait for it".format(songs[0]))
             timeout_counter += 1
             time.sleep(2)
@@ -482,13 +480,15 @@ class FileAlreadyExists(Exception):
 def get_absolute_filename(type, song, playlist_name=None):
     # TODO: filter and sanitize filename /
     # TODO: assert  playlist_name gesetzt wenn TYPE == PLAYLIST + / raus
-    song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['ALB_TITLE'])
+    song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['SNG_TITLE'])
     print("Downloading '{}'".format(song_filename))
 
     if type == TYPE_TRACK:
         absolute_filename = os.path.join(deezer_download_dir, song_filename)
         if os.path.exists(absolute_filename):
-            raise FileAlreadyExists("Skipping song '{}'. Already exists.".format(absolute_filename))
+            print("Skipping song '{}'. Already exists.".format(absolute_filename))
+            #raise FileAlreadyExists("Skipping song '{}'. Already exists.".format(absolute_filename))
+            # TODO: das printete nur lädt aber trotzdem neu
     elif type == TYPE_ALBUM:
         # TODO: sanizize album_name
         album_name = song['ALB_TITLE']
@@ -560,24 +560,30 @@ def create_zip_file(songs_absolute_location):
     with ZipFile(location_zip_file, 'w', compression=ZIP_DEFLATED) as zip:
         for song_location in songs_absolute_location:
             print("Adding song {}".format(song_location))
-            zip.write(song_location, arcname=os.path.basename(song_location))
+            zip.write(song_location, arcname=basename(song_location))
     print("Done with the zip")
 
 
-def export_download_song(track_id, add_to_playlist):
+def create_m3u8_file(songs_absolute_location):
+    playlist_directory, __ = os.path.split(songs_absolute_location[0])
+    m3u8_filename = playlist_directory.split("/")[-1] + ".m3u8"
+    print("Creating m3u8 file: '{}'".format(m3u8_filename))
+    m3u8_file_abs = os.path.join(playlist_directory, m3u8_filename)
+    with open(m3u8_file_abs, "w") as f:
+        for song in songs_absolute_location:
+            f.write(basename(song) + "\n")
+
+
+def download_deezer_song_and_queue(track_id, add_to_playlist):
     song = get_song_infos_from_website(TYPE_TRACK, track_id)
-    try:
-        absolute_filename = get_absolute_filename(TYPE_TRACK, song)
-    except FileAlreadyExists as file_already_there:
-        print(file_already_there)
-        return
+    absolute_filename = get_absolute_filename(TYPE_TRACK, song)
     download_song(song, absolute_filename)
     if use_mpd:
         update_mpd_db(absolute_filename, add_to_playlist)
 
 
-def export_download_album(album_id, add_to_playlist, create_zip):
-    songs = get_song_infos_from_website(TYPE_TRACK, TYPE_ALBUM)
+def download_deezer_album_and_queue_and_zip(album_id, add_to_playlist, create_zip):
+    songs = get_song_infos_from_website(TYPE_ALBUM, album_id)
     songs_absolute_location = []
     for song in songs:
         absolute_filename = get_absolute_filename(TYPE_ALBUM, song)
@@ -589,24 +595,25 @@ def export_download_album(album_id, add_to_playlist, create_zip):
         create_zip_file(songs_absolute_location)
 
 
-def export_download_spotify_playlist(playlist_name, playlist_id, add_to_playlist, create_zip):
+def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_to_playlist, create_zip):
     songs = get_songs_from_spotify_website(playlist_id)
     songs_absolute_location = []
     for song_of_playlist in songs:
         try:
-            deezer_song = deezerSearch(song_of_playlist, TYPE_TRACK)[0]
+            deezer_song = deezer_search(song_of_playlist, TYPE_TRACK)[0]
         except IndexError:
             print("Found no song on Deezer for '{}' from Spotify playlist".format(song_of_playlist))
         absolute_filename = get_absolute_filename(TYPE_PLAYLIST, deezer_song, playlist_name)
         download_song(deezer_song, absolute_filename)
         songs_absolute_location.append(absolute_filename)
+        create_m3u8_file(songs_absolute_location)
     if use_mpd:
         update_mpd_db(songs_absolute_location, add_to_playlist)
     if create_zip:
         create_zip_file(songs_absolute_location)
 
 
-def export_download_youtubedl(video_url, add_to_playlist):
+def download_youtubedl_and_queue(video_url, add_to_playlist):
     try:
         filename_absolute = youtubedl_download(video_url, youtubedl_download_dir)
     except (YoutubeDLFailedException, DownloadedFileNotFoundException) as msg:
@@ -617,15 +624,18 @@ def export_download_youtubedl(video_url, add_to_playlist):
 
 
 if __name__ == '__main__':
+    pass
     #my_download_song("2271563", True, True)
     #my_download_album("93769922", create_zip=True)
     #export_download_song("2271563", update_mpd=False, add_to_playlist=False)
-    
+
     #full = "/tmp/music/deezer/Twenty One Pilots - Vessel"
     #list_files = [os.path.join(full, x) for x in os.listdir(full)]
     #print(list_files)
     #create_zip_file(list_files)
-    pass
     #video_url = "https://www.invidio.us/watch?v=ZbZSe6N_BXs"
     #export_download_youtubedl(video_url, False)
-youtubedl_download_dir = "/tmp/music/deezer/youtube-dl"
+
+    #full = "/tmp/music/deezer/spotify-playlists/this is a playlist/"
+    #list_files = [os.path.join(full, x) for x in os.listdir(full)]
+    #create_m3u8(list_files)

@@ -27,6 +27,19 @@
 
   <body id="body" >
 
+
+<nav>
+  <div class="nav nav-tabs" id="nav-tab" role="tablist">
+    <a class="nav-item nav-link" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Home</a>
+    <a class="nav-item nav-link show" id="nav-profile-tab" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Profile</a>
+    <a class="nav-item nav-link" id="nav-contact-tab" data-toggle="tab" href="#nav-contact" role="tab" aria-controls="nav-contact" aria-selected="false">Contact</a>
+  </div>
+</nav>
+<div class="tab-content" id="nav-tabContent">
+  <div class="tab-pane fade" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">hey ho</div>
+  <div class="tab-pane fade show active" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">na na na </div>
+  <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">oh ja</div>
+</div>
         <div class="container">
          
             <div class="row">
@@ -37,14 +50,14 @@
             </div>
             
             <div class="input-group">
-                <input type="text" class="form-control" id="query" placeholder="Search for .." />
+                <input type="text" class="form-control" id="query" placeholder="Search for ..." />
                     <span class="input-group-btn">
-                        <button class="btn btn-default" id="search_track" >Search Track</button>
-                        <button class="btn btn-defautl" id="search_album" >Search Album</button>
+                        <button class="btn btn-default" id="search_track">Search Track</button>
+                        <button class="btn btn-defautl" id="search_album">Search Album</button>
                     </span>
             </div>
 
-            <table id="results" class="table" >
+            <table id="results" class="table">
                 <thead>
                     <tr>
                         <th>Artist</th>
@@ -68,7 +81,7 @@
 			Alt+Enter: search for albums | 
 			ctrl+b: go BACK to ympd |
         </span>
-		<i class="fa fa-cc-paypal" title="Donate: " ></i>
+		<i class="fa fa-cc-paypal" title="Merge Requests welcome: TODO: link von deezer-downloader" ></i>
       </div>
     </footer>
 
@@ -76,60 +89,6 @@
     <!-- Bootstrap core JavaScript -->
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/custom.js"></script>
-    <script>
-        function drawTableEntry(rowData, mtype) {
-            var row = $("<tr />")
-            console.log(rowData);
-            $("#results").append(row); 
-            row.append($("<td>" + rowData.artist + "</td>"));
-            row.append($("<td>" + rowData.title + "</td>"));
-            row.append($("<td>" + rowData.album + "</td>"));
-                row.append($("<td>" + 
-                    '<button class="btn btn-default" id="music-' + rowData.music_id + '" onclick="download(\'' + rowData.id  + '\', \''+ mtype + '\', false);" > <i class="fa fa-download" title="download" ></i> </button>'  +
-
-                "</td>"));
-                row.append($("<td>" + 
-                    '<button class="btn btn-default" id="music-' + rowData.music_id + '" onclick="download(\'' + rowData.id  + '\', \''+ mtype + '\', true);" > <i class="fa fa-play-circle" title="download and add to playlist" ></i> </button>'  +
-                "</td>"));
-            if(mtype == "album") {
-                row.append($("<td>" + 
-                   '<button class="btn btn-default" id="music-' + rowData.music_id + '" onclick="list_album(\'' + rowData.id  + '\');" >list album </button>'  +
-                   "</td>"));
-            }
-        }
-        
-        function download(music_id, type, add) {
-            $.post('/api/v1/deezer/download', 
-                JSON.stringify({ type: type, music_id: parseInt(music_id), add: add}),
-                function(data) {
-					if(type == "album") {
-						if(add == true) {
-							text = "Good choice! The album will be downloaded and queued to the playlist";
-						} else {
-							text = "Good choice! The album will be downloaded.";
-						}
-					} else {
-						if(add == true) {
-							text = "Good choice! The song will be downloaded and queued to the playlist";
-						} else {
-							text = "Good choice! The song will be downloaded.";
-						}
-					}
-					$.jGrowl(text, { life: 4000 });
-            });
-        }
-
-        function list_album(music_id) {
-            $.post('/api/v1/deezer/album/list', 
-                JSON.stringify({ music_id: parseInt(music_id) }),
-                function(data) {
-                    $("#results > tbody").html("");
-                    for (var i = 0; i < data.length; i++) {
-                        drawTableEntry(data[i], "album");
-                    }
-            });
-        }
-    </script>
 
 <link rel="stylesheet" type="text/css" href="/static/css/jquery.jgrowl.min.css" />
 <script src="/static/js/jquery.jgrowl.min.js"></script>
