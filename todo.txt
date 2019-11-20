@@ -1,13 +1,9 @@
 Stand:
-- check of file existiert nicht (wird nur festgestellt und geprintet)
-- mpd-Anbindung funktioniert nicht
+- zip erstellen: Übergeordneter Ordner fehlt
+- browser -> click -> message muss kommen
 - icon für zip file download
 - qualität muss man noch anpassen für deezer
-- browser -> click -> message muss kommen
-- Album runterladne -> Name ist nur Name des Albums. da fehlt der Interpret
 
-
-nochn paar coole Icons?
 
 
 urgs todo:

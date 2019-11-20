@@ -10,7 +10,7 @@ reverse_proxy_path = "/foo"
 
 mpd_music_dir_root = "/tmp/music"
 # TODO: docs: for songs and albums
-deezer_download_dir = "/tmp/music/deezer" 
+deezer_download_dir = "/tmp/music/deezer"
 download_dir_zips = "/tmp/music/deezer/zips"
 spotify_download_dir_playlists = "/tmp/music/deezer/spotify-playlists"
 youtubedl_download_dir = "/tmp/music/deezer/youtube-dl"
