@@ -94,7 +94,7 @@ def find_re(txt, regex):
     return m.group()
 
 
-def get_song_infos_from_website(search_type, id):
+def get_song_infos_from_deezer_website(search_type, id):
     url = "https://www.deezer.com/de/{}/{}".format(search_type, id)
     resp = deezer.session.get(url)
     assert resp.status_code == 200
@@ -457,7 +457,11 @@ def update_mpd_db(songs, add_to_playlist):
     print("Updating mpd database")
     timeout_counter = 0
     mpd_client = mpd.MPDClient(use_unicode=True)
-    mpd_client.connect(mpd_host, mpd_port)
+    try:
+        mpd_client.connect(mpd_host, mpd_port)
+    except ConnectionRefusedError as e:
+        print("ERROR connecting to MPD ({}:{}): {}".format(mpd_host, mpd_port, e))
+        return
     mpd_client.update()
     if add_to_playlist:
         songs = [songs] if type(songs) != list else songs
@@ -490,34 +494,32 @@ class FileAlreadyExists(Exception):
 
 def get_absolute_filename(type, song, playlist_name=None):
     file_exist = False
-    
+
     # TODO: filter and sanitize filename /
     # TODO: assert  playlist_name gesetzt wenn TYPE == PLAYLIST + / raus
     song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['SNG_TITLE'])
 
     if type == TYPE_TRACK:
         absolute_filename = os.path.join(deezer_download_dir, song_filename)
-        if os.path.exists(absolute_filename):
-            file_exist = True
             #raise FileAlreadyExists("Skipping song '{}'. Already exists.".format(absolute_filename))
             # TODO: das printete nur lädt aber trotzdem neu
     elif type == TYPE_ALBUM:
         # TODO: sanizize album_name
         album_name = "{} - {}".format(song['ART_NAME'], song['ALB_TITLE'])
-        song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['SNG_TITLE'])
+        #song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['SNG_TITLE'])
         album_dir = os.path.join(deezer_download_dir, album_name)
         if not os.path.exists(album_dir):
             os.mkdir(album_dir)
         absolute_filename = os.path.join(album_dir, song_filename)
-        if os.path.exists(absolute_filename):
-            file_exist = True
     elif type == TYPE_PLAYLIST:
+        assert playlist_name is not None
         playlist_dir = os.path.join(spotify_download_dir_playlists, playlist_name)
-        if os.path.exists(playlist_dir):
-            file_exist = True
-        else:
+        if not os.path.exists(playlist_dir):
             os.mkdir(playlist_dir)
         absolute_filename = os.path.join(playlist_dir, song_filename)
+
+    if os.path.exists(absolute_filename):
+        file_exist = True
 
     if file_exist:
         print("Skipping song '{}'. Already exists.".format(absolute_filename))
@@ -532,7 +534,7 @@ def download_song(song, output_file):
                    5 if song.get("FILESIZE_MP3_256") else \
                    1
     song_quality = 1
-    
+
     #return 8 if song.get("FILESIZE_FLAC") else \
     # TODO: geht da mehr?
     urlkey = genurlkey(song["SNG_ID"], song["MD5_ORIGIN"], song["MEDIA_VERSION"], song_quality)
@@ -597,7 +599,7 @@ def create_m3u8_file(songs_absolute_location):
 
 
 def download_deezer_song_and_queue(track_id, add_to_playlist):
-    song = get_song_infos_from_website(TYPE_TRACK, track_id)
+    song = get_song_infos_from_deezer_website(TYPE_TRACK, track_id)
     file_exist, absolute_filename = get_absolute_filename(TYPE_TRACK, song)
     if not file_exist:
         download_song(song, absolute_filename)
@@ -606,7 +608,7 @@ def download_deezer_song_and_queue(track_id, add_to_playlist):
 
 
 def download_deezer_album_and_queue_and_zip(album_id, add_to_playlist, create_zip):
-    songs = get_song_infos_from_website(TYPE_ALBUM, album_id)
+    songs = get_song_infos_from_deezer_website(TYPE_ALBUM, album_id)
     songs_absolute_location = []
     for song in songs:
         assert type(song) == dict
@@ -624,15 +626,17 @@ def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_
     songs = get_songs_from_spotify_website(playlist_id)
     songs_absolute_location = []
     for song_of_playlist in songs:
+        # song_of_playlist: string (artist - song)
         try:
-            deezer_song = deezer_search(song_of_playlist, TYPE_TRACK)[0]
+            track_id = deezer_search(song_of_playlist, TYPE_TRACK)[0]['id'] #[0] can throw IndexError
+            song = get_song_infos_from_deezer_website(TYPE_TRACK, track_id)
+            file_exist, absolute_filename = get_absolute_filename(TYPE_PLAYLIST, song, playlist_name)
+            if not file_exist:
+                download_song(song, absolute_filename)
+            songs_absolute_location.append(absolute_filename)
         except IndexError:
             print("Found no song on Deezer for '{}' from Spotify playlist".format(song_of_playlist))
-        file_exist, absolute_filename = get_absolute_filename(TYPE_PLAYLIST, deezer_song, playlist_name)
-        if not file_exist:
-            download_song(deezer_song, absolute_filename)
-        songs_absolute_location.append(absolute_filename)
-        create_m3u8_file(songs_absolute_location)
+    create_m3u8_file(songs_absolute_location)
     if use_mpd:
         update_mpd_db(songs_absolute_location, add_to_playlist)
     if create_zip:

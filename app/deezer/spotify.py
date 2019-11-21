@@ -1,9 +1,10 @@
 import requests
-#from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup
 import json
 import re
 
 #from deezer import deezerSearch, my_download_song
+from ipdb import set_trace
 
 
 base_url = "https://open.spotify.com/embed/playlist/{}"
@@ -12,7 +13,10 @@ headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 
 def get_songs_from_spotify_website(playlist_id):
     return_data = []
-    url = base_url.format(playlist_id)
+    if playlist_id.startswith("http"):
+        url = playlist_id
+    else:
+        url = base_url.format(playlist_id)
     req = requests.get(url)
 
     bs = BeautifulSoup(req.text, 'html.parser')

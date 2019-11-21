@@ -19,8 +19,7 @@ function deezer_download(music_id, type, add_to_playlist, create_zip) {
                     text = "Good choice! The song will be downloaded.";
                 }
             }
-            // TODO
-            //$.jGrowl(text, { life: 4000 });
+            $.jGrowl(text, { life: 4000 });
     });
 }
 
@@ -81,7 +80,7 @@ $(document).ready(function() {
             if(mtype == "album") {
                 row.append($('<td> <button class="btn btn-default" onclick="deezer_download(\'' +
                            rowData.id  + '\', \''+ mtype + 
-                           '\', false, true);" > <i class="fa fa-download" title="give me a zip file" ></i> </button> </td>'));
+                           '\', false, true);" > <i class="fa fa-file-archive-o" title="give me a zip file" ></i> </button> </td>'));
             }
         }
 

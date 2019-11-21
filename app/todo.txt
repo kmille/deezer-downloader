@@ -1,7 +1,12 @@
-Stand:
-- zip erstellen: Übergeordneter Ordner fehlt
-- browser -> click -> message muss kommen
-- icon für zip file download
+todo:
+- Download Spotify Playlist
+    - geht jetzt
+    - url braucht aber embed ....
+- Das directory Listing für die zips
+- Ordnerstruktur überdenken: mp3s und alles andere in einem Ordner?
+- shortcuts ( + footer )
+
+- browser -> klick -> kommen da überhaupt vernünftige messages?
 - qualität muss man noch anpassen für deezer
 
 
