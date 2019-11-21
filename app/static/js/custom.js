@@ -86,7 +86,11 @@ $(document).ready(function() {
 
     function show_debug_log() {
         $.get('/debug', function(data) {
-            $("#ta-debug-log").val(data.debug_msg);
+            var debug_log_textarea = $("#ta-debug-log");
+            debug_log_textarea.val(data.debug_msg);
+            if(debug_log_textarea.length) {
+                debug_log_textarea.scrollTop(debug_log_textarea[0].scrollHeight - debug_log_textarea.height());
+            }
         });
     }
 
@@ -109,7 +113,7 @@ $(document).ready(function() {
     $("#btn-show-debug").click(function() {
         show_debug_log();
     });
-    
+
     $("#spotify_download_play").click(function() {
         spotify_playlist_download(true, false);
     });
@@ -122,36 +126,21 @@ $(document).ready(function() {
         spotify_playlist_download(false, true);
     });
 
-    /*
     var bbody = document.getElementById('body');
     bbody.onkeydown = function (event) {
         if (event.key !== undefined) {
            if (event.key === 'Enter' && event.altKey) {
-             $.post('/api/v1/deezer/search', 
-                JSON.stringify({ type: "album", query: $('#query').val() }),
-                function(data) {
-                    $("#results > tbody").html("");
-                    for (var i = 0; i < data.length; i++) {
-                        drawTableEntry(data[i], "album");
-                    }
-             });
+               console.log("pressed Enter + ALT");
+               search("album");
            }  else if (event.key === 'Enter' ) {
-              $.post('/api/v1/deezer/search', 
-                  JSON.stringify({ type: "track", query: $('#query').val() }),
-                  function(data) {
-                      $("#results > tbody").html("");
-                      for (var i = 0; i < data.length; i++) {
-                          drawTableEntry(data[i], "track");
-                      }
-              });
+               console.log("pressed Enter");
+               search("track");
            } else if (event.key === 'm' && event.ctrlKey) {
-              $("#query").val("");
-              $("#query").focus();
-           } else if (event.key === 'b' && event.ctrlKey) {
-              window.location = "/";
+              console.log("pressed ctrl m");
+              $("#deezer-query")[0].value = "";
+              $("#deezer-query")[0].focus();
            }
         }
             
     };
-    */
 });

@@ -4,7 +4,7 @@ from ipdb import set_trace
 from deezer_login import DeezerLogin
 from os.path import basename
 
-from settings import (deezer_download_dir, use_mpd, mpd_host, mpd_port, mpd_music_dir_root,
+from settings import (deezer_download_dir_songs, deezer_download_dir_albums, use_mpd, mpd_host, mpd_port, mpd_music_dir_root,
                       download_dir_zips, spotify_download_dir_playlists, youtubedl_download_dir, deezer_download_dir_playlists)
 deezer = DeezerLogin()
 
@@ -37,7 +37,7 @@ TYPE_PLAYLIST = "playlist"
 
 
 def check_download_dirs_exist():
-    for directory in [deezer_download_dir, download_dir_zips,
+    for directory in [deezer_download_dir_songs, download_dir_zips,
                       spotify_download_dir_playlists, youtubedl_download_dir,
                       deezer_download_dir_playlists]:
         os.makedirs(directory, exist_ok=True)
@@ -500,14 +500,14 @@ def get_absolute_filename(type, song, playlist_name=None):
     song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['SNG_TITLE'])
 
     if type == TYPE_TRACK:
-        absolute_filename = os.path.join(deezer_download_dir, song_filename)
+        absolute_filename = os.path.join(deezer_download_dir_songs, song_filename)
             #raise FileAlreadyExists("Skipping song '{}'. Already exists.".format(absolute_filename))
             # TODO: das printete nur lädt aber trotzdem neu
     elif type == TYPE_ALBUM:
         # TODO: sanizize album_name
         album_name = "{} - {}".format(song['ART_NAME'], song['ALB_TITLE'])
         #song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['SNG_TITLE'])
-        album_dir = os.path.join(deezer_download_dir, album_name)
+        album_dir = os.path.join(deezer_download_dir_albums, album_name)
         if not os.path.exists(album_dir):
             os.mkdir(album_dir)
         absolute_filename = os.path.join(album_dir, song_filename)
@@ -624,6 +624,8 @@ def download_deezer_album_and_queue_and_zip(album_id, add_to_playlist, create_zi
 
 def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_to_playlist, create_zip):
     songs = get_songs_from_spotify_website(playlist_id)
+    if not songs:
+        return
     songs_absolute_location = []
     for song_of_playlist in songs:
         # song_of_playlist: string (artist - song)

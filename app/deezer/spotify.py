@@ -14,13 +14,21 @@ headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 def get_songs_from_spotify_website(playlist_id):
     return_data = []
     if playlist_id.startswith("http"):
-        url = playlist_id
+        url = playlist_id.replace("spotify.com/playlist", "spotify.com/embed/playlist")
     else:
         url = base_url.format(playlist_id)
+
     req = requests.get(url)
+    if req.status_code != 200:
+        print("ERROR: {} gave us not a 200. Instead: {}".format(url, req.status_code))
+        return
 
     bs = BeautifulSoup(req.text, 'html.parser')
-    songs_txt = bs.find('script', {'id': 'resource'}).text.strip()
+    try:
+        songs_txt = bs.find('script', {'id': 'resource'}).text.strip()
+    except AttributeError:
+        print("ERROR: Could not get songs from Spotify website. Wrong Playlist id? Tried {}".format(url))
+        return
     songs_json = json.loads(songs_txt)
 
     for track in songs_json['tracks']['items']:

@@ -1,5 +1,4 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 import sys
 sys.path.append("deezer")
@@ -13,11 +12,11 @@ from flask import Flask, render_template, request, jsonify
 from settings import debug_command
 from deezer import deezer_search, download_deezer_song_and_queue, download_deezer_album_and_queue_and_zip, download_youtubedl_and_queue, download_spotify_playlist_and_queue_and_zip
 
-
 from ipdb import set_trace
 
 app = Flask(__name__)
 
+# TODO: check input validation
 def validate_schema(*parameters_to_check):
     def decorator(f):
         @wraps(f)
@@ -45,13 +44,10 @@ def validate_schema(*parameters_to_check):
         return wrapper
     return decorator
 
+
 @app.route("/")
 def index():
     return render_template("index.html")
-
-@app.route("/test")
-def index2():
-    return render_template("index2.html")
 
 
 @app.route('/api/v1/deezer/search', methods=['POST'])
@@ -66,6 +62,7 @@ def search():
         [ { artist, music_id, (title|album) } ]
     """
     user_input = request.get_json(force=True)
+    print("User request: {}".format(user_input))
     results = deezer_search(user_input['query'], user_input['type'])
     return jsonify(results)
     #return jsonify([{"artist": "Artist", "title": "title", "album": "album", "id": "12342"}])
@@ -83,7 +80,7 @@ def deezer_download():
         add_to_playlist: true|false (add to mpd playlist)
     """
     user_input = request.get_json(force=True)
-    print(user_input)
+    print("User request: {}".format(user_input))
 
     if user_input['type'] == "track":
         t = Thread(target=download_deezer_song_and_queue, 
@@ -99,7 +96,7 @@ def deezer_download():
 @validate_schema("url", "add_to_playlist")
 def youtubedl_download():
     user_input = request.get_json(force=True)
-    print(user_input)
+    print("User request: {}".format(user_input))
     t = Thread(target=download_youtubedl_and_queue,
                args=(user_input['url'], user_input['add_to_playlist']))
     t.start()
@@ -110,7 +107,7 @@ def youtubedl_download():
 @validate_schema("playlist_name", "playlist_url", "add_to_playlist", "create_zip")
 def spotify_playlist_download():
     user_input = request.get_json(force=True)
-    print(user_input)
+    print("User request: {}".format(user_input))
 
     t = Thread(target=download_spotify_playlist_and_queue_and_zip,
                args=(user_input['playlist_name'],
@@ -126,7 +123,6 @@ def debug():
     p = Popen(debug_command, shell=True, stdout=PIPE)
     p.wait()
     stdout, __ = p.communicate()
-    # TODO: html encode this stuff
     return jsonify({'debug_msg': stdout.decode()})
 
 
