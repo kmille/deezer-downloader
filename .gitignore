@@ -5,3 +5,4 @@ downloads
 SMLoadr/
 *.swp
 credentials.py
+*.log

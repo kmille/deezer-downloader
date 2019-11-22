@@ -95,8 +95,11 @@ def find_re(txt, regex):
 
 def get_song_infos_from_deezer_website(search_type, id):
     url = "https://www.deezer.com/de/{}/{}".format(search_type, id)
+    #print(url)
     resp = deezer.session.get(url)
-    assert resp.status_code == 200
+    if resp.status_code == 404:
+        print("ERROR: Got a 404 for {} from Deezer".format(url))
+        return None
     if "MD5_ORIGIN" not in resp.text:
         raise Exception("We are not logged in.")
 
@@ -566,13 +569,10 @@ def download_song(song, output_file):
     key = calcbfkey(song["SNG_ID"])
     try:
         url = "https://e-cdns-proxy-%s.dzcdn.net/mobile/1/%s" % (song["MD5_ORIGIN"][0], urlkey.decode())
-        #print(url)
         fh = deezer.session.get(url)
         if fh.status_code != 200:
-            #set_trace()
-
+            print("ERROR: Can not download this song. Got a {}".format(fh.status_code))
             return
-        assert fh.status_code == 200
 
         with open(output_file, "w+b") as fo:
             # add songcover and DL first 30 sec's that are unencrypted
@@ -601,7 +601,6 @@ def download_song(song, output_file):
         raise
     else:
         print("Dowload finished: {}".format(output_file))
-    #return os.path.join(download_dir[len(music_dir) + 1 :] ,f) # (deezer download dir - download dir) + file name of the downloaded file
 
 
 def create_zip_file(songs_absolute_location):
@@ -612,8 +611,11 @@ def create_zip_file(songs_absolute_location):
     parent_dir = songs_absolute_location[0].split("/")[-2]
     with ZipFile(location_zip_file, 'w', compression=ZIP_DEFLATED) as zip:
         for song_location in songs_absolute_location:
-            print("Adding song {}".format(song_location))
-            zip.write(song_location, arcname="{}/{}".format(parent_dir, basename(song_location)))
+            try:
+                print("Adding song {}".format(song_location))
+                zip.write(song_location, arcname="{}/{}".format(parent_dir, basename(song_location)))
+            except FileNotFoundError:
+                print("Could not find file '{}'".format(song_location))
     print("Done with the zip")
 
 
@@ -624,11 +626,14 @@ def create_m3u8_file(songs_absolute_location):
     m3u8_file_abs = os.path.join(playlist_directory, m3u8_filename)
     with open(m3u8_file_abs, "w") as f:
         for song in songs_absolute_location:
-            f.write(basename(song) + "\n")
+            if os.path.exists(song):
+                f.write(basename(song) + "\n")
 
 
 def download_deezer_song_and_queue(track_id, add_to_playlist):
     song = get_song_infos_from_deezer_website(TYPE_TRACK, track_id)
+    if not song:
+        return
     file_exist, absolute_filename = get_absolute_filename(TYPE_TRACK, song)
     if not file_exist:
         download_song(song, absolute_filename)
@@ -650,6 +655,7 @@ def download_deezer_album_and_queue_and_zip(album_id, add_to_playlist, create_zi
     if create_zip:
         create_zip_file(songs_absolute_location)
 
+
 def download_deezer_playlist_and_queue_and_zip(playlist_id, add_to_playlist, create_zip):
     playlist_name, songs = parse_deezer_playlist(playlist_id)
     songs_absolute_location = []
@@ -659,10 +665,12 @@ def download_deezer_playlist_and_queue_and_zip(playlist_id, add_to_playlist, cre
         if not file_exist:
             download_song(song, absolute_filename)
         songs_absolute_location.append(absolute_filename)
+    create_m3u8_file(songs_absolute_location)
     if use_mpd:
         update_mpd_db(songs_absolute_location, add_to_playlist)
     if create_zip:
         create_zip_file(songs_absolute_location)
+
 
 def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_to_playlist, create_zip):
     songs = get_songs_from_spotify_website(playlist_id)
@@ -716,3 +724,5 @@ if __name__ == '__main__':
     playlist_id = "878989033"
     playlist_id = "1180748301"
     download_deezer_playlist_and_queue_and_zip(playlist_id, False, True)
+    moby  = "68925038"
+    #download_deezer_song_and_queue(moby, False)
