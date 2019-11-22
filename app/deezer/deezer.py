@@ -5,7 +5,7 @@ from deezer_login import DeezerLogin
 from os.path import basename
 
 from settings import (deezer_download_dir_songs, deezer_download_dir_albums, use_mpd, mpd_host, mpd_port, mpd_music_dir_root,
-                      download_dir_zips, spotify_download_dir_playlists, youtubedl_download_dir, deezer_download_dir_playlists)
+                      download_dir_zips, download_dir_playlists, youtubedl_download_dir)
 deezer = DeezerLogin()
 
 from Crypto.Hash import MD5
@@ -38,8 +38,7 @@ TYPE_PLAYLIST = "playlist"
 
 def check_download_dirs_exist():
     for directory in [deezer_download_dir_songs, download_dir_zips,
-                      spotify_download_dir_playlists, youtubedl_download_dir,
-                      deezer_download_dir_playlists]:
+                      download_dir_playlists, youtubedl_download_dir]:
         os.makedirs(directory, exist_ok=True)
 
 
@@ -487,6 +486,32 @@ def update_mpd_db(songs, add_to_playlist):
 #        download(song)
 
 
+def parse_deezer_playlist(playlist_id):
+    req = deezer.session.post("https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token=")
+    csrf_token = req.json()['results']['checkForm']
+
+    url = "https://www.deezer.com/ajax/gw-light.php?method=deezer.pagePlaylist&input=3&api_version=1.0&api_token={}".format(csrf_token)
+    data = {'playlist_id': int(playlist_id),
+            'start': 0,
+            'tab': 0,
+            'header': True,
+            'lang': 'de',
+            'nb': 500}
+    req = deezer.session.post(url, json=data)
+    j = req.json()
+
+    if len(j['error']) > 0:
+        print("ERROR: deezer api said {}".format(j['error']))
+        return
+    j = j['results']
+
+    playlist_name = j['DATA']['TITLE']
+    number_songs = j['DATA']['NB_SONG']
+    print("Playlist {} with {} songs".format(playlist_name, number_songs))
+
+    print("Got {} songs from API".format(j['SONGS']['count']))
+    return playlist_name, j['SONGS']['data']
+
 
 class FileAlreadyExists(Exception):
     pass
@@ -513,7 +538,7 @@ def get_absolute_filename(type, song, playlist_name=None):
         absolute_filename = os.path.join(album_dir, song_filename)
     elif type == TYPE_PLAYLIST:
         assert playlist_name is not None
-        playlist_dir = os.path.join(spotify_download_dir_playlists, playlist_name)
+        playlist_dir = os.path.join(download_dir_playlists, playlist_name)
         if not os.path.exists(playlist_dir):
             os.mkdir(playlist_dir)
         absolute_filename = os.path.join(playlist_dir, song_filename)
@@ -543,6 +568,10 @@ def download_song(song, output_file):
         url = "https://e-cdns-proxy-%s.dzcdn.net/mobile/1/%s" % (song["MD5_ORIGIN"][0], urlkey.decode())
         #print(url)
         fh = deezer.session.get(url)
+        if fh.status_code != 200:
+            #set_trace()
+
+            return
         assert fh.status_code == 200
 
         with open(output_file, "w+b") as fo:
@@ -621,6 +650,19 @@ def download_deezer_album_and_queue_and_zip(album_id, add_to_playlist, create_zi
     if create_zip:
         create_zip_file(songs_absolute_location)
 
+def download_deezer_playlist_and_queue_and_zip(playlist_id, add_to_playlist, create_zip):
+    playlist_name, songs = parse_deezer_playlist(playlist_id)
+    songs_absolute_location = []
+    for song in songs:
+        # TODO: sanizie playlist_name
+        file_exist, absolute_filename = get_absolute_filename(TYPE_PLAYLIST, song, playlist_name)
+        if not file_exist:
+            download_song(song, absolute_filename)
+        songs_absolute_location.append(absolute_filename)
+    if use_mpd:
+        update_mpd_db(songs_absolute_location, add_to_playlist)
+    if create_zip:
+        create_zip_file(songs_absolute_location)
 
 def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_to_playlist, create_zip):
     songs = get_songs_from_spotify_website(playlist_id)
@@ -671,3 +713,6 @@ if __name__ == '__main__':
     #full = "/tmp/music/deezer/spotify-playlists/this is a playlist/"
     #list_files = [os.path.join(full, x) for x in os.listdir(full)]
     #create_m3u8(list_files)
+    playlist_id = "878989033"
+    playlist_id = "1180748301"
+    download_deezer_playlist_and_queue_and_zip(playlist_id, False, True)

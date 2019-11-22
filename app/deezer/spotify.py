@@ -11,10 +11,11 @@ base_url = "https://open.spotify.com/embed/playlist/{}"
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36'}
 
 
-def get_songs_from_spotify_website(playlist_id):
+def get_songs_from_spotify_website(playlist):
+    # playlist: playlist url or playlist id as string
     return_data = []
-    if playlist_id.startswith("http"):
-        url = playlist_id.replace("spotify.com/playlist", "spotify.com/embed/playlist")
+    if playlist.startswith("http"):
+        url = playlist.replace("spotify.com/playlist", "spotify.com/embed/playlist")
     else:
         url = base_url.format(playlist_id)
 

@@ -14,7 +14,13 @@ from deezer import deezer_search, download_deezer_song_and_queue, download_deeze
 
 from ipdb import set_trace
 
+import os.path
+from flask_autoindex import AutoIndex
+
+
 app = Flask(__name__)
+auto_index = AutoIndex(app, "/tmp/music/deezer", add_url_rules=False)
+
 
 # TODO: check input validation
 def validate_schema(*parameters_to_check):
@@ -124,6 +130,12 @@ def debug():
     p.wait()
     stdout, __ = p.communicate()
     return jsonify({'debug_msg': stdout.decode()})
+
+
+@app.route("/downloads/")
+@app.route("/downloads/<path:path>")
+def autoindex(path="."):
+    return auto_index.render_autoindex(path)
 
 
 if __name__ == '__main__':

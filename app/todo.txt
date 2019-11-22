@@ -1,7 +1,8 @@
 todo:
-- Das directory Listing für die zips
-- Ordnerstruktur überdenken: mp3s und alles andere in einem Ordner?
-- shortcuts ( + footer )
+- download deezer playlist
+    - geht quasi
+    - Problem: Das Moby Lied will nicht https://www.deezer.com/de/playlist/1180748301
+
 
 - browser -> klick -> kommen da überhaupt vernünftige messages?
 - qualität muss man noch anpassen für deezer
@@ -9,6 +10,8 @@ todo:
 - grep -rn TODO
 
 - favicon?
+- Type Anotations?
+- jetzigen Code tagen: 0.1
 
 
 urgs todo:
