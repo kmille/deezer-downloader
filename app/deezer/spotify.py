@@ -17,7 +17,7 @@ def get_songs_from_spotify_website(playlist):
     if playlist.startswith("http"):
         url = playlist.replace("spotify.com/playlist", "spotify.com/embed/playlist")
     else:
-        url = base_url.format(playlist_id)
+        url = base_url.format(playlist)
 
     req = requests.get(url)
     if req.status_code != 200:

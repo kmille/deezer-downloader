@@ -48,11 +48,23 @@ $(document).ready(function() {
                 console.log(data);
             });
     }
+
+
+
+    function deezer_playlist_download(add_to_playlist, create_zip) {
+        $.post('/api/v1/deezer/playlist', 
+            JSON.stringify({ playlist_url: $('#deezer-playlist-url').val(),
+                             add_to_playlist: add_to_playlist,
+                             create_zip: create_zip}),
+            function(data) {
+                console.log(data);
+            });
+    }
     
 
     function search(type) {
         $.post('/api/v1/deezer/search', 
-            JSON.stringify({ type: type, query: $('#deezer-query').val() }),
+            JSON.stringify({ type: type, query: $('#songs-albums-query').val() }),
             function(data) {
                 $("#results > tbody").html("");
                 for (var i = 0; i < data.length; i++) {
@@ -114,6 +126,7 @@ $(document).ready(function() {
         show_debug_log();
     });
 
+    // BEGIN SPOTIFY
     $("#spotify_download_play").click(function() {
         spotify_playlist_download(true, false);
     });
@@ -125,6 +138,23 @@ $(document).ready(function() {
     $("#spotify_zip").click(function() {
         spotify_playlist_download(false, true);
     });
+    // END SPOTIFY
+
+    
+    // BEGIN DEEZER
+    $("#deezer_download_play").click(function() {
+        deezer_playlist_download(true, false);
+    });
+
+    $("#deezer_download").click(function() {
+        deezer_playlist_download(false, false);
+    });
+
+    $("#deezer_zip").click(function() {
+        deezer_playlist_download(false, true);
+    });
+    // END DEEZER
+
 
     var bbody = document.getElementById('body');
     bbody.onkeydown = function (event) {
@@ -137,8 +167,8 @@ $(document).ready(function() {
                search("track");
            } else if (event.key === 'm' && event.ctrlKey) {
               console.log("pressed ctrl m");
-              $("#deezer-query")[0].value = "";
-              $("#deezer-query")[0].focus();
+              $("#songs-albums-query")[0].value = "";
+              $("#songs-albums-query")[0].focus();
            }
         }
             

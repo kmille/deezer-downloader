@@ -36,13 +36,16 @@
   <!-- Nav tabs -->
   <ul id="navigation" class="nav nav-tabs" role="tablist">
     <li class="nav-item">
-      <a class="nav-link active" data-toggle="tab" href="#deezer">Deezer</a>
+      <a class="nav-link active" data-toggle="tab" href="#songs_albums">Songs/Albums</a>
     </li>
     <li class="nav-item">
       <a class="nav-link" id="test" data-toggle="tab" href="#youtubedl">Youtube-dl</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-toggle="tab" href="#playlists">Playlists</a>
+      <a class="nav-link" data-toggle="tab" href="#spotify-playlists">Spotify Playlists</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="tab" href="#deezer-playlists">Deezer Playlists</a>
     </li>
     <li class="nav-item">
       <a class="nav-link" href="/downloads/" target="_blank" >Files</a>
@@ -56,11 +59,11 @@
   <!-- Tab panes -->
   <div class="tab-content">
     
-     <div id="deezer" class="container tab-pane active">
+     <div id="songs_albums" class="container tab-pane active">
          <br>
          <h3>Download songs and albums</h3>
          <div class="input-group">
-             <input type="text" class="form-control" id="deezer-query" placeholder="Search for ..." />
+             <input type="text" class="form-control" id="songs-albums-query" placeholder="Search for ..." />
                 &nbsp;
              <span class="input-group-btn">
                  <button type="button" class="btn btn-info" id="search_track">Search Track</button>
@@ -81,7 +84,7 @@
             </tbody>
          </table>
      
-     </div> <!-- end div tab deezer -->
+     </div> <!-- end div tab songs/albums -->
 
             
      <div id="youtubedl" class="container tab-pane fade">
@@ -98,13 +101,13 @@
      </div> <!-- end div tab youtube-dl -->
     
 
-     <div id="playlists" class="container tab-pane fade">
+     <div id="spotify-playlists" class="container tab-pane fade">
        <br>
-       <h3>Download Spotify Playlist</h3>
+       <h3>Download Spotify playlist</h3>
        <div class="input-group">
            <input type="text" class="form-control" id="spotify-playlistname" placeholder="name of spotify playlist" />
            &nbsp;
-           <input type="text" class="form-control" id="spotify-playlist-url" placeholder="url of the playlist" />
+           <input type="text" class="form-control" id="spotify-playlist-url" placeholder="url or id of the playlist" />
            &nbsp;
        </div>
        <br>
@@ -115,8 +118,28 @@
                    <button type="button" class="btn btn-info" id="spotify_zip">Give me a zip</button>
                </span>
        </div>
-     </div> <!-- end div tab playlists -->
-     
+     </div> <!-- end div tab spotify playlists -->
+
+
+
+     <div id="deezer-playlists" class="container tab-pane fade">
+       <br>
+       <h3>Download Deezer playlist</h3>
+       <div class="input-group">
+           <input type="text" class="form-control" id="deezer-playlist-url" placeholder="url or id of the playlist" />
+           &nbsp;
+       </div>
+       <br>
+       <div class="input-group">
+               <span class="input-group-btn">
+                   <button type="button" class="btn btn-info" id="deezer_download_play">Download & Play</button>
+                   <button type="button" class="btn btn-info" id="deezer_download">Download</button>
+                   <button type="button" class="btn btn-info" id="deezer_zip">Give me a zip</button>
+               </span>
+       </div>
+     </div> <!-- end div tab deezer playlists -->
+
+
      <div id="debug" class="container tab-pane fade">
        <br>
        <h3>Debug</h3>
@@ -133,7 +156,7 @@
 			Enter: search for songs |
 			Alt+Enter: search for albums | 
         </span>
-		<i class="fa fa-cc-paypal" title="Merge Requests welcome: TODO: link von deezer-downloader" ></i>
+		<i class="fa fa-cc-paypal" title="Merge Requests welcome: TODO: effektiv-spenden.org" ></i>
       </div>
     </footer>
 

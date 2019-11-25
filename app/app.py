@@ -10,7 +10,7 @@ from threading import Thread
 
 from flask import Flask, render_template, request, jsonify
 from settings import debug_command
-from deezer import deezer_search, download_deezer_song_and_queue, download_deezer_album_and_queue_and_zip, download_youtubedl_and_queue, download_spotify_playlist_and_queue_and_zip
+from deezer import deezer_search, download_deezer_song_and_queue, download_deezer_album_and_queue_and_zip, download_youtubedl_and_queue, download_spotify_playlist_and_queue_and_zip, download_deezer_playlist_and_queue_and_zip
 
 from ipdb import set_trace
 
@@ -122,6 +122,19 @@ def spotify_playlist_download():
                      user_input['create_zip']))
     t.start()
     return jsonify({"state": "have fun spotify"})
+
+
+@app.route('/api/v1/deezer/playlist', methods=['POST'])
+@validate_schema("playlist_url", "add_to_playlist", "create_zip")
+def deezer_playlist_download():
+    user_input = request.get_json(force=True)
+    print("User request: {}".format(user_input))
+    t = Thread(target=download_deezer_playlist_and_queue_and_zip,
+               args=(user_input['playlist_url'],
+                     user_input['add_to_playlist'],
+                     user_input['create_zip']))
+    t.start()
+    return jsonify({"state": "have fun deezer"})
 
 
 @app.route("/debug")

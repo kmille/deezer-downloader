@@ -477,19 +477,19 @@ def update_mpd_db(songs, add_to_playlist):
             timeout_counter += 1
             time.sleep(2)
         for song in songs:
-            mpd_client.add(song)
-            print("Added to mpd playlist: '{}'".format(song))
+            try:
+                mpd_client.add(song)
+                print("Added to mpd playlist: '{}'".format(song))
+            except mpd.base.CommandError as mpd_error:
+                print("ERROR adding '{}' to playlist: {}".format(song, mpd_error))
 
 
-
-#def my_download_from_json_file():
-#    songs = json.load(open("/tmp/songs.json"))
-#    for song in songs['results']['SONGS']['data']:
-#        print("Downloading {}".format(song['SNG_TITLE']))
-#        download(song)
 
 
 def parse_deezer_playlist(playlist_id):
+    if playlist_id.startswith("http"):
+        playlist_id = re.search(r'\d+', playlist_id).group(0)
+
     req = deezer.session.post("https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token=")
     csrf_token = req.json()['results']['checkForm']
 
@@ -510,7 +510,7 @@ def parse_deezer_playlist(playlist_id):
 
     playlist_name = j['DATA']['TITLE']
     number_songs = j['DATA']['NB_SONG']
-    print("Playlist {} with {} songs".format(playlist_name, number_songs))
+    print("Playlist '{}' has {} songs".format(playlist_name, number_songs))
 
     print("Got {} songs from API".format(j['SONGS']['count']))
     return playlist_name, j['SONGS']['data']
@@ -520,20 +520,24 @@ class FileAlreadyExists(Exception):
     pass
 
 
+def clean_filename(path):
+    return path.replace("/", "")
+
+
 def get_absolute_filename(type, song, playlist_name=None):
     file_exist = False
 
     # TODO: filter and sanitize filename /
     # TODO: assert  playlist_name gesetzt wenn TYPE == PLAYLIST + / raus
     song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['SNG_TITLE'])
+    song_filename = clean_filename(song_filename)
 
     if type == TYPE_TRACK:
         absolute_filename = os.path.join(deezer_download_dir_songs, song_filename)
-            #raise FileAlreadyExists("Skipping song '{}'. Already exists.".format(absolute_filename))
-            # TODO: das printete nur lädt aber trotzdem neu
     elif type == TYPE_ALBUM:
         # TODO: sanizize album_name
         album_name = "{} - {}".format(song['ART_NAME'], song['ALB_TITLE'])
+        album_name = clean_filename(album_name)
         #song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['SNG_TITLE'])
         album_dir = os.path.join(deezer_download_dir_albums, album_name)
         if not os.path.exists(album_dir):
@@ -541,6 +545,7 @@ def get_absolute_filename(type, song, playlist_name=None):
         absolute_filename = os.path.join(album_dir, song_filename)
     elif type == TYPE_PLAYLIST:
         assert playlist_name is not None
+        playlist_name = clean_filename(playlist_name)
         playlist_dir = os.path.join(download_dir_playlists, playlist_name)
         if not os.path.exists(playlist_dir):
             os.mkdir(playlist_dir)
@@ -722,7 +727,7 @@ if __name__ == '__main__':
     #list_files = [os.path.join(full, x) for x in os.listdir(full)]
     #create_m3u8(list_files)
     playlist_id = "878989033"
-    playlist_id = "1180748301"
-    download_deezer_playlist_and_queue_and_zip(playlist_id, False, True)
-    moby  = "68925038"
+    #playlist_id = "1180748301"
+    download_deezer_playlist_and_queue_and_zip(playlist_id, True, False)
+    #moby  = "68925038"
     #download_deezer_song_and_queue(moby, False)
