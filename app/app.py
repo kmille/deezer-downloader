@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 import sys
 sys.path.append("deezer")
 from subprocess import Popen, PIPE
@@ -13,14 +14,19 @@ from settings import debug_command
 from deezer import deezer_search, download_deezer_song_and_queue, download_deezer_album_and_queue_and_zip, download_youtubedl_and_queue, download_spotify_playlist_and_queue_and_zip, download_deezer_playlist_and_queue_and_zip
 
 from ipdb import set_trace
+import requests
 
 import os.path
 from flask_autoindex import AutoIndex
 
+import giphypop
+
 
 app = Flask(__name__)
 auto_index = AutoIndex(app, "/tmp/music/deezer", add_url_rules=False)
+auto_index.add_icon_rule('music.png', ext='m3u8')
 
+giphy = giphypop.Giphy()
 
 # TODO: check input validation
 def validate_schema(*parameters_to_check):
@@ -148,7 +154,16 @@ def debug():
 @app.route("/downloads/")
 @app.route("/downloads/<path:path>")
 def autoindex(path="."):
-    return auto_index.render_autoindex(path)
+    try:
+        gif = giphy.random_gif(tag="cat")
+        media_url = gif.media_url
+    except requests.exceptions.HTTPError:
+        # theh api is limited
+        media_url = "https://cataas.com/cat"
+
+    template_context = {'gif_url': media_url}
+    print(template_context)
+    return auto_index.render_autoindex(path, template_context=template_context)
 
 
 if __name__ == '__main__':

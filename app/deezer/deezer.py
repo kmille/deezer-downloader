@@ -626,7 +626,8 @@ def create_zip_file(songs_absolute_location):
 
 def create_m3u8_file(songs_absolute_location):
     playlist_directory, __ = os.path.split(songs_absolute_location[0])
-    m3u8_filename = playlist_directory.split("/")[-1] + ".m3u8"
+    # 00 as prefix => will be shown as first in dir listing
+    m3u8_filename = "00 {}.m3u8".format(playlist_directory.split("/")[-1])
     print("Creating m3u8 file: '{}'".format(m3u8_filename))
     m3u8_file_abs = os.path.join(playlist_directory, m3u8_filename)
     with open(m3u8_file_abs, "w") as f:
