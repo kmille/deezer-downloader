@@ -3,15 +3,12 @@ todo:
     - geht quasi
     - Problem: Das Moby Lied will nicht https://www.deezer.com/de/playlist/1180748301
     - manchmal sind manche Songs doppelt vorhandern (in mpd mehrfach gequeued; beim zippen gibts ne Warnung) => open issue
-    - im Frontend noch mit rein
 
 Bug: ERROR: Got a 404 for https://www.deezer.com/de/album/test from Deezer (danach gibts noch ne Exception; gilt für Spotify und Deezer)
 
-- m3u8 file findet man so nicht: mit nem space prefixen? oder   ?
 
 - clear button für youtube-dl/und die beiden playlists
 - debug -> textarea ist so klein
-- Shortcuts um auf die einzelnen Tabs zu springen
 - für die Files kein neuen Tab öffnen
 
 - Routing neu schreiben

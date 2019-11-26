@@ -122,7 +122,7 @@ $(document).ready(function() {
         youtubedl_download(true);
     });
     
-    $("#btn-show-debug").click(function() {
+    $("#nav-debug-log").click(function() {
         show_debug_log();
     });
 
@@ -156,6 +156,20 @@ $(document).ready(function() {
     // END DEEZER
 
 
+    function show_tab(id_nav, id_content) {
+    // nav 
+    $(".nav-link").removeClass("active")
+    //$("#btn-show-debug").addClass("active")
+    $("#" + id_nav).addClass("active")
+
+    // content
+    $(".container .tab-pane").removeClass("active show")
+    //$("#youtubedl").addClass("active show")
+    $("#" + id_content).addClass("active show")
+    }
+
+
+
     var bbody = document.getElementById('body');
     bbody.onkeydown = function (event) {
         if (event.key !== undefined) {
@@ -169,6 +183,37 @@ $(document).ready(function() {
               console.log("pressed ctrl m");
               $("#songs-albums-query")[0].value = "";
               $("#songs-albums-query")[0].focus();
+           }
+           if (event.ctrlKey && event.shiftKey) {
+               console.log("pressed ctrl + shift + ..");
+               if(event.key === '!') {
+                   id_nav = "nav-songs-albums";
+                   id_content = "songs_albums";
+               }
+               if(event.key === '"') {
+                   id_nav = "nav-youtubedl";
+                   id_content = "youtubedl";
+               }
+               if(event.key === '§') {
+                   id_nav = "nav-spotify-playlists";
+                   id_content = "spotify-playlists";
+               }
+               if(event.key === '$') {
+                   id_nav = "nav-deezer-playlists";
+                   id_content = "deezer-playlists";
+               }
+               if(event.key === '%') {
+                   id_nav = "nav-songs-albums";
+                   id_content = "songs_albums";
+                   window.open('/downloads', '_blank');
+               }
+               if(event.key === "&") {
+                   id_nav = "nav-debug-log";
+                   id_content = "debug";
+               }
+               if(typeof id_nav !== 'undefined') {
+                   show_tab(id_nav, id_content);
+               }
            }
         }
             
