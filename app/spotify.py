@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 import json
 import re
 
-#from deezer import deezerSearch, my_download_song
 from ipdb import set_trace
 
 
@@ -36,29 +35,14 @@ def get_songs_from_spotify_website(playlist):
         artist = track['track']['artists'][0]['name']
         song = track['track']['name']
         full = "{} {}".format(artist, song)
-        # remove everything in brackets: (  +  'not )'*  +  )
+        # remove everything in brackets to get better search results
+        # e.g. (Radio  Version) or (Remastered)
         full = re.sub(r'\([^)]*\)', '', full)
         return_data.append(full)
     return return_data
 
 
-def download_fqdn_song(artist_song, update_mpd, add_to_playlist):
-    # we just take the first of the search
-    try:
-        song_to_download_dict = deezerSearch(artist_song, 'track')[0]
-        my_download_song(song_to_download_dict['id'],
-                         update_mpd=update_mpd,
-                         add_to_playlist=add_to_playlist)
-    except IndexError:
-        print("Found no song for '{}'".format(artist_song))
-
-
 if __name__ == '__main__':
     #playlist = "21wZXvtrERELL0bVtKtuUh"
     playlist = "0wl9Q3oedquNlBAJ4MGZtS?si=jmdvnQSyRYCxDTWzrZARJg"
-
-    songs = parse_spotify_playlist(playlist)
-    for song in songs:
-        print(song)
-        download_fqdn_song(song, False, False)
-        #todo: put everything in a dedicated folder
+    get_songs_from_spotify_website(playlist)

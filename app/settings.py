@@ -15,6 +15,8 @@ download_dir_albums = "/tmp/music/deezer/albums"
 download_dir_zips = "/tmp/music/deezer/zips"
 download_dir_playlists = "/tmp/music/deezer/playlists"
 download_dir_youtubedl = "/tmp/music/deezer/youtube-dl"
+# need docs
+download_dir_root = "/tmp/music/deezer/"
 
 
 debug_command = "journalctl -u wpa_supplicant@wlp3s0.service --output=cat -n 50"

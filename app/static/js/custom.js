@@ -21,6 +21,7 @@ function deezer_download(music_id, type, add_to_playlist, create_zip) {
                 }
             }
             $.jGrowl(text, { life: 4000 });
+            console.log(data);
     });
 }
 

@@ -2,7 +2,8 @@ open issues:
 Bug: ERROR: Got a 404 for https://www.deezer.com/de/album/test from Deezer (danach gibts noch ne Exception; gilt für Spotify und Deezer)
 - todo: Design mobil freundlich machen
 
-- app.py aufräumen + input validation + sinnvoll return values
+
+- link zu effektiv-spenden.ort
 
 - tests
 - Routing neu schreiben
