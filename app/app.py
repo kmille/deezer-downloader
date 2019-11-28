@@ -162,7 +162,6 @@ def autoindex(path="."):
         media_url = "https://cataas.com/cat"
 
     template_context = {'gif_url': media_url}
-    print(template_context)
     return auto_index.render_autoindex(path, template_context=template_context)
 
 

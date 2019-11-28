@@ -1,26 +1,19 @@
-todo:
-- download deezer playlist
-    - geht quasi
-    - Problem: Das Moby Lied will nicht https://www.deezer.com/de/playlist/1180748301
-    - manchmal sind manche Songs doppelt vorhandern (in mpd mehrfach gequeued; beim zippen gibts ne Warnung) => open issue
-
+open issues:
 Bug: ERROR: Got a 404 for https://www.deezer.com/de/album/test from Deezer (danach gibts noch ne Exception; gilt für Spotify und Deezer)
-
-
-- clear button für youtube-dl/und die beiden playlists
-- debug -> textarea ist so klein
-- für die Files kein neuen Tab öffnen
-
-- Routing neu schreiben
 - todo: Design mobil freundlich machen
 
-- browser -> klick -> kommen da überhaupt vernünftige messages?
+- app.py aufräumen + input validation + sinnvoll return values
+
+- tests
+- Routing neu schreiben
+
 - qualität muss man noch anpassen für deezer
 - deezer art cover
 - grep -rn TODO
 
 - jetzigen Code tagen: 0.1
 
+- Routing behind nignx
 - Rebranding: Neuer Name. weg von Deezer; geiles Loge. Favicon
 
 urgs todo:
@@ -42,18 +35,8 @@ urgs todo:
 [] auf python3 umstellen
     - [] fix: FileNameClean
     - [X] fix: calcbfkey durcheinander
-[] Routing
-    - [X] flask
-    - [] javascript
-[] Idee für ein Frontend
-    - [] mal weg von JQuery
-    - [] Design?
 [] Doku schreiben
-    - Verzeichnis: trailing slash
     - Changelog
-
-Problem bei der Playlist: muss da alles holen (Javascript nachladen)
-Playlist => mpd m3u file geben?
 
 
 whish whish
@@ -66,14 +49,5 @@ whish whish
 - tests für die einzelnen Funktionen
 - Type Anotations?
 
-
-
-
-
-Design für Youtube-DL:
-- improvements: 
-- unten shortcuts raus => gehen eh nicht
-- template umbenenen -dl noch mit rein
-- print stdout und stderr
 
 

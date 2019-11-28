@@ -63,11 +63,11 @@
          <br>
          <h3>Download songs and albums</h3>
          <div class="input-group">
-             <input type="text" class="form-control" id="songs-albums-query" placeholder="Search for ..." />
+             <input type="text" class="form-control" placeholder="Search for ..." />
                 &nbsp;
              <span class="input-group-btn">
                  <button type="button" class="btn btn-info" id="search_track">Search Track</button>
-                 <button type="button" class="btn btn-info" id="search_album">Search Album</button>
+                 <button type="button" class="btn btn-info" search_album">Search Album</button>
              </span>
          </div>
     
@@ -93,11 +93,13 @@
          <div class="input-group">
              <input type="text" class="form-control" id="youtubedl-query" placeholder="Download audio from YouTube, Invidious, Vimeo, Soundcloud, YouPorn, ... " />
                 &nbsp;
+         </div>
+         <br>
                  <span class="input-group-btn">
                      <button type="button" class="btn btn-info" id="yt_download_play">Download & Play</button>
                      <button type="button" class="btn btn-info" id="yt_download">Download</button>
+                     <button type="button" class="btn btn-info" onclick="$('#youtubedl-query').val('')" >Clear</button>
                  </span>
-         </div>
      </div> <!-- end div tab youtube-dl -->
     
 
@@ -105,7 +107,7 @@
        <br>
        <h3>Download Spotify playlist</h3>
        <div class="input-group">
-           <input type="text" class="form-control" id="spotify-playlistname" placeholder="name of spotify playlist" />
+           <input type="text" class="form-control" id="spotify-playlist-name" placeholder="name of spotify playlist" />
            &nbsp;
            <input type="text" class="form-control" id="spotify-playlist-url" placeholder="url or id of the playlist" />
            &nbsp;
@@ -116,6 +118,7 @@
                    <button type="button" class="btn btn-info" id="spotify_download_play">Download & Play</button>
                    <button type="button" class="btn btn-info" id="spotify_download">Download</button>
                    <button type="button" class="btn btn-info" id="spotify_zip">Give me a zip</button>
+                   <button type="button" class="btn btn-info" onclick="$('input[id^=\'spotify\']').val('')" >Clear</button>
                </span>
        </div>
      </div> <!-- end div tab spotify playlists -->
@@ -135,6 +138,7 @@
                    <button type="button" class="btn btn-info" id="deezer_download_play">Download & Play</button>
                    <button type="button" class="btn btn-info" id="deezer_download">Download</button>
                    <button type="button" class="btn btn-info" id="deezer_zip">Give me a zip</button>
+                   <button type="button" class="btn btn-info" onclick="$('#deezer-playlist-url').val('')" >Clear</button>
                </span>
        </div>
      </div> <!-- end div tab deezer playlists -->
@@ -161,16 +165,16 @@
       </div>
     </footer>
 
+
 <style>
-html, body, .container, .tab-content, .form-group {
-  height: 100%-50px;
+html, body, .container, .tab-content, .tab-pane .form-group {
+  height: 95%;
 }
 textarea.form-control {
-  height: 100%;
+  height: 95%;
 }
-</style
+</style>
 	
-
 
 </div> <!-- end div container -->
 

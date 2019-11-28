@@ -1,10 +1,11 @@
 
+
 function deezer_download(music_id, type, add_to_playlist, create_zip) {
     $.post('/api/v1/deezer/download', 
         JSON.stringify({ type: type, music_id: parseInt(music_id), add_to_playlist: add_to_playlist, create_zip: create_zip}),
         function(data) {
             if(create_zip == true) {
-                text = "You will get a zip file";
+                text = "You like being offline? You will get a zip file!";
             }
             else if(type == "album") {
                 if(add_to_playlist == true) {
@@ -27,25 +28,26 @@ function deezer_download(music_id, type, add_to_playlist, create_zip) {
 
 
 $(document).ready(function() {
-        
 
     function youtubedl_download(add_to_playlist) {
         $.post('/api/v1/youtubedl', 
             JSON.stringify({ url: $('#youtubedl-query').val(), add_to_playlist: add_to_playlist }),
             function(data) {
                 console.log(data);
+                $.jGrowl("As you wish", { life: 4000 });
             });
     }
     
     
     function spotify_playlist_download(add_to_playlist, create_zip) {
         $.post('/api/v1/spotify', 
-            JSON.stringify({ playlist_name: $('#spotify-playlistname').val(), 
+            JSON.stringify({ playlist_name: $('#spotify-playlist-name').val(), 
                              playlist_url: $('#spotify-playlist-url').val(),
                              add_to_playlist: add_to_playlist,
                              create_zip: create_zip}),
             function(data) {
                 console.log(data);
+                $.jGrowl("As you wish", { life: 4000 });
             });
     }
 
@@ -58,6 +60,7 @@ $(document).ready(function() {
                              create_zip: create_zip}),
             function(data) {
                 console.log(data);
+                $.jGrowl("As you wish", { life: 4000 });
             });
     }
     
@@ -155,7 +158,7 @@ $(document).ready(function() {
     });
     // END DEEZER
 
-
+    
     function show_tab(id_nav, id_content) {
     // nav 
     $(".nav-link").removeClass("active")
@@ -167,7 +170,6 @@ $(document).ready(function() {
     //$("#youtubedl").addClass("active show")
     $("#" + id_content).addClass("active show")
     }
-
 
 
     var bbody = document.getElementById('body');
@@ -205,11 +207,12 @@ $(document).ready(function() {
                if(event.key === '%') {
                    id_nav = "nav-songs-albums";
                    id_content = "songs_albums";
-                   window.open('/downloads', '_blank');
+                   window.open('/downloads/', '_blank');
                }
                if(event.key === "&") {
                    id_nav = "nav-debug-log";
                    id_content = "debug";
+                   show_debug_log();
                }
                if(typeof id_nav !== 'undefined') {
                    show_tab(id_nav, id_content);

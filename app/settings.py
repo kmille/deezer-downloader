@@ -10,11 +10,11 @@ reverse_proxy_path = "/foo"
 
 mpd_music_dir_root = "/tmp/music"
 # TODO: docs: for songs and albums
-deezer_download_dir_songs = "/tmp/music/deezer/songs"
-deezer_download_dir_albums = "/tmp/music/deezer/albums"
+download_dir_songs = "/tmp/music/deezer/songs"
+download_dir_albums = "/tmp/music/deezer/albums"
 download_dir_zips = "/tmp/music/deezer/zips"
 download_dir_playlists = "/tmp/music/deezer/playlists"
-youtubedl_download_dir = "/tmp/music/deezer/youtube-dl"
+download_dir_youtubedl = "/tmp/music/deezer/youtube-dl"
 
 
 debug_command = "journalctl -u wpa_supplicant@wlp3s0.service --output=cat -n 50"

@@ -4,8 +4,7 @@ from ipdb import set_trace
 from deezer_login import DeezerLogin
 from os.path import basename
 
-from settings import (deezer_download_dir_songs, deezer_download_dir_albums, use_mpd, mpd_host, mpd_port, mpd_music_dir_root,
-                      download_dir_zips, download_dir_playlists, youtubedl_download_dir)
+from settings import (use_mpd, mpd_host, mpd_port, mpd_music_dir_root, download_dir_songs, download_dir_albums, download_dir_zips, download_dir_playlists, download_dir_youtubedl)
 deezer = DeezerLogin()
 
 from Crypto.Hash import MD5
@@ -37,8 +36,8 @@ TYPE_PLAYLIST = "playlist"
 
 
 def check_download_dirs_exist():
-    for directory in [deezer_download_dir_songs, download_dir_zips,
-                      download_dir_playlists, youtubedl_download_dir]:
+    for directory in [download_dir_songs, download_dir_zips, download_dir_albums,
+                      download_dir_playlists, download_dir_youtubedl]:
         os.makedirs(directory, exist_ok=True)
 
 
@@ -533,13 +532,13 @@ def get_absolute_filename(type, song, playlist_name=None):
     song_filename = clean_filename(song_filename)
 
     if type == TYPE_TRACK:
-        absolute_filename = os.path.join(deezer_download_dir_songs, song_filename)
+        absolute_filename = os.path.join(download_dir_songs, song_filename)
     elif type == TYPE_ALBUM:
         # TODO: sanizize album_name
         album_name = "{} - {}".format(song['ART_NAME'], song['ALB_TITLE'])
         album_name = clean_filename(album_name)
         #song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['SNG_TITLE'])
-        album_dir = os.path.join(deezer_download_dir_albums, album_name)
+        album_dir = os.path.join(download_dir_albums, album_name)
         if not os.path.exists(album_dir):
             os.mkdir(album_dir)
         absolute_filename = os.path.join(album_dir, song_filename)
@@ -703,7 +702,7 @@ def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_
 
 def download_youtubedl_and_queue(video_url, add_to_playlist):
     try:
-        filename_absolute = youtubedl_download(video_url, youtubedl_download_dir)
+        filename_absolute = youtubedl_download(video_url, download_dir_youtubedl)
     except (YoutubeDLFailedException, DownloadedFileNotFoundException) as msg:
         print(msg)
         return
