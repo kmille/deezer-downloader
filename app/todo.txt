@@ -1,21 +1,22 @@
 open issues:
 Bug: ERROR: Got a 404 for https://www.deezer.com/de/album/test from Deezer (danach gibts noch ne Exception; gilt für Spotify und Deezer)
 - todo: Design mobil freundlich machen
+- Rebranding: Neuer Name. weg von Deezer; geiles Loge. Favicon
 
 
-- link zu effektiv-spenden.ort
+python.py => music_backend => alle funktionen testen
+- deezer.py: die Funktionen konsolideren (zu viel duplicate code)
+deezer_login funktioniert so nicht mehr (kann man nicht von außen aufrufen)
 
-- tests
-- Routing neu schreiben
 
+- jetzigen Code tagen: 0.1
 - qualität muss man noch anpassen für deezer
 - deezer art cover
 - grep -rn TODO
 
-- jetzigen Code tagen: 0.1
-
+- tests
+- Routing neu schreiben
 - Routing behind nignx
-- Rebranding: Neuer Name. weg von Deezer; geiles Loge. Favicon
 
 urgs todo:
 [X] Suche => User Agent ändern

@@ -1,31 +1,22 @@
-#!/usr/bin/env python3
-
-from ipdb import set_trace
-from deezer_login import DeezerLogin
-from os.path import basename
-
-from settings import (use_mpd, mpd_host, mpd_port, mpd_music_dir_root, download_dir_songs, download_dir_albums, download_dir_zips, download_dir_playlists, download_dir_youtubedl)
-deezer = DeezerLogin()
-
-from Crypto.Hash import MD5
-from Crypto.Cipher import AES, Blowfish
+import sys
 import re
 import os
 import json
+
+from credentials import sid
+
+from Crypto.Hash import MD5
+from Crypto.Cipher import AES, Blowfish
 import struct
-#import urllib
 import urllib.parse
 import html.parser
-import time
-from mutagen.mp3 import MP3
-from mutagen.id3 import ID3, APIC, error
+import requests
+#from mutagen.mp3 import MP3
+#from mutagen.id3 import ID3, APIC, error
 from binascii import a2b_hex, b2a_hex
 
-import mpd
-from zipfile import ZipFile, ZIP_DEFLATED
-
-from youtube import youtubedl_download, YoutubeDLFailedException, DownloadedFileNotFoundException
-from spotify import get_songs_from_spotify_website
+#from deezer_login import DeezerLogin
+#deezer = DeezerLogin()
 
 
 # BEGIN TYPES
@@ -35,13 +26,33 @@ TYPE_PLAYLIST = "playlist"
 # END TYPES
 
 
-def check_download_dirs_exist():
-    for directory in [download_dir_songs, download_dir_zips, download_dir_albums,
-                      download_dir_playlists, download_dir_youtubedl]:
-        os.makedirs(directory, exist_ok=True)
+session = None
+
+def init_deezer_session():
+    global session
+    header = {
+        'Pragma': 'no-cache',
+        'Origin': 'https://www.deezer.com',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Accept': '*/*',
+        'Cache-Control': 'no-cache',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Connection': 'keep-alive',
+        'Referer': 'https://www.deezer.com/login',
+        'DNT': '1',
+    }
+    session = requests.session()
+    session.headers.update(header)
+    session.cookies.update({'sid': sid, 'comeback': '1'})
+
+init_deezer_session()
 
 
-check_download_dirs_exist()
+class FileAlreadyExists(Exception):
+    pass
 
 
 class ScriptExtractor(html.parser.HTMLParser):
@@ -62,20 +73,6 @@ class ScriptExtractor(html.parser.HTMLParser):
         self.curtag = None
 
 
-def FileNameClean(FileName):
-    print("TODO: fix FileNameClean")
-    return FileName
-    return re.sub("[<>|?*]", "" ,FileName)     \
-        .replace('/', ',') \
-        .replace(':', '-') #\
-        #.replace('"', "'") \
-        #.replace('<', "" ) \
-        #.replace('>', "" ) \
-        #.replace('|', "" ) \
-        #.replace('?', "" ) \
-        #.replace('*', "" )
-
-
 def find_re(txt, regex):
     """ Return either the first regex group, or the entire match """
     #print("TODO: find_re -> Das muss schöner gehen")
@@ -91,36 +88,6 @@ def find_re(txt, regex):
     #print("CASE 'm.group()'")
     return m.group()
 
-
-def get_song_infos_from_deezer_website(search_type, id):
-    url = "https://www.deezer.com/de/{}/{}".format(search_type, id)
-    #print(url)
-    resp = deezer.session.get(url)
-    if resp.status_code == 404:
-        print("ERROR: Got a 404 for {} from Deezer".format(url))
-        return None
-    if "MD5_ORIGIN" not in resp.text:
-        raise Exception("We are not logged in.")
-
-    parser = ScriptExtractor()
-    parser.feed(resp.text)
-    parser.close()
-
-    songs = []
-
-    for script in parser.scripts:
-        jsondata = find_re(script, r'{"DATA":.*')
-        if jsondata:
-            DZR_APP_STATE = json.loads(jsondata)
-            if DZR_APP_STATE['DATA']['__TYPE__'] == 'playlist' or DZR_APP_STATE['DATA']['__TYPE__'] == 'album':
-                # songs if you searched for album/playlist
-                for song in DZR_APP_STATE['SONGS']['data']:
-                    songs.append(song)
-            elif DZR_APP_STATE['DATA']['__TYPE__'] == 'song':
-                # just one song on that page
-                songs.append(DZR_APP_STATE['DATA'])
-    # always return a list
-    return songs[0] if search_type == TYPE_TRACK else songs
 
 
 def md5hex(data):
@@ -249,7 +216,7 @@ def writeid3v1_1(fo, song):
 def downloadpicture(id):
     setting_domain_img = "https://e-cdns-images.dzcdn.net/images"
     url = setting_domain_img + "/cover/" + id + "/1200x1200.jpg"
-    resp = deezer.session.get(url)
+    resp = session.get(url)
     # TODO: funktioniert das?
     return resp.content
 #    try:
@@ -410,157 +377,9 @@ def writeid3v2(fo, song):
     fo.write(id3data)
 
 
-def deezer_search(search, type):
-    search = urllib.parse.quote_plus(search)
-    resp = deezer.session.get("https://api.deezer.com/search/{}?q={}".format(type, search))
-    return_nice = []
-    for item in resp.json()['data'][:10]:
-        i = {}
-        i['id'] = str(item['id'])
-        if type == TYPE_ALBUM:
-            i['album'] = item['title']
-            i['artist'] = item['artist']['name']
-            i['title'] = ''
-        if type == TYPE_TRACK:
-            i['title'] = item['title']
-            i['album'] = item['album']['title']
-            i['artist'] = item['artist']['name']
-        return_nice.append(i)
-    return return_nice
-
-
-#def sorted_nicely(l):
-#    """ Sorts the given iterable in the way that is expected.
-#
-#    Required arguments:
-#    l -- The iterable to be sorted.
-#
-#    """
-#    print("TODO: sorted_nicely kann das nicht weg?")
-#    convert = lambda text: int(text) if text.isdigit() else text
-#    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
-#    l = [x for x in l if x]
-#    return sorted(l, key=alphanum_key)
-
-
-def make_song_paths_relative_to_mpd_root(songs):
-    global mpd_music_dir_root
-    if not mpd_music_dir_root.endswith("/"):
-        mpd_music_dir_root += "/"
-    songs_paths_relative_to_mpd_root = []
-    for song in songs:
-        songs_paths_relative_to_mpd_root.append(song[len(mpd_music_dir_root):])
-    return songs_paths_relative_to_mpd_root
-
-
-def update_mpd_db(songs, add_to_playlist):
-    # songs: list of music files or just a string (file path)
-    print("Updating mpd database")
-    timeout_counter = 0
-    mpd_client = mpd.MPDClient(use_unicode=True)
-    try:
-        mpd_client.connect(mpd_host, mpd_port)
-    except ConnectionRefusedError as e:
-        print("ERROR connecting to MPD ({}:{}): {}".format(mpd_host, mpd_port, e))
-        return
-    mpd_client.update()
-    if add_to_playlist:
-        songs = [songs] if type(songs) != list else songs
-        songs = make_song_paths_relative_to_mpd_root(songs)
-        while len(mpd_client.search("file", songs[0])) == 0:
-            # c.update() does not block so wait for it
-            if timeout_counter == 10:
-                print("Tried it {} times. Give up now.".format(timeout_counter))
-                return
-            print("'{}' not found in the music db. Let's wait for it".format(songs[0]))
-            timeout_counter += 1
-            time.sleep(2)
-        for song in songs:
-            try:
-                mpd_client.add(song)
-                print("Added to mpd playlist: '{}'".format(song))
-            except mpd.base.CommandError as mpd_error:
-                print("ERROR adding '{}' to playlist: {}".format(song, mpd_error))
-
-
-
-
-def parse_deezer_playlist(playlist_id):
-    if playlist_id.startswith("http"):
-        playlist_id = re.search(r'\d+', playlist_id).group(0)
-
-    req = deezer.session.post("https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token=")
-    csrf_token = req.json()['results']['checkForm']
-
-    url = "https://www.deezer.com/ajax/gw-light.php?method=deezer.pagePlaylist&input=3&api_version=1.0&api_token={}".format(csrf_token)
-    data = {'playlist_id': int(playlist_id),
-            'start': 0,
-            'tab': 0,
-            'header': True,
-            'lang': 'de',
-            'nb': 500}
-    req = deezer.session.post(url, json=data)
-    j = req.json()
-
-    if len(j['error']) > 0:
-        print("ERROR: deezer api said {}".format(j['error']))
-        return
-    j = j['results']
-
-    playlist_name = j['DATA']['TITLE']
-    number_songs = j['DATA']['NB_SONG']
-    print("Playlist '{}' has {} songs".format(playlist_name, number_songs))
-
-    print("Got {} songs from API".format(j['SONGS']['count']))
-    return playlist_name, j['SONGS']['data']
-
-
-class FileAlreadyExists(Exception):
-    pass
-
-
-def clean_filename(path):
-    return path.replace("/", "")
-
-
-def get_absolute_filename(type, song, playlist_name=None):
-    file_exist = False
-
-    # TODO: filter and sanitize filename /
-    # TODO: assert  playlist_name gesetzt wenn TYPE == PLAYLIST + / raus
-    song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['SNG_TITLE'])
-    song_filename = clean_filename(song_filename)
-
-    if type == TYPE_TRACK:
-        absolute_filename = os.path.join(download_dir_songs, song_filename)
-    elif type == TYPE_ALBUM:
-        # TODO: sanizize album_name
-        album_name = "{} - {}".format(song['ART_NAME'], song['ALB_TITLE'])
-        album_name = clean_filename(album_name)
-        #song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['SNG_TITLE'])
-        album_dir = os.path.join(download_dir_albums, album_name)
-        if not os.path.exists(album_dir):
-            os.mkdir(album_dir)
-        absolute_filename = os.path.join(album_dir, song_filename)
-    elif type == TYPE_PLAYLIST:
-        assert playlist_name is not None
-        playlist_name = clean_filename(playlist_name)
-        playlist_dir = os.path.join(download_dir_playlists, playlist_name)
-        if not os.path.exists(playlist_dir):
-            os.mkdir(playlist_dir)
-        absolute_filename = os.path.join(playlist_dir, song_filename)
-
-    if os.path.exists(absolute_filename):
-        file_exist = True
-
-    if file_exist:
-        print("Skipping song '{}'. Already exists.".format(absolute_filename))
-    else:
-        print("Downloading '{}'".format(song_filename))
-    return (file_exist, absolute_filename)
-
-
 def download_song(song, output_file):
+    assert type(song) == dict
+    # song: dict from Deezer website
 
     song_quality = 3 if song.get("FILESIZE_MP3_320") else \
                    5 if song.get("FILESIZE_MP3_256") else \
@@ -573,7 +392,7 @@ def download_song(song, output_file):
     key = calcbfkey(song["SNG_ID"])
     try:
         url = "https://e-cdns-proxy-%s.dzcdn.net/mobile/1/%s" % (song["MD5_ORIGIN"][0], urlkey.decode())
-        fh = deezer.session.get(url)
+        fh = session.get(url)
         if fh.status_code != 200:
             print("ERROR: Can not download this song. Got a {}".format(fh.status_code))
             return
@@ -607,127 +426,115 @@ def download_song(song, output_file):
         print("Dowload finished: {}".format(output_file))
 
 
-def create_zip_file(songs_absolute_location):
-    # take first song in list and take the parent dir (name of album/playlist")
-    name_zipfile = songs_absolute_location[0].split("/")[-2] + ".zip"
-    location_zip_file = os.path.join(download_dir_zips, name_zipfile)
-    print("Creating zip file '{}'".format(location_zip_file))
-    parent_dir = songs_absolute_location[0].split("/")[-2]
-    with ZipFile(location_zip_file, 'w', compression=ZIP_DEFLATED) as zip:
-        for song_location in songs_absolute_location:
-            try:
-                print("Adding song {}".format(song_location))
-                zip.write(song_location, arcname="{}/{}".format(parent_dir, basename(song_location)))
-            except FileNotFoundError:
-                print("Could not find file '{}'".format(song_location))
-    print("Done with the zip")
+def get_song_infos_from_deezer_website(search_type, id):
+    # TODO: was kommt da rein??
+    url = "https://www.deezer.com/de/{}/{}".format(search_type, id)
+    resp = session.get(url)
+    if resp.status_code == 404:
+        print("ERROR: Got a 404 for {} from Deezer".format(url))
+        return None
+    if "MD5_ORIGIN" not in resp.text:
+        print("ERROR: We are not logged in")
+        return None
+
+    parser = ScriptExtractor()
+    parser.feed(resp.text)
+    parser.close()
+
+    songs = []
+    for script in parser.scripts:
+        jsondata = find_re(script, r'{"DATA":.*')
+        if jsondata:
+            DZR_APP_STATE = json.loads(jsondata)
+            if DZR_APP_STATE['DATA']['__TYPE__'] == 'playlist' or DZR_APP_STATE['DATA']['__TYPE__'] == 'album':
+                # songs if you searched for album/playlist
+                for song in DZR_APP_STATE['SONGS']['data']:
+                    songs.append(song)
+            elif DZR_APP_STATE['DATA']['__TYPE__'] == 'song':
+                # just one song on that page
+                songs.append(DZR_APP_STATE['DATA'])
+    return songs[0] if search_type == TYPE_TRACK else songs
 
 
-def create_m3u8_file(songs_absolute_location):
-    playlist_directory, __ = os.path.split(songs_absolute_location[0])
-    # 00 as prefix => will be shown as first in dir listing
-    m3u8_filename = "00 {}.m3u8".format(playlist_directory.split("/")[-1])
-    print("Creating m3u8 file: '{}'".format(m3u8_filename))
-    m3u8_file_abs = os.path.join(playlist_directory, m3u8_filename)
-    with open(m3u8_file_abs, "w") as f:
-        for song in songs_absolute_location:
-            if os.path.exists(song):
-                f.write(basename(song) + "\n")
+def deezer_search(search, type):
+    search = urllib.parse.quote_plus(search)
+    resp = session.get("https://api.deezer.com/search/{}?q={}".format(type, search))
+    return_nice = []
+    for item in resp.json()['data'][:10]:
+        i = {}
+        i['id'] = str(item['id'])
+        if type == TYPE_ALBUM:
+            i['album'] = item['title']
+            i['artist'] = item['artist']['name']
+            i['title'] = ''
+        if type == TYPE_TRACK:
+            i['title'] = item['title']
+            i['album'] = item['album']['title']
+            i['artist'] = item['artist']['name']
+        return_nice.append(i)
+    return return_nice
 
 
-def download_deezer_song_and_queue(track_id, add_to_playlist):
-    song = get_song_infos_from_deezer_website(TYPE_TRACK, track_id)
+def parse_deezer_playlist(playlist_id):
+    if playlist_id.startswith("http"):
+        playlist_id = re.search(r'\d+', playlist_id).group(0)
+
+    req = session.post("https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token=")
+    csrf_token = req.json()['results']['checkForm']
+
+    url = "https://www.deezer.com/ajax/gw-light.php?method=deezer.pagePlaylist&input=3&api_version=1.0&api_token={}".format(csrf_token)
+    data = {'playlist_id': int(playlist_id),
+            'start': 0,
+            'tab': 0,
+            'header': True,
+            'lang': 'de',
+            'nb': 500}
+    req = session.post(url, json=data)
+    j = req.json()
+
+    if len(j['error']) > 0:
+        print("ERROR: deezer api said {}".format(j['error']))
+        return None
+    j = j['results']
+
+    playlist_name = j['DATA']['TITLE']
+    number_songs = j['DATA']['NB_SONG']
+    print("Playlist '{}' has {} songs".format(playlist_name, number_songs))
+
+    print("Got {} songs from API".format(j['SONGS']['count']))
+    return playlist_name, j['SONGS']['data']
+
+
+
+def test_deezer_login():
+    # sid cookie has no expire date. Session will be extended on the server side
+    # so we will just send a request regularly to not get logged out
+    
+    # TODO: this is ugly
+
+    song = get_song_infos_from_deezer_website(TYPE_TRACK, "917265")
     if not song:
-        return
-    file_exist, absolute_filename = get_absolute_filename(TYPE_TRACK, song)
-    if not file_exist:
-        download_song(song, absolute_filename)
-    if use_mpd:
-        update_mpd_db(absolute_filename, add_to_playlist)
-
-
-def download_deezer_album_and_queue_and_zip(album_id, add_to_playlist, create_zip):
-    songs = get_song_infos_from_deezer_website(TYPE_ALBUM, album_id)
-    songs_absolute_location = []
-    for song in songs:
-        assert type(song) == dict
-        file_exist, absolute_filename = get_absolute_filename(TYPE_ALBUM, song)
-        if not file_exist:
-            download_song(song, absolute_filename)
-        songs_absolute_location.append(absolute_filename)
-    if use_mpd:
-        update_mpd_db(songs_absolute_location, add_to_playlist)
-    if create_zip:
-        create_zip_file(songs_absolute_location)
-
-
-def download_deezer_playlist_and_queue_and_zip(playlist_id, add_to_playlist, create_zip):
-    playlist_name, songs = parse_deezer_playlist(playlist_id)
-    songs_absolute_location = []
-    for song in songs:
-        # TODO: sanizie playlist_name
-        file_exist, absolute_filename = get_absolute_filename(TYPE_PLAYLIST, song, playlist_name)
-        if not file_exist:
-            download_song(song, absolute_filename)
-        songs_absolute_location.append(absolute_filename)
-    create_m3u8_file(songs_absolute_location)
-    if use_mpd:
-        update_mpd_db(songs_absolute_location, add_to_playlist)
-    if create_zip:
-        create_zip_file(songs_absolute_location)
-
-
-def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_to_playlist, create_zip):
-    songs = get_songs_from_spotify_website(playlist_id)
-    if not songs:
-        return
-    songs_absolute_location = []
-    for song_of_playlist in songs:
-        # song_of_playlist: string (artist - song)
-        try:
-            track_id = deezer_search(song_of_playlist, TYPE_TRACK)[0]['id'] #[0] can throw IndexError
-            song = get_song_infos_from_deezer_website(TYPE_TRACK, track_id)
-            file_exist, absolute_filename = get_absolute_filename(TYPE_PLAYLIST, song, playlist_name)
-            if not file_exist:
-                download_song(song, absolute_filename)
-            songs_absolute_location.append(absolute_filename)
-        except IndexError:
-            print("Found no song on Deezer for '{}' from Spotify playlist".format(song_of_playlist))
-    create_m3u8_file(songs_absolute_location)
-    if use_mpd:
-        update_mpd_db(songs_absolute_location, add_to_playlist)
-    if create_zip:
-        create_zip_file(songs_absolute_location)
-
-
-def download_youtubedl_and_queue(video_url, add_to_playlist):
+        print("Login is not working anymore.")
+        sys.exit(1)
+    test_song = "/tmp/song.mp3"
     try:
-        filename_absolute = youtubedl_download(video_url, download_dir_youtubedl)
-    except (YoutubeDLFailedException, DownloadedFileNotFoundException) as msg:
-        print(msg)
-        return
-    if use_mpd:
-        update_mpd_db(filename_absolute, add_to_playlist)
+        os.remove(test_song)
+    except FileNotFoundError:
+        # if we remove a file that does not exist
+        pass
+    download_song(song, test_song)
+    login_works = os.path.exists(test_song)
 
+    if login_works:
+        print("Login is still working.")
+    else:
+        print("Login is not working anymore.")
+        sys.exit(1)
+    return login_works
+
+
+#deezer = DeezerLogin()
 
 if __name__ == '__main__':
-    pass
-    #my_download_song("2271563", True, True)
-    #my_download_album("93769922", create_zip=True)
-    #export_download_song("2271563", update_mpd=False, add_to_playlist=False)
-
-    #full = "/tmp/music/deezer/Twenty One Pilots - Vessel"
-    #list_files = [os.path.join(full, x) for x in os.listdir(full)]
-    #print(list_files)
-    #create_zip_file(list_files)
-    #video_url = "https://www.invidio.us/watch?v=ZbZSe6N_BXs"
-    #export_download_youtubedl(video_url, False)
-
-    #full = "/tmp/music/deezer/spotify-playlists/this is a playlist/"
-    #list_files = [os.path.join(full, x) for x in os.listdir(full)]
-    #create_m3u8(list_files)
-    playlist_id = "878989033"
-    #playlist_id = "1180748301"
-    download_deezer_playlist_and_queue_and_zip(playlist_id, True, False)
-    #moby  = "68925038"
-    #download_deezer_song_and_queue(moby, False)
+    if len(sys.argv) > 1 and sys.argv[1] == "check-login":
+        test_deezer_login()
