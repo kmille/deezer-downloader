@@ -378,16 +378,17 @@ def writeid3v2(fo, song):
 
 
 def download_song(song, output_file):
-    assert type(song) == dict
-    # song: dict from Deezer website
+    # downloads and decrypts the song from Deezer. Adds ID3 and art cover
+    # song: dict with information of the song (grabbed from Deezer.com)
+    # output_file: absolute file name of the output file
+    assert type(song) == dict, "song must be a dict"
+    assert type(output_file) == str, "output_file must be a str"
 
+    #song_quality = 8 if song.get("FILESIZE_FLAC") else \ # needs premium subscription, untested
     song_quality = 3 if song.get("FILESIZE_MP3_320") else \
                    5 if song.get("FILESIZE_MP3_256") else \
                    1
-    song_quality = 1
 
-    #return 8 if song.get("FILESIZE_FLAC") else \
-    # TODO: geht da mehr?
     urlkey = genurlkey(song["SNG_ID"], song["MD5_ORIGIN"], song["MEDIA_VERSION"], song_quality)
     key = calcbfkey(song["SNG_ID"])
     try:
@@ -427,7 +428,12 @@ def download_song(song, output_file):
 
 
 def get_song_infos_from_deezer_website(search_type, id):
-    # TODO: was kommt da rein??
+    # search_type: either one of the constants: TYPE_TRACK|TYPE_ALBUM|TYPE_PLAYLIST
+    # id: deezer_id of the song/album/playlist (like https://www.deezer.com/de/track/823267272)
+    # return: if TYPE_TRACK => song (dict grabbed from the website with information about a song)
+    # return: if TYPE_ALBUM|TYPE_PLAYLIST => list of songs
+    # return: if error => None
+
     url = "https://www.deezer.com/de/{}/{}".format(search_type, id)
     resp = session.get(url)
     if resp.status_code == 404:
@@ -456,18 +462,25 @@ def get_song_infos_from_deezer_website(search_type, id):
     return songs[0] if search_type == TYPE_TRACK else songs
 
 
-def deezer_search(search, type):
+def deezer_search(search, search_type):
+    # search: string (What are you looking for?)
+    # search_type: either one of the constants: TYPE_TRACK|TYPE_ALBUM (TYPE_PLAYLIST is not supported)
+    # return: list of dicts (keys depend on searched)
+    
+    if search_type not in [TYPE_TRACK, TYPE_ALBUM]:
+        print("ERROR: serach_type is wrong: {}".format(search_type))
+        return []
     search = urllib.parse.quote_plus(search)
-    resp = session.get("https://api.deezer.com/search/{}?q={}".format(type, search))
+    resp = session.get("https://api.deezer.com/search/{}?q={}".format(search_type, search))
     return_nice = []
     for item in resp.json()['data'][:10]:
         i = {}
         i['id'] = str(item['id'])
-        if type == TYPE_ALBUM:
+        if search_type == TYPE_ALBUM:
             i['album'] = item['title']
             i['artist'] = item['artist']['name']
             i['title'] = ''
-        if type == TYPE_TRACK:
+        if search_type == TYPE_TRACK:
             i['title'] = item['title']
             i['album'] = item['album']['title']
             i['artist'] = item['artist']['name']
@@ -476,41 +489,44 @@ def deezer_search(search, type):
 
 
 def parse_deezer_playlist(playlist_id):
+    # playlist_id: id of the playlist or the url of it
+    # e.g. https://www.deezer.com/de/playlist/6046721604 or 6046721604
+    # return if error => None
+    # return (playlist_name, list of songs) (song is a dict with information about the song)
+
     if playlist_id.startswith("http"):
         playlist_id = re.search(r'\d+', playlist_id).group(0)
 
-    req = session.post("https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token=")
+    url_get_csrf_token = "https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token="
+    req = session.post(url_get_csrf_token)
     csrf_token = req.json()['results']['checkForm']
 
-    url = "https://www.deezer.com/ajax/gw-light.php?method=deezer.pagePlaylist&input=3&api_version=1.0&api_token={}".format(csrf_token)
+    url_get_playlist_songs = "https://www.deezer.com/ajax/gw-light.php?method=deezer.pagePlaylist&input=3&api_version=1.0&api_token={}".format(csrf_token)
     data = {'playlist_id': int(playlist_id),
             'start': 0,
             'tab': 0,
             'header': True,
             'lang': 'de',
             'nb': 500}
-    req = session.post(url, json=data)
-    j = req.json()
+    req = session.post(url_get_playlist_songs, json=data)
+    json = req.json()
 
-    if len(j['error']) > 0:
-        print("ERROR: deezer api said {}".format(j['error']))
+    if len(json['error']) > 0:
+        print("ERROR: deezer api said {}".format(json['error']))
         return None
-    j = j['results']
+    json_data = json['results']
 
-    playlist_name = j['DATA']['TITLE']
-    number_songs = j['DATA']['NB_SONG']
+    playlist_name = json_data['DATA']['TITLE']
+    number_songs = json_data['DATA']['NB_SONG']
     print("Playlist '{}' has {} songs".format(playlist_name, number_songs))
 
-    print("Got {} songs from API".format(j['SONGS']['count']))
-    return playlist_name, j['SONGS']['data']
-
+    print("Got {} songs from API".format(json_data['SONGS']['count']))
+    return playlist_name, json_data['SONGS']['data']
 
 
 def test_deezer_login():
     # sid cookie has no expire date. Session will be extended on the server side
     # so we will just send a request regularly to not get logged out
-    
-    # TODO: this is ugly
 
     song = get_song_infos_from_deezer_website(TYPE_TRACK, "917265")
     if not song:
@@ -523,14 +539,14 @@ def test_deezer_login():
         # if we remove a file that does not exist
         pass
     download_song(song, test_song)
-    login_works = os.path.exists(test_song)
+    download_works = os.path.exists(test_song)
 
-    if login_works:
+    if download_works:
         print("Login is still working.")
+        sys.exit(0)
     else:
         print("Login is not working anymore.")
         sys.exit(1)
-    return login_works
 
 
 #deezer = DeezerLogin()
