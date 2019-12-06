@@ -23,6 +23,7 @@ def execute(cmd):
     stdout, stderr = p.communicate()
     print(stdout.decode())
     if p.returncode != 0:
+        print(stderr.decode())
         raise YoutubeDLFailedException("ERROR: youtube-dl exited with non-zero: \n{}".format(stderr.decode()))
     return get_absolute_filename(stdout.decode(), stderr.decode())
 

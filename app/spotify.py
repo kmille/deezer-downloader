@@ -11,7 +11,13 @@ headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 
 
 def get_songs_from_spotify_website(playlist):
+    # parses Spotify Playlist from Spotify website
     # playlist: playlist url or playlist id as string
+    # e.g. https://open.spotify.com/playlist/0wl9Q3oedquNlBAJ4MGZtS
+    # e.g. https://open.spotify.com/embed/0wl9Q3oedquNlBAJ4MGZtS
+    # e.g. 0wl9Q3oedquNlBAJ4MGZtS
+    # return: list of songs (song: artist - title)
+
     return_data = []
     if playlist.startswith("http"):
         url = playlist.replace("spotify.com/playlist", "spotify.com/embed/playlist")
@@ -21,21 +27,21 @@ def get_songs_from_spotify_website(playlist):
     req = requests.get(url)
     if req.status_code != 200:
         print("ERROR: {} gave us not a 200. Instead: {}".format(url, req.status_code))
-        return
+        return None
 
     bs = BeautifulSoup(req.text, 'html.parser')
     try:
         songs_txt = bs.find('script', {'id': 'resource'}).text.strip()
     except AttributeError:
         print("ERROR: Could not get songs from Spotify website. Wrong Playlist id? Tried {}".format(url))
-        return
+        return None
     songs_json = json.loads(songs_txt)
 
     for track in songs_json['tracks']['items']:
         artist = track['track']['artists'][0]['name']
         song = track['track']['name']
         full = "{} {}".format(artist, song)
-        # remove everything in brackets to get better search results
+        # remove everything in brackets to get better search results later on Deezer
         # e.g. (Radio  Version) or (Remastered)
         full = re.sub(r'\([^)]*\)', '', full)
         return_data.append(full)

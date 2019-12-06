@@ -395,6 +395,12 @@ def download_song(song, output_file):
         url = "https://e-cdns-proxy-%s.dzcdn.net/mobile/1/%s" % (song["MD5_ORIGIN"][0], urlkey.decode())
         fh = session.get(url)
         if fh.status_code != 200:
+            # I don't why this happens. to reproduce:
+            # go to https://www.deezer.com/de/playlist/1180748301
+            # search for Moby 
+            # open in a new tab the song Moby - Honey
+            # this will give you a 404!?
+            # but you can play the song in the browser
             print("ERROR: Can not download this song. Got a {}".format(fh.status_code))
             return
 

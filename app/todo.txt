@@ -3,26 +3,17 @@ Bug: ERROR: Got a 404 for https://www.deezer.com/de/album/test from Deezer (dana
 - todo: Design mobil freundlich machen
 - Rebranding: Neuer Name. weg von Deezer; geiles Loge. Favicon
 
-
-python.py => music_backend => alle funktionen testen
-- deezer.py: die Funktionen konsolideren (zu viel duplicate code)
-deezer_login funktioniert so nicht mehr (kann man nicht von außen aufrufen)
-
-
-- jetzigen Code tagen: 0.1
-- qualität muss man noch anpassen für deezer
 - deezer art cover
 - grep -rn TODO
 
-- tests
-- Routing neu schreiben
+- Routing umschreiben
 - Routing behind nignx
 
 urgs todo:
 [X] Suche => User Agent ändern
-[] app.py nicht mehr user_dict.values() machen
+[X] app.py nicht mehr user_dict.values() machen
 [X] beim starten checken ob alle Verzeichnisse da sind
-[] Ordnestruktur für den source code überdenken
+[X] Ordnestruktur für den source code überdenken
 
 
 - rewrite: 
@@ -39,6 +30,10 @@ urgs todo:
     - [X] fix: calcbfkey durcheinander
 [] Doku schreiben
     - Changelog
+    - Funktionen
+    - Shortcuts
+    - Wie funktioniert Deezer?
+    - Tests?
 
 
 whish whish
@@ -48,7 +43,6 @@ whish whish
 - durch n Proxy jagen
 - kann man diesen md5 hash nicht pre computen? dann kann man sich den login sparen
 - mpd update auf Unterordner beschränken? => geht schneller
-- tests für die einzelnen Funktionen
 - Type Anotations?
 
 

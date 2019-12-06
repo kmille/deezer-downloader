@@ -4,6 +4,8 @@ import magic
 
 from deezer import deezer_search, get_song_infos_from_deezer_website, parse_deezer_playlist, download_song
 from deezer import TYPE_TRACK, TYPE_ALBUM
+from spotify import get_songs_from_spotify_website
+from youtube import youtubedl_download, YoutubeDLFailedException
 
 from ipdb import set_trace
 
@@ -173,13 +175,11 @@ class TestDeezerMethods(unittest.TestCase):
         print("TODO: im Fehlerfall Exception schmeißen")
 
     def test_parse_invalid_deezer_playlist_with_url(self):
-        #invalid_playlist_url = "https://heise.de"
+        #invalid_playlist_url = "https://www.heise.de"
         #playlist_name, songs = parse_deezer_playlist(invalid_playlist_url)
         print("TODO: im Fehlerfall Exception schmeißen")
-
-#    def test_parse_deezer_playlist_with_api_error(self):
-#    todo: test api error
     # END: parse_deezer_playlist
+
 
     # BEGIN: download_song
     def test_download_song_valid(self):
@@ -201,33 +201,61 @@ class TestDeezerMethods(unittest.TestCase):
         with self.assertRaises(AssertionError):
             download_song("this sould be a dict", test_song)
 
-    def test_download_song_invalid_song_403(self):
-        print("TODO: mal in der playlist schauen: moby gab nen 403 zurück")
     # END: download_song
 
 
+class TestSpotifyMethods(unittest.TestCase):
+
+    def _test_parse_spotify_playlist_website(self, playlist):
+        songs = get_songs_from_spotify_website(playlist)
+        playlist = {'Gazebo I Like Chopin', 'Ryan Paris Dolce Vita ', 'Ivana Spagna Call Me', 'Radiorama Desire', 'Baltimora Tarzan Boy', "Generazione Anni '80 Comanchero", 'Ken Laszlo Hey Hey Guy', 'P. Lion Happy Children', 'Fancy Bolero', 'Fancy Lady Of Ice', 'Miko Mission How Old Are You ', 'Scotch Disco Band', 'Sabrina Boys - Summertime Love', 'C.C. Catch Strangers by Night - Maxi-Version', 'Savage Only You', "Savage Don't Cry Tonight - Original Version", 'Italove Strangers in the Night ', "Italove L'Amour", 'Italove Follow Me to Mexico', 'Savage Celebrate - Extended Version', 'Alyne Over The Sky - Original Extended Version', "Den Harrow Don't Break My Heart", 'Savage Only You ', 'Hypnosis Pulstar', 'My Mine Hypnotic Tango - Original 12" Version', 'Fun Fun Happy Station - Scratch Version', 'Albert One Heart On Fire - Special Maxi Mix', 'Airplay For Your Love', 'M & G When I Let You Down - Extended Mix', "Bad Boys Blue You're a Woman", 'Bad Boys Blue Come Back And Stay', 'The Eight Group Life Is Life', 'The Eight Group Vamos A La Playa', 'The Eight Group The Final Countdown', "Modern Talking You're My Heart, You're My Soul '98 - New Version", 'Modern Talking Cheri Cheri Lady', 'Modern Talking Brother Louie', "Modern Talking Geronimo's Cadillac", 'Modern Talking Atlantis Is Calling ', 'Modern Talking You Are Not Alone', 'Roxette Listen to Your Heart', 'Roxette Joyride - Single Version', 'Eurythmics Sweet Dreams ', 'Eurythmics There Must Be an Angel ', 'Cyndi Lauper Girls Just Want to Have Fun', 'Cyndi Lauper Time After Time', 'Sandra In The Heat Of The Night', 'Limahl Never Ending Story', 'Samantha Fox Touch Me ', 'Fancy Slice Me Nice - Original Version', 'C.C. Catch I Can Lose My Heart Tonight - Extended Club Remix', 'C.C. Catch Heartbreak Hotel', 'The Eighty Group Moonlight Shadow', 'Erasure Always - 2009 Remastered Version', "Modern Talking You Can Win If You Want - No 1 Mix '84", 'Modern Talking In 100 Years', 'Modern Talking Jet Airliner', 'Modern Talking Sexy Sexy Lover - Vocal Version', 'Modern Talking China in Her Eyes - Video Version', 'Modern Talking Win the Race - Radio Edit', "The Pointer Sisters I'm So Excited", 'Captain Jack Captain Jack - Short Mix', 'a-ha Take on Me', 'TOTO Africa', "Generazione Anni '80 Self Control", 'Alphaville Big in Japan - Remaster', 'Michael Sembello Maniac', 'Den Harrow Future Brain', 'Radiorama Chance To Desire ', 'F.R. David Words', 'Desireless Voyage voyage', 'Sandra Maria Magdalena - Remastered', 'Valerie Dore The Night', 'Babys Gang Happy Song', 'Radiorama Aliens', 'Babys Gang Challenger', 'Eddy Huntington Ussr', 'Silent Circle Touch in the Night - Radio Version', 'Kano Another Life - Original', 'Ken Laszlo Tonight', 'Koto Visitors', 'Max Him Lady Fantasy', 'Silent Circle Stop the Rain in the Night', 'Alphaville Sounds Like a Melody', 'Bad Boys Blue I Wanna Hear Your Heartbeat ', 'Bad Boys Blue Lady In Black', 'Bad Boys Blue A World Without You', 'Bad Boys Blue Pretty Young Girl'}
+        self.assertEqual(playlist, set(songs))
+
+    def test_spotify_parser_valid_playlist_embed_url(self):
+        playlist_url = "https://open.spotify.com/embed/playlist/0wl9Q3oedquNlBAJ4MGZtS"
+        self._test_parse_spotify_playlist_website(playlist_url)
+
+    def test_spotify_parser_valid_playlist_url(self):
+        playlist_url = "https://open.spotify.com/playlist/0wl9Q3oedquNlBAJ4MGZtS"
+        self._test_parse_spotify_playlist_website(playlist_url)
+
+    def test_spotify_parser_valid_playlist_id(self):
+        playlist_id = "0wl9Q3oedquNlBAJ4MGZtS"
+        self._test_parse_spotify_playlist_website(playlist_id)
+
+    def test_spotify_parser_invalid_playlist_id(self):
+        playlist_id = "thisdoesnotexist"
+        #songs = get_songs_from_spotify_website(playlist_id)
+        print("TODO: throw Exception on Error")
+    
+    def test_spotify_parser_invalid_playlist_url(self):
+        playlist_url = "https://www.heise.de"
+        #songs = get_songs_from_spotify_website(playlist_id)
+        print("TODO: throw Exception on Error")
+
+
+class TestSpotifyMethods(unittest.TestCase):
+
+    def test_youtube_dl_valid_url(self):
+        url = "https://www.youtube.com/watch?v=ZbZSe6N_BXs"
+        destination_file = youtubedl_download(url, "/tmp")
+        file_exists = os.path.exists(destination_file)
+        self.assertEqual(file_exists, True)
+        file_type = magic.from_file(destination_file)
+        os.remove(destination_file)
+        self.assertEqual(file_type, "Audio file with ID3 version 2.4.0, contains:MPEG ADTS, layer III, v1,  64 kbps, 48 kHz, Stereo")
+
+    def test_youtube_dl_invalid_url(self):
+        url = "https://www.heise.de"
+        with self.assertRaises(YoutubeDLFailedException):
+            youtubedl_download(url, "/tmp")
+
+    def test_youtube_dl_command_execution(self):
+        url = "https://www.youtube.com/watch?v=ZbZSe6N_BXs&$(touch /tmp/pwned.txt)"
+        youtubedl_download(url, "/tmp")
+        pwn_succeeded = os.path.exists("/tmp/pwned.txt")
+        self.assertEqual(pwn_succeeded, False)
 
 
 if __name__ == '__main__':
     unittest.main()
-
-
-"""
-tests:
-
-todo:
-
-    def download_song(song, output_file):
-        download_invalid_song =
-            - song ist kein dict
-            - url gibt 403 zurück
-
-done:
-
-- deezer
-    def deezer_search(search, type):
-    def get_song_infos_from_deezer_website(search_type, id):
-    def parse_deezer_playlist(playlist_id):
-
-
-"""
