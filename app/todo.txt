@@ -1,8 +1,4 @@
 
-unittests:
-prints weg
-
-
 open issues:
 Bug: ERROR: Got a 404 for https://www.deezer.com/de/album/test from Deezer (danach gibts noch ne Exception; gilt für Spotify und Deezer)
 - todo: Design mobil freundlich machen
@@ -31,11 +27,11 @@ urgs todo:
     - zu den hässlichsten Funktionen gehören:
         - writeid3v1_1
         - writeid3v2
-    - Funktionien, die von außen aufgerufen werden haben noch zu viel duplicate code
+    - [X] Funktionien, die von außen aufgerufen werden haben noch zu viel duplicate code
 
 [] requirements.txt aktualisieren
 [] auf python3 umstellen
-    - [] fix: FileNameClean
+    - [X] fix: FileNameClean
     - [X] fix: calcbfkey durcheinander
 [] Doku schreiben
     - Changelog

@@ -70,25 +70,21 @@ def clean_filename(path):
     return path.replace("/", "")
 
 
-def get_absolute_filename(type, song, playlist_name=None):
-    # TODO: filter and sanitize filename /
-    # TODO: assert  playlist_name gesetzt wenn TYPE == PLAYLIST + / raus
+def get_absolute_filename(search_type, song, playlist_name=None):
     song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['SNG_TITLE'])
     song_filename = clean_filename(song_filename)
 
-    if type == TYPE_TRACK:
+    if search_type == TYPE_TRACK:
         absolute_filename = os.path.join(download_dir_songs, song_filename)
-    elif type == TYPE_ALBUM:
-        # TODO: sanizize album_name
+    elif search_type == TYPE_ALBUM:
         album_name = "{} - {}".format(song['ART_NAME'], song['ALB_TITLE'])
         album_name = clean_filename(album_name)
-        #song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['SNG_TITLE'])
         album_dir = os.path.join(download_dir_albums, album_name)
         if not os.path.exists(album_dir):
             os.mkdir(album_dir)
         absolute_filename = os.path.join(album_dir, song_filename)
-    elif type == TYPE_PLAYLIST:
-        assert playlist_name is not None
+    elif search_type == TYPE_PLAYLIST:
+        assert type(playlist_name) == str
         playlist_name = clean_filename(playlist_name)
         playlist_dir = os.path.join(download_dir_playlists, playlist_name)
         if not os.path.exists(playlist_dir):

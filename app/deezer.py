@@ -83,21 +83,20 @@ class ScriptExtractor(html.parser.HTMLParser):
         self.curtag = None
 
 
-def find_re(txt, regex):
-    """ Return either the first regex group, or the entire match """
-    #print("TODO: find_re -> Das muss schöner gehen")
-    #print(regex)
-    m = re.search(regex, txt)
-    if not m:
-        #print("CASE 'not m'")
-        return
-    gr = m.groups()
-    if gr:
-        #print("CASE 'gr[0]'")
-        return gr[0]
-    #print("CASE 'm.group()'")
-    return m.group()
-
+#def find_re(txt, regex):
+#    """ Return either the first regex group, or the entire match """
+#    #print("TODO: find_re -> Das muss schöner gehen")
+#    #print(regex)
+#    m = re.search(regex, txt)
+#    if not m:
+#        #print("CASE 'not m'")
+#        return
+#    #gr = m.groups()
+#    #if gr:
+#        #print("CASE 'gr[0]'")
+#    #    return gr[0]
+#    #print("CASE 'm.group()'")
+#    return m.group()
 
 
 def md5hex(data):
@@ -467,9 +466,9 @@ def get_song_infos_from_deezer_website(search_type, id):
 
     songs = []
     for script in parser.scripts:
-        jsondata = find_re(script, r'{"DATA":.*')
-        if jsondata:
-            DZR_APP_STATE = json.loads(jsondata)
+        regex = re.search(r'{"DATA":.*', script)
+        if regex:
+            DZR_APP_STATE = json.loads(regex.group())
             if DZR_APP_STATE['DATA']['__TYPE__'] == 'playlist' or DZR_APP_STATE['DATA']['__TYPE__'] == 'album':
                 # songs if you searched for album/playlist
                 for song in DZR_APP_STATE['SONGS']['data']:

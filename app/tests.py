@@ -234,7 +234,7 @@ class TestSpotifyMethods(unittest.TestCase):
             get_songs_from_spotify_website(playlist_url)
 
 
-class TestSpotifyMethods(unittest.TestCase):
+class TestYoutubeMethods(unittest.TestCase):
 
     def test_youtube_dl_valid_url(self):
         url = "https://www.youtube.com/watch?v=ZbZSe6N_BXs"
