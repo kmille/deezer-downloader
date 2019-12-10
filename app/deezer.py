@@ -167,48 +167,25 @@ def decryptfile(fh, key, fo):
 
 
 def writeid3v1_1(fo, song):
-    
+
     # Bugfix changed song["SNG_TITLE... to song.get("SNG_TITLE... to avoid 'key-error' in case the key does not exist
     def song_get(song, key):
         try:
             return song.get(key).encode('utf-8')
-            #return song.get(key)
-        except Exception as e:
+        except:
             return b""
-        
+
     def album_get(key):
         global album_Data
         try:
-            #return album_Data.get(key)
             return album_Data.get(key).encode('utf-8')
-        except Exception as e:
-            return b""    
-    
-#    print(type(b"TAG"))
-#    print(type(song_get(song, "SNG_TITLE")))
-#    print(type(song_get(song, "ART_NAME")))
-#    print(type(song_get(song, "ALB_TITLE")))
-#    print(type(album_get("PHYSICAL_RELEASE_DATE")))
-#    print(type(album_get("LABEL_NAME")))
-#    print(type(b"0"))
-#    print(type(song_get(song, "TRACK_NUMBER")))
-#    print(type(b"255"))
-#            
-#    print(b"TAG")
-#    print(song_get(song, "SNG_TITLE"))
-#    print(song_get(song, "ART_NAME"))
-#    print(song_get(song, "ALB_TITLE"))
-#    print(album_get("PHYSICAL_RELEASE_DATE"))
-#    print(album_get("LABEL_NAME"))
-#    print(b"0")
-#    print(song_get(song, "TRACK_NUMBER"))
-#    print(b"255")
-#    set_trace()
-   
+        except:
+            return b""
+
     # what struct.pack expects
     # B => int
     # s => bytes
-    data = struct.pack("3s" "30s" "30s" "30s" "4s" "28sB" "B"  "B", 
+    data = struct.pack("3s" "30s" "30s" "30s" "4s" "28sB" "B"  "B",
                        b"TAG",                                             # header
                        song_get(song, "SNG_TITLE"),                             # title
                        song_get(song, "ART_NAME"),                             # artist
@@ -222,56 +199,41 @@ def writeid3v1_1(fo, song):
     fo.write(data)
 
 
-def downloadpicture(id):
+def downloadpicture(pic_idid):
     setting_domain_img = "https://e-cdns-images.dzcdn.net/images"
-    url = setting_domain_img + "/cover/" + id + "/1200x1200.jpg"
+    url = setting_domain_img + "/cover/" + pic_idid + "/1200x1200.jpg"
     resp = session.get(url)
-    # TODO: funktioniert das?
     return resp.content
-#    try:
-#
-#        #fh = urllib2.urlopen(
-#        fh = urllib.urlopen(
-#            setting_domain_img + "/cover/" + id + "/1200x1200.jpg"
-#        )
-#        return fh.read()
-#
-#    except Exception as e:
-#        print("no pic", e)
 
 
 def writeid3v2(fo, song):
-    
+
     def make28bit(x):
-        return  (
-            (x<<3) & 0x7F000000) | (
-            (x<<2) &   0x7F0000) | (
-            (x<<1) &     0x7F00) | \
-            (x     &       0x7F)
-    
+        return ((x << 3) & 0x7F000000) | ((x << 2) & 0x7F0000) | (
+               (x << 1) & 0x7F00) | (x & 0x7F)
+
     def maketag(tag, content):
-        return struct.pack( ">4sLH", 
-                             tag.encode( "ascii" ), 
-                             len(content), 
-                             0
-                           ) + content
+        return struct.pack(">4sLH", tag.encode("ascii"), len(content), 0) + content
 
     def album_get(key):
         global album_Data
         try:
-            return album_Data.get(key)#.encode('utf-8')
-        except Exception as e:
-            return ""  
-        
+            return album_Data.get(key)
+        except:
+            #raise
+            return ""
+
     def song_get(song, key):
         try:
-            return song[key]#.encode('utf-8')
-        except Exception as e:
-            return ""    
-    
+            return song[key]
+        except:
+            #raise
+            return ""
+
     def makeutf8(txt):
-        return b"\x03" +  txt .encode('utf-8') 
-    
+        #return b"\x03" + txt.encode('utf-8')
+        return "\x03{}".format(txt).encode()
+
     def makepic(data):
         # Picture type:
         # 0x00     Other
@@ -295,77 +257,74 @@ def writeid3v2(fo, song):
         # 0x12     Illustration
         # 0x13     Band/artist logotype
         # 0x14     Publisher/Studio logotype        
-        imgframe = ( "\x00",                 # text encoding
-                     "image/jpeg",  "\0",    # mime type
-                     "\x03",                 # picture type: 'Cover (front)'
-                     ""[:64],  "\0",         # description
-                     data
+        imgframe = ("\x00",                 # text encoding
+                    "image/jpeg", "\0",    # mime type
+                    "\x03",                 # picture type: 'Cover (front)'
+                    ""[:64], "\0",         # description
+                    data
                     )
-        
-        return b'' .join( imgframe )
- 
-    
+
+        return b'' .join(imgframe)
+
     # get Data as DDMM
     try:
         phyDate_YYYYMMDD = album_get("PHYSICAL_RELEASE_DATE") .split('-') #'2008-11-21'
-        phyDate_DDMM    = phyDate_YYYYMMDD[2] + phyDate_YYYYMMDD[1]
+        phyDate_DDMM = phyDate_YYYYMMDD[2] + phyDate_YYYYMMDD[1]
     except:
-        phyDate_DDMM    = ''
-    
+        phyDate_DDMM = ''
+
     # get size of first item in the list that is not 0
     try:
-        FileSize = [ 
-            song_get(song,i) 
+        FileSize = [
+            song_get(song, i)
             for i in (
                 'FILESIZE_AAC_64',
                 'FILESIZE_MP3_320',
                 'FILESIZE_MP3_256',
                 'FILESIZE_MP3_64',
                 'FILESIZE',
-                ) if song_get(song,i)
+                ) if song_get(song, i)
             ][0]
     except:
-        FileSize    = 0
-    
+        FileSize = 0
+
     try:
         track = "%02s" % song["TRACK_NUMBER"]
         track += "/%02s" % album_get("TRACKS")
     except:
         pass
-    
+
     # http://id3.org/id3v2.3.0#Attached_picture
-    id3 = [ 
-        maketag( "TRCK", makeutf8( track    ) ),     # The 'Track number/Position in set' frame is a numeric string containing the order number of the audio-file on its original recording. This may be extended with a "/" character and a numeric string containing the total numer of tracks/elements on the original recording. E.g. "4/9".
-        maketag( "TLEN", makeutf8( str( int(song["DURATION"]) * 1000 )          ) ),     # The 'Length' frame contains the length of the audiofile in milliseconds, represented as a numeric string.
-        maketag( "TORY", makeutf8( str( album_get("PHYSICAL_RELEASE_DATE")[:4] )) ),     # The 'Original release year' frame is intended for the year when the original recording was released. if for example the music in the file should be a cover of a previously released song 
-        maketag( "TYER", makeutf8( str( album_get("DIGITAL_RELEASE_DATE" )[:4] )) ),     # The 'Year' frame is a numeric string with a year of the recording. This frames is always four characters long (until the year 10000).
-        maketag( "TDAT", makeutf8( str( phyDate_DDMM                           )) ),     # The 'Date' frame is a numeric string in the DDMM format containing the date for the recording. This field is always four characters long.
-        maketag( "TPUB", makeutf8( album_get("LABEL_NAME")                ) ),     # The 'Publisher' frame simply contains the name of the label or publisher.
-        maketag( "TSIZ", makeutf8( str( FileSize                               )) ),     # The 'Size' frame contains the size of the audiofile in bytes, excluding the ID3v2 tag, represented as a numeric string.
-        maketag( "TFLT", makeutf8( "MPG/3"                                ) ),
-        
+    id3 = [
+        maketag("TRCK", makeutf8(track)),     # The 'Track number/Position in set' frame is a numeric string containing the order number of the audio-file on its original recording. This may be extended with a "/" character and a numeric string containing the total numer of tracks/elements on the original recording. E.g. "4/9".
+        maketag("TLEN", makeutf8(str(int(song["DURATION"]) * 1000))),     # The 'Length' frame contains the length of the audiofile in milliseconds, represented as a numeric string.
+        maketag("TORY", makeutf8(str(album_get("PHYSICAL_RELEASE_DATE")[:4]))),     # The 'Original release year' frame is intended for the year when the original recording was released. if for example the music in the file should be a cover of a previously released song
+        maketag("TYER", makeutf8(str(album_get("DIGITAL_RELEASE_DATE")[:4]))),     # The 'Year' frame is a numeric string with a year of the recording. This frames is always four characters long (until the year 10000).
+        maketag("TDAT", makeutf8(str(phyDate_DDMM))),     # The 'Date' frame is a numeric string in the DDMM format containing the date for the recording. This field is always four characters long.
+        maketag("TPUB", makeutf8(album_get("LABEL_NAME"))),     # The 'Publisher' frame simply contains the name of the label or publisher.
+        maketag("TSIZ", makeutf8(str(FileSize))),     # The 'Size' frame contains the size of the audiofile in bytes, excluding the ID3v2 tag, represented as a numeric string.
+        maketag("TFLT", makeutf8("MPG/3")),
+
         ]  # decimal, no term NUL
-    id3.extend( [
-        maketag( ID_id3_frame, makeutf8( song_get(song, ID_song ))  ) for (ID_id3_frame, ID_song) in \
+    id3.extend([
+        maketag(ID_id3_frame, makeutf8(song_get(song, ID_song))) for (ID_id3_frame, ID_song) in \
         (
-            ( "TALB", "ALB_TITLE"   ),   # The 'Album/Movie/Show title' frame is intended for the title of the recording(/source of sound) which the audio in the file is taken from.
-            ( "TPE1", "ART_NAME"    ),   # The 'Lead artist(s)/Lead performer(s)/Soloist(s)/Performing group' is used for the main artist(s). They are seperated with the "/" character.
-            ( "TPE2", "ART_NAME"    ),   # The 'Band/Orchestra/Accompaniment' frame is used for additional information about the performers in the recording.
-            ( "TPOS", "DISK_NUMBER" ),   # The 'Part of a set' frame is a numeric string that describes which part of a set the audio came from. This frame is used if the source described in the "TALB" frame is divided into several mediums, e.g. a double CD. The value may be extended with a "/" character and a numeric string containing the total number of parts in the set. E.g. "1/2".
-            ( "TIT2", "SNG_TITLE"   ),   # The 'Title/Songname/Content description' frame is the actual name of the piece (e.g. "Adagio", "Hurricane Donna").
-            ( "TSRC", "ISRC"        ),   # The 'ISRC' frame should contain the International Standard Recording Code (ISRC) (12 characters).
+            ("TALB", "ALB_TITLE"),   # The 'Album/Movie/Show title' frame is intended for the title of the recording(/source of sound) which the audio in the file is taken from.
+            ("TPE1", "ART_NAME"),   # The 'Lead artist(s)/Lead performer(s)/Soloist(s)/Performing group' is used for the main artist(s). They are seperated with the "/" character.
+            ("TPE2", "ART_NAME"),   # The 'Band/Orchestra/Accompaniment' frame is used for additional information about the performers in the recording.
+            ("TPOS", "DISK_NUMBER"),   # The 'Part of a set' frame is a numeric string that describes which part of a set the audio came from. This frame is used if the source described in the "TALB" frame is divided into several mediums, e.g. a double CD. The value may be extended with a "/" character and a numeric string containing the total number of parts in the set. E.g. "1/2".
+            ("TIT2", "SNG_TITLE"),   # The 'Title/Songname/Content description' frame is the actual name of the piece (e.g. "Adagio", "Hurricane Donna").
+            ("TSRC", "ISRC"),   # The 'ISRC' frame should contain the International Standard Recording Code (ISRC) (12 characters).
         )
     ])
 
-    #try:
-        #id3.append(
-            #maketag( "APIC", makepic(
-                        #downloadpicture( song["ALB_PICTURE"] )
-                    #)
-            #)
-        #)
-    #except Exception as e:
-        #print "no pic", e
+    try:
+        id3.append(
+            maketag("APIC", makepic(downloadpicture(song["ALB_PICTURE"])))
+        )
+    except Exception as e:
+        print("ERROR: no album cover?", e)
+        #raise
 
     id3data = b"".join(id3)
 #>      big-endian
@@ -374,13 +333,12 @@ def writeid3v2(fo, song):
 #B      unsigned char   integer 1
 #L      unsigned long   integer 4
 
-
-    hdr = struct.pack(">" 
-                      "3s" "H" "B" "L", 
+    hdr = struct.pack(">"
+                      "3s" "H" "B" "L",
                       "ID3".encode("ascii"),
                       0x300,   # version
                       0x00,    # flags
-                      make28bit( len( id3data) ) )
+                      make28bit(len(id3data)))
 
     fo.write(hdr)
     fo.write(id3data)
@@ -469,6 +427,8 @@ def get_song_infos_from_deezer_website(search_type, id):
         regex = re.search(r'{"DATA":.*', script)
         if regex:
             DZR_APP_STATE = json.loads(regex.group())
+            global album_Data
+            album_Data = DZR_APP_STATE.get("DATA")
             if DZR_APP_STATE['DATA']['__TYPE__'] == 'playlist' or DZR_APP_STATE['DATA']['__TYPE__'] == 'album':
                 # songs if you searched for album/playlist
                 for song in DZR_APP_STATE['SONGS']['data']:

@@ -160,7 +160,6 @@ def download_deezer_playlist_and_queue_and_zip(playlist_id, add_to_playlist, cre
         return
     songs_absolute_location = []
     for song in songs:
-        # TODO: sanizie playlist_name
         absolute_filename = get_absolute_filename(TYPE_PLAYLIST, song, playlist_name)
         songs_absolute_location.append(absolute_filename)
     create_m3u8_file(songs_absolute_location)

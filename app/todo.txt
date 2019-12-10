@@ -1,11 +1,12 @@
+- deezer art cover bricht immer noch manchmal. muss auch eig. nicht das größte sein ...
+
+- mpd funktionen ausschaltbar machen
 
 open issues:
 Bug: ERROR: Got a 404 for https://www.deezer.com/de/album/test from Deezer (danach gibts noch ne Exception; gilt für Spotify und Deezer)
 - todo: Design mobil freundlich machen
 - Rebranding: Neuer Name. weg von Deezer; geiles Loge. Favicon
 
-- deezer art cover
-- grep -rn TODO
 
 - Routing umschreiben
 
