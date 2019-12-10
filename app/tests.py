@@ -4,8 +4,10 @@ import magic
 
 from deezer import deezer_search, get_song_infos_from_deezer_website, parse_deezer_playlist, download_song
 from deezer import TYPE_TRACK, TYPE_ALBUM
-from spotify import get_songs_from_spotify_website
+from deezer import Deezer404Exception, DeezerApiException
+from spotify import get_songs_from_spotify_website, SpotifyWebsiteParserException
 from youtube import youtubedl_download, YoutubeDLFailedException
+
 
 from ipdb import set_trace
 
@@ -39,7 +41,7 @@ class TestDeezerMethods(unittest.TestCase):
             self.assertIn(known_album_name, found_album_names)
 
     def test_deezer_search_invalid_search_typ(self):
-        songs = deezer_search("Coldplay", "this is wrong")
+        songs = deezer_search("Coldplay", "this is a wrong search type")
         self.assertIsInstance(songs, list)
         self.assertListEqual(songs, [])
 
@@ -58,8 +60,6 @@ class TestDeezerMethods(unittest.TestCase):
     def test_get_track_infos_from_website(self):
         song = get_song_infos_from_deezer_website(TYPE_TRACK, "69962764")
         self.assertIsInstance(song, dict)
-        known_song_keys = ["SNG_ID", "DURATION", "MD5_ORIGIN", "SNG_TITLE", "TRACK_NUMBER", 
-                      "ALB_PICTURE", "MEDIA_VERSION", "ART_NAME", "ALB_TITLE"]
         song_keys = list(song.keys())
         for key in known_song_keys:
             self.assertIn(key, song_keys)
@@ -138,12 +138,12 @@ class TestDeezerMethods(unittest.TestCase):
         self.assertEqual(songs[14]["MD5_ORIGIN"], "8e43717a1585e8e080a987584d6051c9")
 
     def test_get_invalid_track_infos_from_website(self):
-        song = get_song_infos_from_deezer_website(TYPE_TRACK, "thisdoesnotexist")
-        self.assertEqual(song, None)
+        with self.assertRaises(Deezer404Exception):
+            get_song_infos_from_deezer_website(TYPE_TRACK, "thisdoesnotexist")
 
     def test_get_invalid_album_infos_from_website(self):
-        song = get_song_infos_from_deezer_website(TYPE_ALBUM, "thisdoesnotexist")
-        self.assertEqual(song, None)
+        with self.assertRaises(Deezer404Exception):
+            get_song_infos_from_deezer_website(TYPE_ALBUM, "thisdoesnotexist")
     # END: TEST get_song_infos_from_deezer_website
 
     # BEGIN: parse_deezer_playlist
@@ -170,17 +170,17 @@ class TestDeezerMethods(unittest.TestCase):
         self._call_parse_valid_deezer_playlist(playlist_id)
 
     def test_parse_invalid_deezer_playlist_with_id(self):
-        invalid_playlist_id = "1234"
-        playlist_name, songs = parse_deezer_playlist(invalid_playlist_id)
-        print("TODO: im Fehlerfall Exception schmeißen")
+        invalid_playlist_id = "999999999999999999999999999"
+        with self.assertRaises(DeezerApiException):
+            playlist_name, songs = parse_deezer_playlist(invalid_playlist_id)
 
     def test_parse_invalid_deezer_playlist_with_url(self):
-        #invalid_playlist_url = "https://www.heise.de"
-        #playlist_name, songs = parse_deezer_playlist(invalid_playlist_url)
-        print("TODO: im Fehlerfall Exception schmeißen")
+        invalid_playlist_url = "https://www.heise.de"
+        with self.assertRaises(DeezerApiException):
+            playlist_name, songs = parse_deezer_playlist(invalid_playlist_url)
     # END: parse_deezer_playlist
 
-
+    
     # BEGIN: download_song
     def test_download_song_valid(self):
         song_infos = deezer_search("faber tausendfrankenlang", TYPE_TRACK)[0]
@@ -225,13 +225,13 @@ class TestSpotifyMethods(unittest.TestCase):
 
     def test_spotify_parser_invalid_playlist_id(self):
         playlist_id = "thisdoesnotexist"
-        #songs = get_songs_from_spotify_website(playlist_id)
-        print("TODO: throw Exception on Error")
-    
+        with self.assertRaises(SpotifyWebsiteParserException):
+            get_songs_from_spotify_website(playlist_id)
+
     def test_spotify_parser_invalid_playlist_url(self):
         playlist_url = "https://www.heise.de"
-        #songs = get_songs_from_spotify_website(playlist_id)
-        print("TODO: throw Exception on Error")
+        with self.assertRaises(SpotifyWebsiteParserException):
+            get_songs_from_spotify_website(playlist_url)
 
 
 class TestSpotifyMethods(unittest.TestCase):

@@ -1,3 +1,8 @@
+
+unittests:
+prints weg
+
+
 open issues:
 Bug: ERROR: Got a 404 for https://www.deezer.com/de/album/test from Deezer (danach gibts noch ne Exception; gilt für Spotify und Deezer)
 - todo: Design mobil freundlich machen
@@ -7,7 +12,11 @@ Bug: ERROR: Got a 404 for https://www.deezer.com/de/album/test from Deezer (dana
 - grep -rn TODO
 
 - Routing umschreiben
+
+Deployment:
+- ansible?
 - Routing behind nignx
+
 
 urgs todo:
 [X] Suche => User Agent ändern

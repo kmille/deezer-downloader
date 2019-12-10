@@ -35,7 +35,15 @@ def get_absolute_filename(stdout, stderr):
     return regex_foo.group(1)
 
 
+# called from extern
 def youtubedl_download(url, destination_dir):
+    # url, e.g. https://www.youtube.com/watch?v=ZbZSe6N_BXs
+    # destination_dir: /tmp/
+    # returns: absolute filename of the downloaded file
+    # raises
+    # YoutubeDLFailedException if youtube-dl exits with non-zero
+    # DownloadedFileNotFoundException if we cannot get the converted output file from youtube-dl with a regex
+
     video_url = quote(url)
     cmd = youtube_dl_cmd.format(video_url=video_url, destination_dir=destination_dir)
     filename_absolute = execute(cmd)

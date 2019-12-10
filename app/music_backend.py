@@ -7,8 +7,10 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from settings import (use_mpd, mpd_host, mpd_port, mpd_music_dir_root, download_dir_songs, download_dir_albums, download_dir_zips,
                       download_dir_playlists, download_dir_youtubedl)
 from youtube import youtubedl_download, YoutubeDLFailedException, DownloadedFileNotFoundException
-from spotify import get_songs_from_spotify_website
+from spotify import get_songs_from_spotify_website, SpotifyWebsiteParserException
 from deezer import TYPE_TRACK, TYPE_ALBUM, TYPE_PLAYLIST, get_song_infos_from_deezer_website, download_song, parse_deezer_playlist, deezer_search
+from deezer import Deezer403Exception, Deezer404Exception, DeezerApiException
+
 
 from ipdb import set_trace
 
@@ -129,15 +131,21 @@ def create_m3u8_file(songs_absolute_location):
 
 
 def download_deezer_song_and_queue(track_id, add_to_playlist):
-    song = get_song_infos_from_deezer_website(TYPE_TRACK, track_id)
-    if not song:
+    try:
+        song = get_song_infos_from_deezer_website(TYPE_TRACK, track_id)
+    except (Deezer403Exception, Deezer404Exception) as msg:
+        print(msg)
         return
     absolute_filename = get_absolute_filename(TYPE_TRACK, song)
     update_mpd_db(absolute_filename, add_to_playlist)
 
 
 def download_deezer_album_and_queue_and_zip(album_id, add_to_playlist, create_zip):
-    songs = get_song_infos_from_deezer_website(TYPE_ALBUM, album_id)
+    try:
+        songs = get_song_infos_from_deezer_website(TYPE_ALBUM, album_id)
+    except (Deezer403Exception, Deezer404Exception) as msg:
+        print(msg)
+        return
     songs_absolute_location = []
     for song in songs:
         assert type(song) == dict
@@ -149,7 +157,11 @@ def download_deezer_album_and_queue_and_zip(album_id, add_to_playlist, create_zi
 
 
 def download_deezer_playlist_and_queue_and_zip(playlist_id, add_to_playlist, create_zip):
-    playlist_name, songs = parse_deezer_playlist(playlist_id)
+    try:
+        playlist_name, songs = parse_deezer_playlist(playlist_id)
+    except DeezerApiException as msg:
+        print(msg)
+        return
     songs_absolute_location = []
     for song in songs:
         # TODO: sanizie playlist_name
@@ -162,8 +174,10 @@ def download_deezer_playlist_and_queue_and_zip(playlist_id, add_to_playlist, cre
 
 
 def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_to_playlist, create_zip):
-    songs = get_songs_from_spotify_website(playlist_id)
-    if not songs:
+    try:
+        songs = get_songs_from_spotify_website(playlist_id)
+    except SpotifyWebsiteParserException as e:
+        print(e)
         return
     songs_absolute_location = []
     for song_of_playlist in songs:
@@ -173,8 +187,9 @@ def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_
             song = get_song_infos_from_deezer_website(TYPE_TRACK, track_id)
             absolute_filename = get_absolute_filename(TYPE_PLAYLIST, song, playlist_name)
             songs_absolute_location.append(absolute_filename)
-        except IndexError:
-            print("WARNING: song '{}' not found on Deezer".format(song_of_playlist))
+        except (IndexError, Deezer403Exception, Deezer404Exception) as msg:
+            print(msg)
+            return
     create_m3u8_file(songs_absolute_location)
     update_mpd_db(songs_absolute_location, add_to_playlist)
     if create_zip:

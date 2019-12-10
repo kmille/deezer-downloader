@@ -18,6 +18,7 @@ from binascii import a2b_hex, b2a_hex
 #from deezer_login import DeezerLogin
 #deezer = DeezerLogin()
 
+from ipdb import set_trace
 
 # BEGIN TYPES
 TYPE_TRACK = "track"
@@ -48,10 +49,19 @@ def init_deezer_session():
     session.headers.update(header)
     session.cookies.update({'sid': sid, 'comeback': '1'})
 
+
 init_deezer_session()
 
 
-class FileAlreadyExists(Exception):
+class Deezer404Exception(Exception):
+    pass
+
+
+class Deezer403Exception(Exception):
+    pass
+
+
+class DeezerApiException(Exception):
     pass
 
 
@@ -438,16 +448,18 @@ def get_song_infos_from_deezer_website(search_type, id):
     # id: deezer_id of the song/album/playlist (like https://www.deezer.com/de/track/823267272)
     # return: if TYPE_TRACK => song (dict grabbed from the website with information about a song)
     # return: if TYPE_ALBUM|TYPE_PLAYLIST => list of songs
-    # return: if error => None
+    # raises
+    # Deezer404Exception if
+    # 1. open playlist https://www.deezer.com/de/playlist/1180748301 and click on song Honey from Moby in a new tab:
+    # 2. Deezer gives you a 404: https://www.deezer.com/de/track/68925038
+    # Deezer403Exception if we are not logged in
 
     url = "https://www.deezer.com/de/{}/{}".format(search_type, id)
     resp = session.get(url)
     if resp.status_code == 404:
-        print("ERROR: Got a 404 for {} from Deezer".format(url))
-        return None
+        raise Deezer404Exception("ERROR: Got a 404 for {} from Deezer".format(url))
     if "MD5_ORIGIN" not in resp.text:
-        print("ERROR: We are not logged in")
-        return None
+        raise Deezer403Exception("ERROR: we are not logged in on deezer.com")
 
     parser = ScriptExtractor()
     parser.feed(resp.text)
@@ -472,7 +484,7 @@ def deezer_search(search, search_type):
     # search: string (What are you looking for?)
     # search_type: either one of the constants: TYPE_TRACK|TYPE_ALBUM (TYPE_PLAYLIST is not supported)
     # return: list of dicts (keys depend on searched)
-    
+
     if search_type not in [TYPE_TRACK, TYPE_ALBUM]:
         print("ERROR: serach_type is wrong: {}".format(search_type))
         return []
@@ -497,11 +509,14 @@ def deezer_search(search, search_type):
 def parse_deezer_playlist(playlist_id):
     # playlist_id: id of the playlist or the url of it
     # e.g. https://www.deezer.com/de/playlist/6046721604 or 6046721604
-    # return if error => None
     # return (playlist_name, list of songs) (song is a dict with information about the song)
+    # raises DeezerApiException if something with the Deezer API is broken
 
     if playlist_id.startswith("http"):
-        playlist_id = re.search(r'\d+', playlist_id).group(0)
+        try:
+            playlist_id = re.search(r'\d+', playlist_id).group(0)
+        except AttributeError:
+            raise DeezerApiException("ERROR: Regex failed")
 
     url_get_csrf_token = "https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token="
     req = session.post(url_get_csrf_token)
@@ -518,8 +533,7 @@ def parse_deezer_playlist(playlist_id):
     json = req.json()
 
     if len(json['error']) > 0:
-        print("ERROR: deezer api said {}".format(json['error']))
-        return None
+        raise DeezerApiException("ERROR: deezer api said {}".format(json['error']))
     json_data = json['results']
 
     playlist_name = json_data['DATA']['TITLE']
@@ -534,8 +548,10 @@ def test_deezer_login():
     # sid cookie has no expire date. Session will be extended on the server side
     # so we will just send a request regularly to not get logged out
 
-    song = get_song_infos_from_deezer_website(TYPE_TRACK, "917265")
-    if not song:
+    try:
+        song = get_song_infos_from_deezer_website(TYPE_TRACK, "917265")
+    except (Deezer403Exception, Deezer404Exception) as msg:
+        print(msg)
         print("Login is not working anymore.")
         sys.exit(1)
     test_song = "/tmp/song.mp3"
