@@ -257,10 +257,10 @@ def writeid3v2(fo, song):
         # 0x12     Illustration
         # 0x13     Band/artist logotype
         # 0x14     Publisher/Studio logotype        
-        imgframe = ("\x00",                 # text encoding
-                    "image/jpeg", "\0",    # mime type
-                    "\x03",                 # picture type: 'Cover (front)'
-                    ""[:64], "\0",         # description
+        imgframe = (b"\x00",                 # text encoding
+                    b"image/jpeg", b"\0",    # mime type
+                    b"\x03",                 # picture type: 'Cover (front)'
+                    b""[:64], b"\0",         # description
                     data
                     )
 
@@ -319,12 +319,9 @@ def writeid3v2(fo, song):
     ])
 
     try:
-        id3.append(
-            maketag("APIC", makepic(downloadpicture(song["ALB_PICTURE"])))
-        )
+        id3.append(maketag("APIC", makepic(downloadpicture(song["ALB_PICTURE"]))))
     except Exception as e:
         print("ERROR: no album cover?", e)
-        #raise
 
     id3data = b"".join(id3)
 #>      big-endian
