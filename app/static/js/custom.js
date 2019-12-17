@@ -110,7 +110,7 @@ $(document).ready(function() {
     }
 
     function show_debug_log() {
-        $.get('/debug', function(data) {
+        $.get(url_prefix + '/debug', function(data) {
             var debug_log_textarea = $("#ta-debug-log");
             debug_log_textarea.val(data.debug_msg);
             if(debug_log_textarea.length) {
