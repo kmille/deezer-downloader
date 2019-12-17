@@ -2,7 +2,7 @@
 var show_mpd_features = true;
 
 function deezer_download(music_id, type, add_to_playlist, create_zip) {
-    $.post('/api/v1/deezer/download', 
+    $.post('/download',
         JSON.stringify({ type: type, music_id: parseInt(music_id), add_to_playlist: add_to_playlist, create_zip: create_zip}),
         function(data) {
             if(create_zip == true) {
@@ -37,7 +37,7 @@ $(document).ready(function() {
 
 
     function youtubedl_download(add_to_playlist) {
-        $.post('/api/v1/youtubedl', 
+        $.post('/youtubedl',
             JSON.stringify({ url: $('#youtubedl-query').val(), add_to_playlist: add_to_playlist }),
             function(data) {
                 console.log(data);
@@ -47,7 +47,7 @@ $(document).ready(function() {
     
     
     function spotify_playlist_download(add_to_playlist, create_zip) {
-        $.post('/api/v1/spotify', 
+        $.post('/playlist/spotify',
             JSON.stringify({ playlist_name: $('#spotify-playlist-name').val(), 
                              playlist_url: $('#spotify-playlist-url').val(),
                              add_to_playlist: add_to_playlist,
@@ -61,7 +61,7 @@ $(document).ready(function() {
 
 
     function deezer_playlist_download(add_to_playlist, create_zip) {
-        $.post('/api/v1/deezer/playlist', 
+        $.post('/playlist/deezer',
             JSON.stringify({ playlist_url: $('#deezer-playlist-url').val(),
                              add_to_playlist: add_to_playlist,
                              create_zip: create_zip}),
@@ -73,7 +73,7 @@ $(document).ready(function() {
     
 
     function search(type) {
-        $.post('/api/v1/deezer/search', 
+        $.post('/search',
             JSON.stringify({ type: type, query: $('#songs-albums-query').val() }),
             function(data) {
                 $("#results > tbody").html("");

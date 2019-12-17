@@ -91,7 +91,7 @@ def validate_schema(*parameters_to_check):
     return decorator
 
 
-@app.route('/api/v1/deezer/search', methods=['POST'])
+@app.route('/search', methods=['POST'])
 @validate_schema("type", "query")
 def search():
     """
@@ -107,7 +107,7 @@ def search():
     return jsonify(results)
 
 
-@app.route('/api/v1/deezer/download', methods=['POST'])
+@app.route('/download', methods=['POST'])
 @validate_schema("type", "music_id", "add_to_playlist", "create_zip")
 def deezer_download_song_or_album():
     """
@@ -129,7 +129,7 @@ def deezer_download_song_or_album():
     return jsonify({"state": "I'm working on the {}".format(user_input['type'])})
 
 
-@app.route('/api/v1/youtubedl', methods=['POST'])
+@app.route('/youtubedl', methods=['POST'])
 @validate_schema("url", "add_to_playlist")
 def youtubedl_download():
     """
@@ -145,7 +145,7 @@ def youtubedl_download():
     return jsonify({"state": "I ❤ ABBA"})
 
 
-@app.route('/api/v1/deezer/playlist', methods=['POST'])
+@app.route('/playlist/deezer', methods=['POST'])
 @validate_schema("playlist_url", "add_to_playlist", "create_zip")
 def deezer_playlist_download():
     """
@@ -165,7 +165,7 @@ def deezer_playlist_download():
     return jsonify({"state": "I'm working on your Deezer playlist"})
 
 
-@app.route('/api/v1/spotify', methods=['POST'])
+@app.route('/playlist/spotify', methods=['POST'])
 @validate_schema("playlist_name", "playlist_url", "add_to_playlist", "create_zip")
 def spotify_playlist_download():
     """
