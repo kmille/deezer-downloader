@@ -521,6 +521,7 @@ def test_deezer_login():
 
     if download_works:
         print("Login is still working.")
+        os.remove(test_song)
         sys.exit(0)
     else:
         print("Login is not working anymore.")
