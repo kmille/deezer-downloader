@@ -6,7 +6,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 
 from settings import (use_mpd, mpd_host, mpd_port, mpd_music_dir_root, download_dir_songs, download_dir_albums, download_dir_zips,
                       download_dir_playlists, download_dir_youtubedl)
-from youtube import youtubedl_download, YoutubeDLFailedException, DownloadedFileNotFoundException
+from youtubedl import youtubedl_download, YoutubeDLFailedException, DownloadedFileNotFoundException
 from spotify import get_songs_from_spotify_website, SpotifyWebsiteParserException
 from deezer import TYPE_TRACK, TYPE_ALBUM, TYPE_PLAYLIST, get_song_infos_from_deezer_website, download_song, parse_deezer_playlist, deezer_search
 from deezer import Deezer403Exception, Deezer404Exception, DeezerApiException

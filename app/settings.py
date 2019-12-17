@@ -18,4 +18,4 @@ download_dir_youtubedl = "/tmp/music/deezer/youtube-dl"
 # need docs
 download_dir_root = "/tmp/music/deezer/"
 
-debug_command = "journalctl -f -u deezer-downloader"
+debug_command = "journalctl -u deezer-downloader --output cat -n 100"

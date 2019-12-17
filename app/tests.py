@@ -6,7 +6,7 @@ from deezer import deezer_search, get_song_infos_from_deezer_website, parse_deez
 from deezer import TYPE_TRACK, TYPE_ALBUM
 from deezer import Deezer404Exception, DeezerApiException
 from spotify import get_songs_from_spotify_website, SpotifyWebsiteParserException
-from youtube import youtubedl_download, YoutubeDLFailedException
+from youtubedl import youtubedl_download, YoutubeDLFailedException
 
 
 from ipdb import set_trace
