@@ -4,42 +4,17 @@ Einstellungen:
 - mit oder ohne mpd
 - Downloadverzeichnisse 
 
+- requirements aktualieren
 
 
-installierte Software:
-base: debian stable
 
-mpd + ncmpcpp
-
-Deezer + cronjob
-    - pip + virtualenv
-    - gunicorn
-    - systemd-service
-
-- ympd + patch
-
-nginx
-
-Fragen:
-- neuer User oder einfach chaos user nehmen? => chaos user
 - to test: login geht?
-- wohin installieren?
-
-
-
 
 
 open issues:
 Bug: ERROR: Got a 404 for https://www.deezer.com/de/album/test from Deezer (danach gibts noch ne Exception; gilt für Spotify und Deezer)
 - todo: Design mobil freundlich machen
 - Rebranding: Neuer Name. weg von Deezer; geiles Loge. Favicon
-
-
-- Routing umschreiben
-
-Deployment:
-- ansible?
-- Routing behind nignx
 
 
 urgs todo:

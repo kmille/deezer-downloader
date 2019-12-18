@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, jsonify
 from flask_autoindex import AutoIndex
 import giphypop
 
-from settings import debug_command, download_dir_root
+from settings import debug_command, download_dir_base
 from music_backend import download_deezer_song_and_queue, download_deezer_album_and_queue_and_zip, download_youtubedl_and_queue, download_spotify_playlist_and_queue_and_zip, download_deezer_playlist_and_queue_and_zip
 from deezer import deezer_search
 
@@ -17,7 +17,7 @@ from ipdb import set_trace
 
 
 app = Flask(__name__)
-auto_index = AutoIndex(app, download_dir_root, add_url_rules=False)
+auto_index = AutoIndex(app, download_dir_base, add_url_rules=False)
 auto_index.add_icon_rule('music.png', ext='m3u8')
 
 giphy = giphypop.Giphy()
