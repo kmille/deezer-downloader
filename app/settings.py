@@ -1,33 +1,17 @@
---- settings.py
-+++ settings.py
-@@ -1,21 +1,18 @@
-+from os.path import join
- from credentials import sid
- 
- use_mpd = True
- mpd_host = "localhost"
- mpd_port = 6600
- 
--behind_reverse_proxy = False
--reverse_proxy_path = "/foo"
-+mpd_music_dir_root = "/var/lib/mpd/music"
-+download_dir_base = "/var/lib/mpd/music/downloads"
- 
--
--mpd_music_dir_root = "/tmp/music"
- # TODO: docs: for songs and albums
--download_dir_songs = "/tmp/music/deezer/songs"
--download_dir_albums = "/tmp/music/deezer/albums"
--download_dir_zips = "/tmp/music/deezer/zips"
--download_dir_playlists = "/tmp/music/deezer/playlists"
--download_dir_youtubedl = "/tmp/music/deezer/youtube-dl"
--# need docs
--download_dir_root = "/tmp/music/deezer/"
-+download_dir_songs = join(download_dir_base, "songs")
-+download_dir_albums = join(download_dir_base, "albums")
-+download_dir_zips = join(download_dir_base, "zips")
-+download_dir_playlists = join(download_dir_base, "playlists")
-+download_dir_youtubedl = join(download_dir_base, "youtube-dl")
- 
--debug_command = "journalctl -f -u deezer-downloader"
-+debug_command = "journalctl -u deezer-downloader -n 100 --output cat"
+from os.path import join
+from credentials import sid
+
+use_mpd = True
+mpd_host = "localhost"
+mpd_port = 6600
+
+mpd_music_dir_root = "/var/lib/mpd/music"
+download_dir_base = "/var/lib/mpd/music/downloads"
+
+download_dir_songs = join(download_dir_base, "songs")
+download_dir_albums = join(download_dir_base, "albums")
+download_dir_zips = join(download_dir_base, "zips")
+download_dir_playlists = join(download_dir_base, "playlists")
+download_dir_youtubedl = join(download_dir_base, "youtube-dl")
+
+debug_command = "journalctl -u deezer-downloader -n 100 --output cat"
