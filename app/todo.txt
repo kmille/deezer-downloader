@@ -1,41 +1,22 @@
-Deployment mit ansible:
-
-Einstellungen:
-- mit oder ohne mpd
-- Downloadverzeichnisse 
-
+- Deployment mit ansible:
+  - nginx nicht das default überschreiben
+  - Einstellungen:
+    - mit oder ohne mpd
 - requirements aktualieren
+- ansible mit ins andere repo packen + systemd dir löschen
+
+done:
+- test: login geht?
+- cookie setzen
+- create download dir
+- music_dir von mpd anpassen
+- dir listing mit /d/
 
 
 
-- to test: login geht?
 
 
-open issues:
-Bug: ERROR: Got a 404 for https://www.deezer.com/de/album/test from Deezer (danach gibts noch ne Exception; gilt für Spotify und Deezer)
-- todo: Design mobil freundlich machen
-- Rebranding: Neuer Name. weg von Deezer; geiles Loge. Favicon
 
-
-urgs todo:
-[X] Suche => User Agent ändern
-[X] app.py nicht mehr user_dict.values() machen
-[X] beim starten checken ob alle Verzeichnisse da sind
-[X] Ordnestruktur für den source code überdenken
-
-
-- rewrite: 
-    [X] login (eigenes file gerade)
-        [] Test ob man eingeloggt ist kann man noch schöner machen
-    - zu den hässlichsten Funktionen gehören:
-        - writeid3v1_1
-        - writeid3v2
-    - [X] Funktionien, die von außen aufgerufen werden haben noch zu viel duplicate code
-
-[] requirements.txt aktualisieren
-[] auf python3 umstellen
-    - [X] fix: FileNameClean
-    - [X] fix: calcbfkey durcheinander
 [] Doku schreiben
     - Changelog
     - Funktionen
@@ -44,14 +25,12 @@ urgs todo:
     - Tests?
 
 
-whish whish
+whish list
 - flake8
 - flac-Downloads
-- raise Exception("we are not logged in") => unsauber
 - durch n Proxy jagen
 - kann man diesen md5 hash nicht pre computen? dann kann man sich den login sparen
 - mpd update auf Unterordner beschränken? => geht schneller
-- Type Anotations?
-
-
-
+- Type Anotations + mypy
+- Design mobil freundlich machen
+- Rebranding: Neuer Name. weg von Deezer; geiles Loge. Favicon
