@@ -82,10 +82,15 @@ def validate_schema(*parameters_to_check):
                     return jsonify({"error": "url is not a url. http... only"}), 400
             if "playlist_url" in j.keys():
                 if type(j['playlist_url']) != str:
-                    return jsonify({"error": "playlist_url is not a string. link or playlist id"}), 400
+                    if type(j['playlist_url']) != str:
+                        return jsonify({"error": "playlist_url is not a string"}), 400
+                if len(j['playlist_url'].strip()) == 0:
+                    return jsonify({"error": "playlist_url is empty"}), 400
             if "playlist_name" in j.keys():
                 if type(j['playlist_name']) != str:
                     return jsonify({"error": "playlist_name is not a string"}), 400
+                if len(j['playlist_name'].strip()) == 0:
+                    return jsonify({"error": "playlist_name is empty"}), 400
             return f(*args, **kw)
         return wrapper
     return decorator
