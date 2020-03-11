@@ -50,4 +50,11 @@ I'm not responsible for deezer.py (the actual download code). This is the uglies
 https://github.com/kmille/music-ansible (almost always outdated)
 
 # Some screenshots
-![okay](/screenshots/2020-03-11-111518_screenshot.png)  
+![](/screenshots/2020-03-11-111518_screenshot.png)  
+  
+![](/screenshots/2020-03-11-111526_screenshot.png)  
+  
+![](/screenshots/2020-03-11-111531_screenshot.png)  
+  
+![](/screenshots/2020-03-11-111546_screenshot.png)  
+  
