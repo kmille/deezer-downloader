@@ -468,11 +468,10 @@ def parse_deezer_playlist(playlist_id):
     # return (playlist_name, list of songs) (song is a dict with information about the song)
     # raises DeezerApiException if something with the Deezer API is broken
 
-    if playlist_id.startswith("http"):
-        try:
-            playlist_id = re.search(r'\d+', playlist_id).group(0)
-        except AttributeError:
-            raise DeezerApiException("ERROR: Regex failed")
+    try:
+        playlist_id = re.search(r'\d+', playlist_id).group(0)
+    except AttributeError:
+        raise DeezerApiException("ERROR: Regex (\d+) for playlist_id failed. You gave me '{}'".format(playlist_id))
 
     url_get_csrf_token = "https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token="
     req = session.post(url_get_csrf_token)

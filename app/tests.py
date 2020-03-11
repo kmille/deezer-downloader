@@ -174,6 +174,11 @@ class TestDeezerMethods(unittest.TestCase):
         with self.assertRaises(DeezerApiException):
             playlist_name, songs = parse_deezer_playlist(invalid_playlist_id)
 
+    def test_parse_invalid_input_for_deezer_playlist_with_id(self):
+        invalid_playlist_id = "!\"§$%&/((;-';k(()=+ü\?"
+        with self.assertRaises(DeezerApiException):
+            playlist_name, songs = parse_deezer_playlist(invalid_playlist_id)
+
     def test_parse_invalid_deezer_playlist_with_url(self):
         invalid_playlist_url = "https://www.heise.de"
         with self.assertRaises(DeezerApiException):
