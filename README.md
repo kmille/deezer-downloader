@@ -49,5 +49,5 @@ I'm not responsible for deezer.py (the actual download code). This is the uglies
 # Deployment with ansible (includig mpd and ympd)
 https://github.com/kmille/music-ansible (almost always outdated)
 
-# Screenshot
-![Alt text](https://image.ibb.co/cjBC30/screen.png "KISS")
+# Some screenshots
+![okay](/screenshots/2020-03-11-111518_screenshot.png)  
