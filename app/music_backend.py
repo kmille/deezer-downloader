@@ -124,6 +124,9 @@ def create_m3u8_file(songs_absolute_location):
         for song in songs_absolute_location:
             if os.path.exists(song):
                 f.write(basename(song) + "\n")
+    # add m3u8_file so that will be zipped to
+    songs_absolute_location.append(m3u8_file_abs)
+    return songs_absolute_location
 
 
 def download_deezer_song_and_queue(track_id, add_to_playlist):
@@ -162,10 +165,10 @@ def download_deezer_playlist_and_queue_and_zip(playlist_id, add_to_playlist, cre
     for song in songs:
         absolute_filename = get_absolute_filename(TYPE_PLAYLIST, song, playlist_name)
         songs_absolute_location.append(absolute_filename)
-    create_m3u8_file(songs_absolute_location)
     update_mpd_db(songs_absolute_location, add_to_playlist)
+    songs_with_m3u8_file = create_m3u8_file(songs_absolute_location)
     if create_zip:
-        create_zip_file(songs_absolute_location)
+        create_zip_file(songs_with_m3u8_file)
 
 
 def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_to_playlist, create_zip):
@@ -185,10 +188,10 @@ def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_
         except (IndexError, Deezer403Exception, Deezer404Exception) as msg:
             print(msg)
             return
-    create_m3u8_file(songs_absolute_location)
     update_mpd_db(songs_absolute_location, add_to_playlist)
+    songs_with_m3u8_file = create_m3u8_file(songs_absolute_location)
     if create_zip:
-        create_zip_file(songs_absolute_location)
+        create_zip_file(songs_with_m3u8_file)
 
 
 def download_youtubedl_and_queue(video_url, add_to_playlist):
