@@ -1,7 +1,7 @@
 from os.path import join
 from credentials import sid
 
-use_mpd = True
+use_mpd = False
 mpd_host = "localhost"
 mpd_port = 6600
 
