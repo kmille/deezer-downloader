@@ -15,3 +15,5 @@ download_dir_playlists = join(download_dir_base, "playlists")
 download_dir_youtubedl = join(download_dir_base, "youtube-dl")
 
 debug_command = "journalctl -u deezer-downloader -n 100 --output cat"
+
+youtube_dl_exe = "/home/kmille/projects/deezer-downloader/app/venv/bin/youtube-dl"
