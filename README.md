@@ -17,14 +17,14 @@ python app.py
 
 
 # Add systemd timer which regularly sends a request to deezer 
-# if you don't use it: the cookie will expire and we are logged automatically 
+# if you don't use it: the cookie will expire and we are getting logged out
 cd systemd/
-cp deezer-stay-loggedin.service /etc/systemd/system
-cp deezer-stay-loggedin.timer /etc/systemd/system
-systemctl daemon-reload
-systemctl enable deezer-stay-loggedin.timer
-systemctl start deezer-stay-loggedin.timer
-systemctl list-timers | grep deezer
+sudo cp deezer-stay-loggedin.service /etc/systemd/system
+sudo cp deezer-stay-loggedin.timer /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl enable deezer-stay-loggedin.timer
+sudo systemctl start deezer-stay-loggedin.timer
+sudo systemctl list-timers | grep deezer
 
 ```
 
