@@ -2,6 +2,7 @@ import sys
 import re
 import os
 import json
+import threading
 
 from configuration import config
 
@@ -442,7 +443,7 @@ def deezer_search(search, search_type):
     # return: list of dicts (keys depend on searched)
 
     if search_type not in [TYPE_TRACK, TYPE_ALBUM]:
-        print("ERROR: serach_type is wrong: {}".format(search_type))
+        print("ERROR: search_type is wrong: {}".format(search_type))
         return []
     search = urllib.parse.quote_plus(search)
     resp = session.get("https://api.deezer.com/search/{}?q={}".format(search_type, search))
@@ -499,7 +500,26 @@ def parse_deezer_playlist(playlist_id):
     return playlist_name, json_data['SONGS']['data']
 
 
+_keepalive_timer = None
+_deezer_is_working = False
+def start_deezer_keepalive():
+    global _keepalive_timer
+
+    test_deezer_login()
+    
+    _keepalive_timer = threading.Timer(60.0 * config.getint('deezer', 'keepalive'), start_deezer_keepalive)
+    _keepalive_timer.start()
+
+def stop_deezer_keepalive():
+    if _keepalive_timer is not None:
+        _keepalive_timer.cancel()
+
+def is_deezer_session_valid():
+    return _deezer_is_working
+
+
 def test_deezer_login():
+    global _deezer_is_working
     # sid cookie has no expire date. Session will be extended on the server side
     # so we will just send a request regularly to not get logged out
 
@@ -508,23 +528,17 @@ def test_deezer_login():
     except (Deezer403Exception, Deezer404Exception) as msg:
         print(msg)
         print("Login is not working anymore.")
-        sys.exit(1)
-    test_song = "/tmp/song.mp3"
-    try:
-        os.remove(test_song)
-    except FileNotFoundError:
-        # if we remove a file that does not exist
-        pass
-    download_song(song, test_song)
-    download_works = os.path.exists(test_song)
+        _deezer_is_working = False
+        return False
 
-    if download_works:
+    if song:
         print("Login is still working.")
-        os.remove(test_song)
-        sys.exit(0)
+        _deezer_is_working = True
+        return True
     else:
         print("Login is not working anymore.")
-        sys.exit(1)
+        _deezer_is_working = False
+        return False
 
 
 #deezer = DeezerLogin()

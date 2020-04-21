@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="{{ static_root }}/css/bootstrap.min.css">
   <script>
     window.deezer_downloader_api_root = '{{ api_root }}';
+    window.deezer_is_working = '{{ deezer_is_working }}';
   </script>
   <script src="{{ static_root }}/js/jquery.min.js"></script>
   <script src="{{ static_root }}/js/popper.min.js"></script>
@@ -64,6 +65,7 @@
     
      <div id="songs_albums" class="container tab-pane active">
          <br>
+         {% if deezer_is_working %}
          <h3>Download songs and albums</h3>
          <div class="input-group">
              <input type="text" class="form-control" id="songs-albums-query" placeholder="Search for ..." />
@@ -86,7 +88,9 @@
             <tbody>
             </tbody>
          </table>
-     
+         {% else %}
+        <p>Deezer download is currently broken. Someone probably needs to insert a new session ID.</p>
+         {% endif %}
      </div> <!-- end div tab songs/albums -->
 
             
