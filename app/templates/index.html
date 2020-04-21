@@ -57,6 +57,9 @@
     <li class="nav-item">
       <a class="nav-link" id="nav-debug-log" data-toggle="tab" href="#debug">Debug (6)</a>
     </li>
+    <li class="nav-item">
+      <a class="nav-link" id="nav-task-queue" data-toggle="tab" href="#queue">Queue (7)</a>
+    </li>
   </ul>
   </div>   <!-- end row -->
 
@@ -159,7 +162,25 @@
            <textarea readonly class="form-control" id="ta-debug-log"></textarea>
         </div> <!-- end div textares -->
      </div> <!-- end div tab debug -->
-      
+     
+    <div id="queue" class="container tab-pane fade">
+      <br>
+      <h3>Queue</h3>
+       
+      <table id="task-list" class="table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Command</th>
+                <th>Args</th>
+                <th>State</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+     </table>
+    </div> <!-- end div tab queue -->
+     
     <footer class="footer">
       <div class="container">
 		<i class="fa fa-angellist" ></i> |

@@ -37,6 +37,11 @@ api_root = %(url_prefix)s
 static_root = %(url_prefix)s/static
 
 
+[threadpool]
+; number of workers in thread pool, this specifies the maximum number of parallel downloads
+workers = 2
+
+
 ;;; download sources
 
 [deezer]

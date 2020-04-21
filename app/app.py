@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, jsonify
 from flask_autoindex import AutoIndex
 import giphypop
 
-from music_backend import download_deezer_song_and_queue, download_deezer_album_and_queue_and_zip, download_youtubedl_and_queue, download_spotify_playlist_and_queue_and_zip, download_deezer_playlist_and_queue_and_zip
+from music_backend import sched
 from deezer import deezer_search, start_deezer_keepalive, stop_deezer_keepalive, is_deezer_session_valid
 from configuration import config
 
@@ -96,6 +96,21 @@ def validate_schema(*parameters_to_check):
     return decorator
 
 
+@app.route('/queue', methods=['GET'])
+def show_queue():
+    """
+    shows queued tasks
+    return:
+        json: [ { description, command } ]
+    """
+    results = [
+        { 'id': id(task), 'description': task.description, 'command': task.fn_name, 'args': task.kwargs, 'state': task.state,
+         'result': task.result, 'exception': str(task.exception),
+          'progress': [task.progress, task.progress_maximum] }
+        for task in sched.all_tasks
+    ]
+    return jsonify(results)
+
 @app.route('/search', methods=['POST'])
 @validate_schema("type", "query")
 def search():
@@ -124,14 +139,14 @@ def deezer_download_song_or_album():
         create_zip: True|False (create a zip for the album)
     """
     user_input = request.get_json(force=True)
+    desc = "I'm working on the {}".format(user_input['type'])
     if user_input['type'] == "track":
-        t = Thread(target=download_deezer_song_and_queue,
-                   args=(user_input['music_id'], user_input['add_to_playlist']))
+        task = sched.enqueue_task(desc, "download_deezer_song_and_queue",
+                    track_id=user_input['music_id'], add_to_playlist=user_input['add_to_playlist'])
     else:
-        t = Thread(target=download_deezer_album_and_queue_and_zip,
-                   args=(user_input['music_id'], user_input['add_to_playlist'], user_input['create_zip']))
-    t.start()
-    return jsonify({"state": "I'm working on the {}".format(user_input['type'])})
+        task = sched.enqueue_task(desc, "download_deezer_album_and_queue_and_zip",
+                   album_id=user_input['music_id'], add_to_playlist=user_input['add_to_playlist'], create_zip=user_input['create_zip'])
+    return jsonify({"task_id": id(task), })
 
 
 @app.route('/youtubedl', methods=['POST'])
@@ -144,10 +159,10 @@ def youtubedl_download():
         add_to_playlist: True|False (add to mpd playlist)
     """
     user_input = request.get_json(force=True)
-    t = Thread(target=download_youtubedl_and_queue,
-               args=(user_input['url'], user_input['add_to_playlist']))
-    t.start()
-    return jsonify({"state": "I ❤ ABBA"})
+    desc = "I ❤ ABBA"
+    task = sched.enqueue_task(desc, "download_youtubedl_and_queue",
+               video_url=user_input['url'], add_to_playlist=user_input['add_to_playlist'])
+    return jsonify({"task_id": id(task), })
 
 
 @app.route('/playlist/deezer', methods=['POST'])
@@ -162,12 +177,12 @@ def deezer_playlist_download():
         create_zip: True|False (create a zip for the playlist)
     """
     user_input = request.get_json(force=True)
-    t = Thread(target=download_deezer_playlist_and_queue_and_zip,
-               args=(user_input['playlist_url'],
-                     user_input['add_to_playlist'],
-                     user_input['create_zip']))
-    t.start()
-    return jsonify({"state": "I'm working on your Deezer playlist"})
+    desc = "I'm working on your Deezer playlist"
+    task = sched.enqueue_task(desc, "download_deezer_playlist_and_queue_and_zip",
+                playlist_id=user_input['playlist_url'],
+                add_to_playlist=user_input['add_to_playlist'],
+                create_zip=user_input['create_zip'])
+    return jsonify({"task_id": id(task), })
 
 
 @app.route('/playlist/spotify', methods=['POST'])
@@ -184,19 +199,22 @@ def spotify_playlist_download():
         create_zip: True|False (create a zip for the playlist)
     """
     user_input = request.get_json(force=True)
-    t = Thread(target=download_spotify_playlist_and_queue_and_zip,
-               args=(user_input['playlist_name'],
-                     user_input['playlist_url'],
-                     user_input['add_to_playlist'],
-                     user_input['create_zip']))
-    t.start()
-    return jsonify({"state": "I'm working on your Spotify playlist"})
+    desc = "I'm working on your Spotify playlist"
+    task = sched.enqueue_task(desc, "download_spotify_playlist_and_queue_and_zip",
+                     playlist_name=user_input['playlist_name'],
+                     playlist_id=user_input['playlist_url'],
+                     add_to_playlist=user_input['add_to_playlist'],
+                     create_zip=user_input['create_zip'])
+    return jsonify({"task_id": id(task), })
 
 
 if __name__ == '__main__':
     if config.getint('deezer', 'keepalive', fallback=0) > 0:
         start_deezer_keepalive()
 
-    app.run(port=5000, debug=True)
+    sched.run_workers(config.getint('threadpool', 'workers'))
 
+    app.run(port=5000, debug=True, use_reloader=False)
+
+    sched.stop_workers()
     stop_deezer_keepalive()
