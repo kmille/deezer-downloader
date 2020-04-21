@@ -16,17 +16,6 @@ cp settings.ini.example settings.ini
 insert your sid cookie value into settings.ini (login manually using your web browser and take the sid cookie; begins with fr...)
 python app.py
 
-
-# Add systemd timer which regularly sends a request to deezer 
-# if you don't use it: the cookie will expire and we are getting logged out
-cd systemd/
-sudo cp deezer-stay-loggedin.service /etc/systemd/system
-sudo cp deezer-stay-loggedin.timer /etc/systemd/system
-sudo systemctl daemon-reload
-sudo systemctl enable deezer-stay-loggedin.timer
-sudo systemctl start deezer-stay-loggedin.timer
-sudo systemctl list-timers | grep deezer
-
 ```
 
 # Unittests

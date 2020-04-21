@@ -9,7 +9,7 @@ from flask_autoindex import AutoIndex
 import giphypop
 
 from music_backend import download_deezer_song_and_queue, download_deezer_album_and_queue_and_zip, download_youtubedl_and_queue, download_spotify_playlist_and_queue_and_zip, download_deezer_playlist_and_queue_and_zip
-from deezer import deezer_search
+from deezer import deezer_search, start_deezer_keepalive, stop_deezer_keepalive, is_deezer_session_valid
 from configuration import config
 
 from ipdb import set_trace
@@ -25,7 +25,8 @@ giphy = giphypop.Giphy()
 @app.route("/")
 def index():
     return render_template("index.html",
-            api_root=config["http"]["api_root"], static_root=config["http"]["static_root"])
+            api_root=config["http"]["api_root"], static_root=config["http"]["static_root"], 
+            deezer_is_working=is_deezer_session_valid())
 
 
 @app.route("/debug")
@@ -193,4 +194,9 @@ def spotify_playlist_download():
 
 
 if __name__ == '__main__':
+    if config.getint('deezer', 'keepalive', fallback=0) > 0:
+        start_deezer_keepalive()
+
     app.run(port=5000, debug=True)
+
+    stop_deezer_keepalive()

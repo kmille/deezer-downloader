@@ -44,6 +44,9 @@ static_root = %(url_prefix)s/static
 ; (login manually using your web browser and take the sid cookie; begins with fr...)
 sid = fre42682825153a4c1f9672fd0bab32ed9d63b7c
 
+; run a query on deezer every N minutes to keep the session alive
+keepalive = 30
+
 
 [youtubedl]
 # command = /home/kmille/projects/deezer-downloader/app/venv/bin/youtube-dl
