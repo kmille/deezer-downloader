@@ -124,6 +124,34 @@ $(document).ready(function() {
         });
     }
 
+    function show_task_queue() {
+        $.get(deezer_downloader_api_root + '/queue', function(data) {
+            var queue_table = $("#task-list tbody");
+            queue_table.html("");
+            
+            for (var i = data.length - 1; i >= 0; i--) {
+                console.log(data[i])
+                var html="<tr><td>"+data[i].description+"</td><td>"+data[i].command+"</td><td>"+JSON.stringify(data[i].args)+"</td>"+
+                "<td>"+data[i].state+"</td></tr>";
+                console.log(html);
+                $(html).appendTo(queue_table);
+                switch (data[i].state) {
+                case "active":
+                    $("<tr><td colspan=4><progress value="+data[i].progress[0]+" max="+data[i].progress[1]+" style='width:100%'/></td></tr>").appendTo(queue_table);
+                    break;
+                case "failed":
+                    $("<tr><td colspan=4 style='color:red'>"+data[i].exception+"</td></tr>").appendTo(queue_table);
+                    break;
+                case "finished":
+                    $("<tr><td colspan=4>"+data[i].result.map(file => "<a href='"+file+"'>"+file+"</a>").join("<br>")+"</td></tr>").appendTo(queue_table);
+                    break;
+                }
+            }
+            if (queue_table.is(":visible"))
+                setTimeout(show_task_queue, 4000);
+        });
+    }
+
     $("#search_track").click(function() {
         search("track");
     });
@@ -142,6 +170,10 @@ $(document).ready(function() {
     
     $("#nav-debug-log").click(function() {
         show_debug_log();
+    });
+
+    $("#nav-task-queue").click(function() {
+        show_task_queue();
     });
 
     // BEGIN SPOTIFY
