@@ -25,6 +25,7 @@ from ipdb import set_trace
 TYPE_TRACK = "track"
 TYPE_ALBUM = "album"
 TYPE_PLAYLIST = "playlist"
+TYPE_ALBUM_TRACK = "album_track"
 # END TYPES
 
 
@@ -201,10 +202,14 @@ def writeid3v1_1(fo, song):
 
 
 def downloadpicture(pic_idid):
+    resp = session.get(get_picture_link(pic_idid))
+    return resp.content
+
+
+def get_picture_link(pic_idid):
     setting_domain_img = "https://e-cdns-images.dzcdn.net/images"
     url = setting_domain_img + "/cover/" + pic_idid + "/1200x1200.jpg"
-    resp = session.get(url)
-    return resp.content
+    return url
 
 
 def writeid3v2(fo, song):
@@ -442,23 +447,49 @@ def deezer_search(search, search_type):
     # search_type: either one of the constants: TYPE_TRACK|TYPE_ALBUM (TYPE_PLAYLIST is not supported)
     # return: list of dicts (keys depend on searched)
 
-    if search_type not in [TYPE_TRACK, TYPE_ALBUM]:
+    if search_type not in [TYPE_TRACK, TYPE_ALBUM, TYPE_ALBUM_TRACK]:
         print("ERROR: search_type is wrong: {}".format(search_type))
         return []
     search = urllib.parse.quote_plus(search)
-    resp = session.get("https://api.deezer.com/search/{}?q={}".format(search_type, search))
+    if search_type == TYPE_ALBUM_TRACK:
+        resp = get_song_infos_from_deezer_website(TYPE_ALBUM, search)
+    else:
+        resp = session.get("https://api.deezer.com/search/{}?q={}".format(search_type, search)).json()['data']
     return_nice = []
-    for item in resp.json()['data'][:10]:
+    for item in resp: # [:10]:
         i = {}
-        i['id'] = str(item['id'])
+        #i['img_url'] = get_picture_link(item["ALB_PICTURE"])
+        
         if search_type == TYPE_ALBUM:
+            i['id'] = str(item['id'])
+            i['id_type'] = TYPE_ALBUM
             i['album'] = item['title']
+            i['album_id'] = item['id']
+            i['img_url'] = item['cover_small']
             i['artist'] = item['artist']['name']
             i['title'] = ''
+            i['preview_url'] = ''
+
         if search_type == TYPE_TRACK:
+            i['id'] = str(item['id'])
+            i['id_type'] = TYPE_TRACK
             i['title'] = item['title']
+            i['img_url'] = item['album']['cover_small']
             i['album'] = item['album']['title']
+            i['album_id'] = item['album']['id']
             i['artist'] = item['artist']['name']
+            i['preview_url'] = item['preview']
+
+        if search_type == TYPE_ALBUM_TRACK:
+            i['id'] = str(item['SNG_ID'])
+            i['id_type'] = TYPE_TRACK
+            i['title'] = item['SNG_TITLE']
+            i['img_url'] = '' #item['album']['cover_small']
+            i['album'] = item['ALB_TITLE']
+            i['album_id'] = item['ALB_ID']
+            i['artist'] = item['ART_NAME']
+            i['preview_url'] = next(media['HREF'] for media in item['MEDIA'] if media['TYPE'] == 'preview')
+            
         return_nice.append(i)
     return return_nice
 
