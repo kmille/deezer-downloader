@@ -4,14 +4,17 @@
   <title>Good Music - Good Feeling</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="/static/css/bootstrap.min.css">
-  <script src="/static/js/jquery.min.js"></script>
-  <script src="/static/js/popper.min.js"></script>
-  <script src="/static/js/bootstrap.min.js"></script>
-  <script src="/static/js/custom.js"></script>
-  <script src="/static/js/jquery.jgrowl.min.js"></script>
-  <link rel="stylesheet" href="/static/css/font-awesome.min.css">
-  <link rel="stylesheet" type="text/css" href="/static/css/jquery.jgrowl.min.css" />
+  <link rel="stylesheet" href="{{ static_root }}/css/bootstrap.min.css">
+  <script>
+    window.deezer_downloader_api_root = '{{ api_root }}';
+  </script>
+  <script src="{{ static_root }}/js/jquery.min.js"></script>
+  <script src="{{ static_root }}/js/popper.min.js"></script>
+  <script src="{{ static_root }}/js/bootstrap.min.js"></script>
+  <script src="{{ static_root }}/js/custom.js"></script>
+  <script src="{{ static_root }}/js/jquery.jgrowl.min.js"></script>
+  <link rel="stylesheet" href="{{ static_root }}/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="{{ static_root }}/css/jquery.jgrowl.min.css" />
 
 <style>
     .footer {
