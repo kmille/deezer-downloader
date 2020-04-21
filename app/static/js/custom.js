@@ -25,7 +25,9 @@ function deezer_download(music_id, type, add_to_playlist, create_zip) {
             console.log(data);
     });
 }
-
+function play_preview(src) {
+    $("#audio_tag").attr("src", src)[0].play();
+}
 
 $(document).ready(function() {
 
@@ -73,8 +75,13 @@ $(document).ready(function() {
     
 
     function search(type) {
+        location.hash = '#deezer&'+type+'&'+encodeURIComponent($('#songs-albums-query').val());
+        deezer_load_list(type, $('#songs-albums-query').val());
+    }
+
+    function deezer_load_list(type, query) {
         $.post(deezer_downloader_api_root + '/search',
-            JSON.stringify({ type: type, query: $('#songs-albums-query').val() }),
+            JSON.stringify({ type: type, query: query }),
             function(data) {
                 $("#results > tbody").html("");
                 for (var i = 0; i < data.length; i++) {
@@ -83,27 +90,26 @@ $(document).ready(function() {
         });
     }
 
-
     function drawTableEntry(rowData, mtype) {
         var row = $("<tr>")
         console.log(rowData);
         $("#results").append(row); 
         row.append($("<td>" + rowData.artist + "</td>"));
-        row.append($("<td>" + rowData.title + "</td>"));
-        row.append($("<td>" + rowData.album + "</td>"));
+        row.append($("<td><a href='"+rowData.preview_url+"' onclick='play_preview(this.href);return false;' title='click for preview'>" + rowData.title + "</a></td>"));
+        row.append($("<td title='click for album track list'><a href='#deezer&album_track&"+rowData.album_id+"'><img src='"+rowData.img_url+"'> " + rowData.album + "</a></td>").click(function() {deezer_load_list("album_track", ""+rowData.album_id+"")}));
         if(show_mpd_features) {
         row.append($('<td> <button class="btn btn-default" onclick="deezer_download(\'' +
-                     rowData.id  + '\', \''+ mtype +
+                     rowData.id  + '\', \''+ rowData.id_type +
                      '\', true, false);" > <i class="fa fa-play-circle" title="download and queue to mpd" ></i> </button> </td>'));
         }
 
         row.append($('<td> <button class="btn btn-default" onclick="deezer_download(\'' +
-                   rowData.id  + '\', \''+ mtype + 
+                   rowData.id  + '\', \''+ rowData.id_type + 
                    '\', false, false);" > <i class="fa fa-download" title="download" ></i> </button> </td>'));
 
-        if(mtype == "album") {
+        if(rowData.id_type == "album") {
             row.append($('<td> <button class="btn btn-default" onclick="deezer_download(\'' +
-                       rowData.id  + '\', \''+ mtype + 
+                       rowData.id  + '\', \''+ rowData.id_type + 
                        '\', false, true);" > <i class="fa fa-file-archive-o" title="give me a zip file" ></i> </button> </td>'));
         }
     }
