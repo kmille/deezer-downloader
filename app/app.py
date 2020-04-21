@@ -24,7 +24,8 @@ giphy = giphypop.Giphy()
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html",
+            api_root=config["http"]["api_root"], static_root=config["http"]["static_root"])
 
 
 @app.route("/debug")

@@ -1,9 +1,8 @@
 
 var show_mpd_features = true;
-var url_prefix = "";
 
 function deezer_download(music_id, type, add_to_playlist, create_zip) {
-    $.post(url_prefix + '/download',
+    $.post(deezer_downloader_api_root + '/download',
         JSON.stringify({ type: type, music_id: parseInt(music_id), add_to_playlist: add_to_playlist, create_zip: create_zip}),
         function(data) {
             if(create_zip == true) {
@@ -38,7 +37,7 @@ $(document).ready(function() {
 
 
     function youtubedl_download(add_to_playlist) {
-        $.post(url_prefix + '/youtubedl',
+        $.post(deezer_downloader_api_root + '/youtubedl',
             JSON.stringify({ url: $('#youtubedl-query').val(), add_to_playlist: add_to_playlist }),
             function(data) {
                 console.log(data);
@@ -48,7 +47,7 @@ $(document).ready(function() {
     
     
     function spotify_playlist_download(add_to_playlist, create_zip) {
-        $.post(url_prefix + '/playlist/spotify',
+        $.post(deezer_downloader_api_root + '/playlist/spotify',
             JSON.stringify({ playlist_name: $('#spotify-playlist-name').val(), 
                              playlist_url: $('#spotify-playlist-url').val(),
                              add_to_playlist: add_to_playlist,
@@ -62,7 +61,7 @@ $(document).ready(function() {
 
 
     function deezer_playlist_download(add_to_playlist, create_zip) {
-        $.post(url_prefix + '/playlist/deezer',
+        $.post(deezer_downloader_api_root + '/playlist/deezer',
             JSON.stringify({ playlist_url: $('#deezer-playlist-url').val(),
                              add_to_playlist: add_to_playlist,
                              create_zip: create_zip}),
@@ -74,7 +73,7 @@ $(document).ready(function() {
     
 
     function search(type) {
-        $.post(url_prefix + '/search',
+        $.post(deezer_downloader_api_root + '/search',
             JSON.stringify({ type: type, query: $('#songs-albums-query').val() }),
             function(data) {
                 $("#results > tbody").html("");
@@ -110,7 +109,7 @@ $(document).ready(function() {
     }
 
     function show_debug_log() {
-        $.get(url_prefix + '/debug', function(data) {
+        $.get(deezer_downloader_api_root + '/debug', function(data) {
             var debug_log_textarea = $("#ta-debug-log");
             debug_log_textarea.val(data.debug_msg);
             if(debug_log_textarea.length) {

@@ -27,6 +27,15 @@ youtubedl = %(base)s/youtube-dl
 command = journalctl -u deezer-downloader -n 100 --output cat
 
 
+[http]
+; if the service is deployed behind a proxy and mounted in a subdirectory,
+; here you can configure the prefix, e.g.:
+; url_prefix = /deezer
+url_prefix = 
+
+api_root = %(url_prefix)s
+static_root = %(url_prefix)s/static
+
 
 ;;; download sources
 
