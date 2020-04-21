@@ -4,5 +4,5 @@ session.pickle
 downloads
 SMLoadr/
 *.swp
-credentials.py
+settings.ini
 *.log
