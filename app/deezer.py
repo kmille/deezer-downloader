@@ -3,7 +3,7 @@ import re
 import os
 import json
 
-from credentials import sid
+from configuration import config
 
 from Crypto.Hash import MD5
 from Crypto.Cipher import AES, Blowfish
@@ -47,7 +47,7 @@ def init_deezer_session():
     }
     session = requests.session()
     session.headers.update(header)
-    session.cookies.update({'sid': sid, 'comeback': '1'})
+    session.cookies.update({'sid': config['deezer']['sid'], 'comeback': '1'})
 
 
 init_deezer_session()
