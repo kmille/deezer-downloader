@@ -3,7 +3,7 @@ from subprocess import Popen, PIPE
 from functools import wraps
 from threading import Thread
 import requests
-
+import atexit
 from flask import Flask, render_template, request, jsonify
 from flask_autoindex import AutoIndex
 import giphypop
@@ -208,13 +208,16 @@ def spotify_playlist_download():
     return jsonify({"task_id": id(task), })
 
 
-if __name__ == '__main__':
-    if config.getint('deezer', 'keepalive', fallback=0) > 0:
-        start_deezer_keepalive()
+if config.getint('deezer', 'keepalive', fallback=0) > 0:
+    start_deezer_keepalive()
 
-    sched.run_workers(config.getint('threadpool', 'workers'))
+sched.run_workers(config.getint('threadpool', 'workers'))
 
-    app.run(port=5000, debug=True, use_reloader=False)
-
+@atexit.register
+def stop_workers():
     sched.stop_workers()
     stop_deezer_keepalive()
+
+if __name__ == '__main__':
+    app.run(port=5000, debug=True, use_reloader=False)
+
