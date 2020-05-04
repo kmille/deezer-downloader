@@ -23,17 +23,20 @@ class TestDeezerMethods(unittest.TestCase):
         songs = deezer_search("Großstadtgeflüster diadem", TYPE_TRACK)
         self.assertIsInstance(songs, list)
         s = songs[0]
-        self.assertSetEqual(set(s.keys()), {'id', 'title', 'album', 'artist'})
+        self.assertSetEqual(set(s.keys()), {'preview_url', 'artist', 'id', 'id_type', 'album_id', 'title', 'img_url', 'album'})
         self.assertTrue(s['id'], '730393272')
         self.assertTrue(s['title'], 'Diadem')
         self.assertTrue(s['artist'], 'Grossstadtgeflüster')
         self.assertTrue(s['album'], 'Tips & Tricks')
+        self.assertTrue(s['preview_url'], 'https://cdns-preview-6.dzcdn.net/stream/c-6abdd540dd7e7f02d2c4d21537709c23-3.mp3')
+        self.assertTrue(s['album_id'], '107261872')
+        self.assertTrue(s['id_type'], 'track')
 
     def test_deezer_search_album_valid(self):
         albums = deezer_search("Coldplay", TYPE_ALBUM)
         self.assertIsInstance(albums, list)
         for album in albums:
-            self.assertSetEqual(set(album.keys()), {'id', 'title', 'album', 'artist'})
+            self.assertSetEqual(set(album.keys()), {'id', 'id_type', 'album', 'album_id', 'img_url', 'artist', 'title', 'preview_url'})
 
         found_album_names = [x['album'] for x in albums]
         known_album_names = ['Parachutes', 'X&Y', 'A Head Full of Dreams']
@@ -213,8 +216,7 @@ class TestSpotifyMethods(unittest.TestCase):
 
     def _test_parse_spotify_playlist_website(self, playlist):
         songs = get_songs_from_spotify_website(playlist)
-        playlist = {'Gazebo I Like Chopin', 'Ryan Paris Dolce Vita ', 'Ivana Spagna Call Me', 'Radiorama Desire', 'Baltimora Tarzan Boy', "Generazione Anni '80 Comanchero", 'Ken Laszlo Hey Hey Guy', 'P. Lion Happy Children', 'Fancy Bolero', 'Fancy Lady Of Ice', 'Miko Mission How Old Are You ', 'Scotch Disco Band', 'Sabrina Boys - Summertime Love', 'C.C. Catch Strangers by Night - Maxi-Version', 'Savage Only You', "Savage Don't Cry Tonight - Original Version", 'Italove Strangers in the Night ', "Italove L'Amour", 'Italove Follow Me to Mexico', 'Savage Celebrate - Extended Version', 'Alyne Over The Sky - Original Extended Version', "Den Harrow Don't Break My Heart", 'Savage Only You ', 'Hypnosis Pulstar', 'My Mine Hypnotic Tango - Original 12" Version', 'Fun Fun Happy Station - Scratch Version', 'Albert One Heart On Fire - Special Maxi Mix', 'Airplay For Your Love', 'M & G When I Let You Down - Extended Mix', "Bad Boys Blue You're a Woman", 'Bad Boys Blue Come Back And Stay', 'The Eight Group Life Is Life', 'The Eight Group Vamos A La Playa', 'The Eight Group The Final Countdown', "Modern Talking You're My Heart, You're My Soul '98 - New Version", 'Modern Talking Cheri Cheri Lady', 'Modern Talking Brother Louie', "Modern Talking Geronimo's Cadillac", 'Modern Talking Atlantis Is Calling ', 'Modern Talking You Are Not Alone', 'Roxette Listen To Your Heart', 'Roxette Joyride - Single Version', 'Eurythmics Sweet Dreams ', 'Eurythmics There Must Be an Angel ', 'Cyndi Lauper Girls Just Want to Have Fun', 'Cyndi Lauper Time After Time', 'Sandra In The Heat Of The Night', 'Limahl Never Ending Story', 'Samantha Fox Touch Me ', 'Fancy Slice Me Nice - Original Version', 'C.C. Catch I Can Lose My Heart Tonight - Extended Club Remix', 'C.C. Catch Heartbreak Hotel', 'The Eighty Group Moonlight Shadow', 'Erasure Always', "Modern Talking You Can Win If You Want - No 1 Mix '84", 'Modern Talking In 100 Years', 'Modern Talking Jet Airliner', 'Modern Talking Sexy Sexy Lover - Vocal Version', 'Modern Talking China in Her Eyes  - Video Version', 'Modern Talking Win the Race - Radio Edit', "The Pointer Sisters I'm So Excited", 'Captain Jack Captain Jack - Short Mix', 'a-ha Take on Me', 'TOTO Africa', "Generazione Anni '80 Self Control", 'Alphaville Big in Japan - Remaster', 'Michael Sembello Maniac', 'Den Harrow Future Brain', 'Radiorama Chance To Desire ', 'F.R. David Words', 'Desireless Voyage voyage', 'Sandra Maria Magdalena - Remastered', 'Valerie Dore The Night', 'Babys Gang Happy Song', 'Radiorama Aliens', 'Babys Gang Challenger', 'Eddy Huntington Ussr', 'Silent Circle Touch in the Night - Radio Version', 'Kano Another Life - Original', 'Ken Laszlo Tonight', 'Koto Visitors', 'Max Him Lady Fantasy', 'Silent Circle Stop the Rain in the Night', 'Alphaville Sounds Like a Melody', 'Bad Boys Blue I Wanna Hear Your Heartbeat ', 'Bad Boys Blue Lady In Black', 'Bad Boys Blue A World Without You', 'Bad Boys Blue Pretty Young Girl'}
-        self.assertEqual(playlist, set(songs))
+        self.assertIn("Cyndi Lauper Time After Time", songs)
 
     def test_spotify_parser_valid_playlist_embed_url(self):
         playlist_url = "https://open.spotify.com/embed/playlist/0wl9Q3oedquNlBAJ4MGZtS"
