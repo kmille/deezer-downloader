@@ -4,6 +4,7 @@ from queue import Queue
 
 local_obj = threading.local()
 
+
 class ThreadpoolScheduler:
     def __init__(self):
         print("creating Threadpool")
@@ -11,7 +12,7 @@ class ThreadpoolScheduler:
         self.commands = {}
         self.worker_threads = []
         self.all_tasks = []
-    
+
     def run_workers(self, num_workers):
         for i in range(num_workers):
             t = WorkerThread(i, self.task_queue)
@@ -29,14 +30,13 @@ class ThreadpoolScheduler:
             self.commands[fun.__name__] = fun
             return fun
         return decorator
-    
+
     def stop_workers(self):
         for i in range(len(self.worker_threads)):
             self.task_queue.put(False)
         for worker in self.worker_threads:
             worker.join()
         print("All workers stopped")
-
 
 
 class WorkerThread(threading.Thread):
@@ -49,10 +49,10 @@ class WorkerThread(threading.Thread):
         while True:
             print("worker "+str(self.index)+" waiting for task")
             task = self.task_queue.get(block=True)
-            if task == False:
+            if not task:
                 print("worker "+str(self.index)+" exiting")
                 return
-            print("worker "+str(self.index)+": setting task "+str(task)+ " to active")
+            print("worker " + str(self.index) + ": setting task " + str(task) + " to active")
             task.state = "active"
             self.ts_started = time.time()
             task.worker_index = self.index
@@ -88,7 +88,8 @@ class QueuedTask:
 def self_task():
     return local_obj.current_task
 
-def report_progress(value,maximum):
+
+def report_progress(value, maximum):
     local_obj.current_task.progress = value
     local_obj.current_task.progress_maximum = maximum
 

@@ -25,7 +25,7 @@ giphy = giphypop.Giphy()
 @app.route("/")
 def index():
     return render_template("index.html",
-            api_root=config["http"]["api_root"], static_root=config["http"]["static_root"], 
+            api_root=config["http"]["api_root"], static_root=config["http"]["static_root"],
             deezer_is_working=is_deezer_session_valid())
 
 
@@ -58,7 +58,7 @@ def validate_schema(*parameters_to_check):
         def wrapper(*args, **kw):
             j = request.get_json(force=True)
             print("User request: {} with {}".format(request.path, j))
-            # checks if all parameters are supplied by the user
+            # check if all parameters are supplied by the user
             if set(j.keys()) != set(parameters_to_check):
                 return jsonify({"error": 'parameters not fitting. Required: {}'.format(parameters_to_check)}), 400
             if "type" in j.keys():
@@ -111,6 +111,7 @@ def show_queue():
     ]
     return jsonify(results)
 
+
 @app.route('/search', methods=['POST'])
 @validate_schema("type", "query")
 def search():
@@ -139,7 +140,7 @@ def deezer_download_song_or_album():
         create_zip: True|False (create a zip for the album)
     """
     user_input = request.get_json(force=True)
-    desc = "I'm working on the {}".format(user_input['type'])
+    desc = "Downloading song {}".format(user_input['type'])
     if user_input['type'] == "track":
         task = sched.enqueue_task(desc, "download_deezer_song_and_queue",
                     track_id=user_input['music_id'], add_to_playlist=user_input['add_to_playlist'])
@@ -213,10 +214,12 @@ if config.getint('deezer', 'keepalive', fallback=0) > 0:
 
 sched.run_workers(config.getint('threadpool', 'workers'))
 
+
 @atexit.register
 def stop_workers():
     sched.stop_workers()
     stop_deezer_keepalive()
+
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True, use_reloader=False)

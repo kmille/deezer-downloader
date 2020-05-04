@@ -10,8 +10,6 @@ from spotify import get_songs_from_spotify_website, SpotifyWebsiteParserExceptio
 from deezer import TYPE_TRACK, TYPE_ALBUM, TYPE_PLAYLIST, get_song_infos_from_deezer_website, download_song, parse_deezer_playlist, deezer_search
 from deezer import Deezer403Exception, Deezer404Exception, DeezerApiException
 
-from ipdb import set_trace
-
 from threadpool_queue import ThreadpoolScheduler, report_progress
 sched = ThreadpoolScheduler()
 
@@ -129,12 +127,14 @@ def create_m3u8_file(songs_absolute_location):
     songs_absolute_location.append(m3u8_file_abs)
     return songs_absolute_location
 
+
 @sched.register_command()
 def download_deezer_song_and_queue(track_id, add_to_playlist):
     song = get_song_infos_from_deezer_website(TYPE_TRACK, track_id)
     absolute_filename = get_absolute_filename(TYPE_TRACK, song)
     update_mpd_db(absolute_filename, add_to_playlist)
     return make_song_paths_relative_to_mpd_root([absolute_filename])
+
 
 @sched.register_command()
 def download_deezer_album_and_queue_and_zip(album_id, add_to_playlist, create_zip):
@@ -150,6 +150,7 @@ def download_deezer_album_and_queue_and_zip(album_id, add_to_playlist, create_zi
         return [create_zip_file(songs_absolute_location)]
     return make_song_paths_relative_to_mpd_root(songs_absolute_location)
 
+
 @sched.register_command()
 def download_deezer_playlist_and_queue_and_zip(playlist_id, add_to_playlist, create_zip):
     playlist_name, songs = parse_deezer_playlist(playlist_id)
@@ -163,6 +164,7 @@ def download_deezer_playlist_and_queue_and_zip(playlist_id, add_to_playlist, cre
     if create_zip:
         return [create_zip_file(songs_with_m3u8_file)]
     return make_song_paths_relative_to_mpd_root(songs_absolute_location)
+
 
 @sched.register_command()
 def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_to_playlist, create_zip):
@@ -184,6 +186,7 @@ def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_
     if create_zip:
         return [create_zip_file(songs_with_m3u8_file)]
     return make_song_paths_relative_to_mpd_root(songs_absolute_location)
+
 
 @sched.register_command()
 def download_youtubedl_and_queue(video_url, add_to_playlist):

@@ -1,6 +1,5 @@
 import sys
 import re
-import os
 import json
 import threading
 
@@ -12,24 +11,18 @@ import struct
 import urllib.parse
 import html.parser
 import requests
-#from mutagen.mp3 import MP3
-#from mutagen.id3 import ID3, APIC, error
 from binascii import a2b_hex, b2a_hex
 
-#from deezer_login import DeezerLogin
-#deezer = DeezerLogin()
-
-from ipdb import set_trace
 
 # BEGIN TYPES
 TYPE_TRACK = "track"
 TYPE_ALBUM = "album"
 TYPE_PLAYLIST = "playlist"
-TYPE_ALBUM_TRACK = "album_track"
+TYPE_ALBUM_TRACK = "album_track" # used for listing songs of an album
 # END TYPES
 
-
 session = None
+
 
 def init_deezer_session():
     global session
@@ -444,8 +437,8 @@ def get_song_infos_from_deezer_website(search_type, id):
 
 def deezer_search(search, search_type):
     # search: string (What are you looking for?)
-    # search_type: either one of the constants: TYPE_TRACK|TYPE_ALBUM (TYPE_PLAYLIST is not supported)
-    # return: list of dicts (keys depend on searched)
+    # search_type: either one of the constants: TYPE_TRACK|TYPE_ALBUM|TYPE_ALBUM_TRACK (TYPE_PLAYLIST is not supported)
+    # return: list of dicts (keys depend on search_type)
 
     if search_type not in [TYPE_TRACK, TYPE_ALBUM, TYPE_ALBUM_TRACK]:
         print("ERROR: search_type is wrong: {}".format(search_type))
@@ -456,10 +449,8 @@ def deezer_search(search, search_type):
     else:
         resp = session.get("https://api.deezer.com/search/{}?q={}".format(search_type, search)).json()['data']
     return_nice = []
-    for item in resp: # [:10]:
+    for item in resp:
         i = {}
-        #i['img_url'] = get_picture_link(item["ALB_PICTURE"])
-        
         if search_type == TYPE_ALBUM:
             i['id'] = str(item['id'])
             i['id_type'] = TYPE_ALBUM
@@ -489,7 +480,7 @@ def deezer_search(search, search_type):
             i['album_id'] = item['ALB_ID']
             i['artist'] = item['ART_NAME']
             i['preview_url'] = next(media['HREF'] for media in item['MEDIA'] if media['TYPE'] == 'preview')
-            
+
         return_nice.append(i)
     return return_nice
 
@@ -533,17 +524,21 @@ def parse_deezer_playlist(playlist_id):
 
 _keepalive_timer = None
 _deezer_is_working = False
+
+
 def start_deezer_keepalive():
     global _keepalive_timer
 
     test_deezer_login()
-    
+
     _keepalive_timer = threading.Timer(60.0 * config.getint('deezer', 'keepalive'), start_deezer_keepalive)
     _keepalive_timer.start()
+
 
 def stop_deezer_keepalive():
     if _keepalive_timer is not None:
         _keepalive_timer.cancel()
+
 
 def is_deezer_session_valid():
     return _deezer_is_working
@@ -553,7 +548,7 @@ def test_deezer_login():
     global _deezer_is_working
     # sid cookie has no expire date. Session will be extended on the server side
     # so we will just send a request regularly to not get logged out
-
+    print("Let's check if the deezer login is still working")
     try:
         song = get_song_infos_from_deezer_website(TYPE_TRACK, "917265")
     except (Deezer403Exception, Deezer404Exception) as msg:
