@@ -400,7 +400,7 @@ def download_song(song, output_file):
     except Exception as e:
         raise
     else:
-        print("Dowload finished: {}".format(output_file))
+        print("Download finished: {}".format(output_file))
 
 
 def get_song_infos_from_deezer_website(search_type, id):

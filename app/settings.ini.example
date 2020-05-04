@@ -2,7 +2,7 @@
 ;;; base config
 
 [mpd]
-; if you set this to Rrue, the backend will connect to mpd (localhost:6600) and update
+; if you set this to True, the backend will connect to mpd (localhost:6600) and update
 ; the music database after a completed download
 use_mpd = False
 host = localhost
