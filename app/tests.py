@@ -23,7 +23,7 @@ class TestDeezerMethods(unittest.TestCase):
         songs = deezer_search("Großstadtgeflüster diadem", TYPE_TRACK)
         self.assertIsInstance(songs, list)
         s = songs[0]
-        self.assertSetEqual(set(s.keys()), {'id', 'title', 'album', 'artist'})
+        self.assertSetEqual(set(s.keys()), {'id', 'title', 'album', 'artist', 'album_id', 'preview_url', 'id_type', 'img_url'})
         self.assertTrue(s['id'], '730393272')
         self.assertTrue(s['title'], 'Diadem')
         self.assertTrue(s['artist'], 'Grossstadtgeflüster')
@@ -33,7 +33,7 @@ class TestDeezerMethods(unittest.TestCase):
         albums = deezer_search("Coldplay", TYPE_ALBUM)
         self.assertIsInstance(albums, list)
         for album in albums:
-            self.assertSetEqual(set(album.keys()), {'id', 'title', 'album', 'artist'})
+            self.assertSetEqual(set(album.keys()), {'id', 'title', 'album', 'artist', 'album_id', 'preview_url', 'id_type', 'img_url'})
 
         found_album_names = [x['album'] for x in albums]
         known_album_names = ['Parachutes', 'X&Y', 'A Head Full of Dreams']
