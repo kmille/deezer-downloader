@@ -1,9 +1,8 @@
 
 var show_mpd_features = true;
-var url_prefix = "";
 
 function deezer_download(music_id, type, add_to_playlist, create_zip) {
-    $.post(url_prefix + '/download',
+    $.post(deezer_downloader_api_root + '/download',
         JSON.stringify({ type: type, music_id: parseInt(music_id), add_to_playlist: add_to_playlist, create_zip: create_zip}),
         function(data) {
             if(create_zip == true) {
@@ -26,7 +25,9 @@ function deezer_download(music_id, type, add_to_playlist, create_zip) {
             console.log(data);
     });
 }
-
+function play_preview(src) {
+    $("#audio_tag").attr("src", src)[0].play();
+}
 
 $(document).ready(function() {
 
@@ -38,7 +39,7 @@ $(document).ready(function() {
 
 
     function youtubedl_download(add_to_playlist) {
-        $.post(url_prefix + '/youtubedl',
+        $.post(deezer_downloader_api_root + '/youtubedl',
             JSON.stringify({ url: $('#youtubedl-query').val(), add_to_playlist: add_to_playlist }),
             function(data) {
                 console.log(data);
@@ -48,7 +49,7 @@ $(document).ready(function() {
     
     
     function spotify_playlist_download(add_to_playlist, create_zip) {
-        $.post(url_prefix + '/playlist/spotify',
+        $.post(deezer_downloader_api_root + '/playlist/spotify',
             JSON.stringify({ playlist_name: $('#spotify-playlist-name').val(), 
                              playlist_url: $('#spotify-playlist-url').val(),
                              add_to_playlist: add_to_playlist,
@@ -62,7 +63,7 @@ $(document).ready(function() {
 
 
     function deezer_playlist_download(add_to_playlist, create_zip) {
-        $.post(url_prefix + '/playlist/deezer',
+        $.post(deezer_downloader_api_root + '/playlist/deezer',
             JSON.stringify({ playlist_url: $('#deezer-playlist-url').val(),
                              add_to_playlist: add_to_playlist,
                              create_zip: create_zip}),
@@ -74,8 +75,13 @@ $(document).ready(function() {
     
 
     function search(type) {
-        $.post(url_prefix + '/search',
-            JSON.stringify({ type: type, query: $('#songs-albums-query').val() }),
+        location.hash = '#deezer&'+type+'&'+encodeURIComponent($('#songs-albums-query').val());
+        deezer_load_list(type, $('#songs-albums-query').val());
+    }
+
+    function deezer_load_list(type, query) {
+        $.post(deezer_downloader_api_root + '/search',
+            JSON.stringify({ type: type, query: query }),
             function(data) {
                 $("#results > tbody").html("");
                 for (var i = 0; i < data.length; i++) {
@@ -84,38 +90,65 @@ $(document).ready(function() {
         });
     }
 
-
     function drawTableEntry(rowData, mtype) {
         var row = $("<tr>")
         console.log(rowData);
         $("#results").append(row); 
         row.append($("<td>" + rowData.artist + "</td>"));
-        row.append($("<td>" + rowData.title + "</td>"));
-        row.append($("<td>" + rowData.album + "</td>"));
+        row.append($("<td><a href='"+rowData.preview_url+"' onclick='play_preview(this.href);return false;' title='click for preview'>" + rowData.title + "</a></td>"));
+        row.append($("<td title='click for album track list'><a href='#deezer&album_track&"+rowData.album_id+"'><img src='"+rowData.img_url+"'> " + rowData.album + "</a></td>").click(function() {deezer_load_list("album_track", ""+rowData.album_id+"")}));
         if(show_mpd_features) {
         row.append($('<td> <button class="btn btn-default" onclick="deezer_download(\'' +
-                     rowData.id  + '\', \''+ mtype +
+                     rowData.id  + '\', \''+ rowData.id_type +
                      '\', true, false);" > <i class="fa fa-play-circle" title="download and queue to mpd" ></i> </button> </td>'));
         }
 
         row.append($('<td> <button class="btn btn-default" onclick="deezer_download(\'' +
-                   rowData.id  + '\', \''+ mtype + 
+                   rowData.id  + '\', \''+ rowData.id_type + 
                    '\', false, false);" > <i class="fa fa-download" title="download" ></i> </button> </td>'));
 
-        if(mtype == "album") {
+        if(rowData.id_type == "album") {
             row.append($('<td> <button class="btn btn-default" onclick="deezer_download(\'' +
-                       rowData.id  + '\', \''+ mtype + 
+                       rowData.id  + '\', \''+ rowData.id_type + 
                        '\', false, true);" > <i class="fa fa-file-archive-o" title="give me a zip file" ></i> </button> </td>'));
         }
     }
 
     function show_debug_log() {
-        $.get(url_prefix + '/debug', function(data) {
+        $.get(deezer_downloader_api_root + '/debug', function(data) {
             var debug_log_textarea = $("#ta-debug-log");
             debug_log_textarea.val(data.debug_msg);
             if(debug_log_textarea.length) {
                 debug_log_textarea.scrollTop(debug_log_textarea[0].scrollHeight - debug_log_textarea.height());
             }
+        });
+    }
+
+    function show_task_queue() {
+        $.get(deezer_downloader_api_root + '/queue', function(data) {
+            var queue_table = $("#task-list tbody");
+            queue_table.html("");
+            
+            for (var i = data.length - 1; i >= 0; i--) {
+                console.log(data[i])
+                var html="<tr><td>"+data[i].description+"</td><td>"+data[i].command+"</td><td>"+JSON.stringify(data[i].args)+"</td>"+
+                "<td>"+data[i].state+"</td></tr>";
+                console.log(html);
+                $(html).appendTo(queue_table);
+                switch (data[i].state) {
+                case "active":
+                    $("<tr><td colspan=4><progress value="+data[i].progress[0]+" max="+data[i].progress[1]+" style='width:100%'/></td></tr>").appendTo(queue_table);
+                    break;
+                case "failed":
+                    $("<tr><td colspan=4 style='color:red'>"+data[i].exception+"</td></tr>").appendTo(queue_table);
+                    break;
+                case "finished":
+                    $("<tr><td colspan=4>"+data[i].result.map(file => "<a href='"+file+"'>"+file+"</a>").join("<br>")+"</td></tr>").appendTo(queue_table);
+                    break;
+                }
+            }
+            if (queue_table.is(":visible"))
+                setTimeout(show_task_queue, 4000);
         });
     }
 
@@ -137,6 +170,10 @@ $(document).ready(function() {
     
     $("#nav-debug-log").click(function() {
         show_debug_log();
+    });
+
+    $("#nav-task-queue").click(function() {
+        show_task_queue();
     });
 
     // BEGIN SPOTIFY

@@ -4,47 +4,47 @@ from os.path import basename
 import mpd
 from zipfile import ZipFile, ZIP_DEFLATED
 
-from settings import (use_mpd, mpd_host, mpd_port, mpd_music_dir_root, download_dir_songs, download_dir_albums, download_dir_zips,
-                      download_dir_playlists, download_dir_youtubedl)
+from configuration import config
 from youtubedl import youtubedl_download, YoutubeDLFailedException, DownloadedFileNotFoundException
 from spotify import get_songs_from_spotify_website, SpotifyWebsiteParserException
 from deezer import TYPE_TRACK, TYPE_ALBUM, TYPE_PLAYLIST, get_song_infos_from_deezer_website, download_song, parse_deezer_playlist, deezer_search
 from deezer import Deezer403Exception, Deezer404Exception, DeezerApiException
 
-
 from ipdb import set_trace
+
+from threadpool_queue import ThreadpoolScheduler, report_progress
+sched = ThreadpoolScheduler()
 
 
 def check_download_dirs_exist():
-    for directory in [download_dir_songs, download_dir_zips, download_dir_albums,
-                      download_dir_playlists, download_dir_youtubedl]:
+    for directory in [config["download_dirs"]["songs"], config["download_dirs"]["zips"], config["download_dirs"]["albums"],
+                      config["download_dirs"]["playlists"], config["download_dirs"]["youtubedl"]]:
         os.makedirs(directory, exist_ok=True)
 
 
 check_download_dirs_exist()
 
 
-def make_song_paths_relative_to_mpd_root(songs):
-    global mpd_music_dir_root
-    if not mpd_music_dir_root.endswith("/"):
-        mpd_music_dir_root += "/"
+def make_song_paths_relative_to_mpd_root(songs, prefix=""):
+    if not config["mpd"]["music_dir_root"].endswith("/"):
+        config["mpd"]["music_dir_root"] += "/"
     songs_paths_relative_to_mpd_root = []
     for song in songs:
-        songs_paths_relative_to_mpd_root.append(song[len(mpd_music_dir_root):])
+        songs_paths_relative_to_mpd_root.append(prefix + song[len(config["mpd"]["music_dir_root"]):])
     return songs_paths_relative_to_mpd_root
 
 
 def update_mpd_db(songs, add_to_playlist):
     # songs: list of music files or just a string (file path)
-    if not use_mpd:
+    if not config["mpd"].getboolean("use_mpd"):
         return
     print("Updating mpd database")
     timeout_counter = 0
     mpd_client = mpd.MPDClient(use_unicode=True)
     try:
-        mpd_client.connect(mpd_host, mpd_port)
+        mpd_client.connect(config["mpd"]["host"], config["mpd"].getint("port"))
     except ConnectionRefusedError as e:
-        print("ERROR connecting to MPD ({}:{}): {}".format(mpd_host, mpd_port, e))
+        print("ERROR connecting to MPD ({}:{}): {}".format(config["mpd"]["host"], config["mpd"]["port"], e))
         return
     mpd_client.update()
     if add_to_playlist:
@@ -75,18 +75,18 @@ def get_absolute_filename(search_type, song, playlist_name=None):
     song_filename = clean_filename(song_filename)
 
     if search_type == TYPE_TRACK:
-        absolute_filename = os.path.join(download_dir_songs, song_filename)
+        absolute_filename = os.path.join(config["download_dirs"]["songs"], song_filename)
     elif search_type == TYPE_ALBUM:
         album_name = "{} - {}".format(song['ART_NAME'], song['ALB_TITLE'])
         album_name = clean_filename(album_name)
-        album_dir = os.path.join(download_dir_albums, album_name)
+        album_dir = os.path.join(config["download_dirs"]["albums"], album_name)
         if not os.path.exists(album_dir):
             os.mkdir(album_dir)
         absolute_filename = os.path.join(album_dir, song_filename)
     elif search_type == TYPE_PLAYLIST:
         assert type(playlist_name) == str
         playlist_name = clean_filename(playlist_name)
-        playlist_dir = os.path.join(download_dir_playlists, playlist_name)
+        playlist_dir = os.path.join(config["download_dirs"]["playlists"], playlist_name)
         if not os.path.exists(playlist_dir):
             os.mkdir(playlist_dir)
         absolute_filename = os.path.join(playlist_dir, song_filename)
@@ -102,7 +102,7 @@ def get_absolute_filename(search_type, song, playlist_name=None):
 def create_zip_file(songs_absolute_location):
     # take first song in list and take the parent dir (name of album/playlist")
     parent_dir = songs_absolute_location[0].split("/")[-2]
-    location_zip_file = os.path.join(download_dir_zips, "{}.zip".format(parent_dir))
+    location_zip_file = os.path.join(config["download_dirs"]["zips"], "{}.zip".format(parent_dir))
     print("Creating zip file '{}'".format(location_zip_file))
     with ZipFile(location_zip_file, 'w', compression=ZIP_DEFLATED) as zip:
         for song_location in songs_absolute_location:
@@ -112,6 +112,7 @@ def create_zip_file(songs_absolute_location):
             except FileNotFoundError:
                 print("Could not find file '{}'".format(song_location))
     print("Done with the zip")
+    return location_zip_file
 
 
 def create_m3u8_file(songs_absolute_location):
@@ -128,57 +129,47 @@ def create_m3u8_file(songs_absolute_location):
     songs_absolute_location.append(m3u8_file_abs)
     return songs_absolute_location
 
-
+@sched.register_command()
 def download_deezer_song_and_queue(track_id, add_to_playlist):
-    try:
-        song = get_song_infos_from_deezer_website(TYPE_TRACK, track_id)
-    except (Deezer403Exception, Deezer404Exception) as msg:
-        print(msg)
-        return
+    song = get_song_infos_from_deezer_website(TYPE_TRACK, track_id)
     absolute_filename = get_absolute_filename(TYPE_TRACK, song)
     update_mpd_db(absolute_filename, add_to_playlist)
+    return make_song_paths_relative_to_mpd_root([absolute_filename])
 
-
+@sched.register_command()
 def download_deezer_album_and_queue_and_zip(album_id, add_to_playlist, create_zip):
-    try:
-        songs = get_song_infos_from_deezer_website(TYPE_ALBUM, album_id)
-    except (Deezer403Exception, Deezer404Exception) as msg:
-        print(msg)
-        return
+    songs = get_song_infos_from_deezer_website(TYPE_ALBUM, album_id)
     songs_absolute_location = []
-    for song in songs:
+    for i, song in enumerate(songs):
+        report_progress(i, len(songs))
         assert type(song) == dict
         absolute_filename = get_absolute_filename(TYPE_ALBUM, song)
         songs_absolute_location.append(absolute_filename)
     update_mpd_db(songs_absolute_location, add_to_playlist)
     if create_zip:
-        create_zip_file(songs_absolute_location)
+        return [create_zip_file(songs_absolute_location)]
+    return make_song_paths_relative_to_mpd_root(songs_absolute_location)
 
-
+@sched.register_command()
 def download_deezer_playlist_and_queue_and_zip(playlist_id, add_to_playlist, create_zip):
-    try:
-        playlist_name, songs = parse_deezer_playlist(playlist_id)
-    except DeezerApiException as msg:
-        print(msg)
-        return
+    playlist_name, songs = parse_deezer_playlist(playlist_id)
     songs_absolute_location = []
-    for song in songs:
+    for i, song in enumerate(songs):
+        report_progress(i, len(songs))
         absolute_filename = get_absolute_filename(TYPE_PLAYLIST, song, playlist_name)
         songs_absolute_location.append(absolute_filename)
     update_mpd_db(songs_absolute_location, add_to_playlist)
     songs_with_m3u8_file = create_m3u8_file(songs_absolute_location)
     if create_zip:
-        create_zip_file(songs_with_m3u8_file)
+        return [create_zip_file(songs_with_m3u8_file)]
+    return make_song_paths_relative_to_mpd_root(songs_absolute_location)
 
-
+@sched.register_command()
 def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_to_playlist, create_zip):
-    try:
-        songs = get_songs_from_spotify_website(playlist_id)
-    except SpotifyWebsiteParserException as e:
-        print(e)
-        return
+    songs = get_songs_from_spotify_website(playlist_id)
     songs_absolute_location = []
-    for song_of_playlist in songs:
+    for i, song_of_playlist in enumerate(songs):
+        report_progress(i, len(songs))
         # song_of_playlist: string (artist - song)
         try:
             track_id = deezer_search(song_of_playlist, TYPE_TRACK)[0]['id'] #[0] can throw IndexError
@@ -191,15 +182,14 @@ def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_
     update_mpd_db(songs_absolute_location, add_to_playlist)
     songs_with_m3u8_file = create_m3u8_file(songs_absolute_location)
     if create_zip:
-        create_zip_file(songs_with_m3u8_file)
+        return [create_zip_file(songs_with_m3u8_file)]
+    return make_song_paths_relative_to_mpd_root(songs_absolute_location)
 
-
+@sched.register_command()
 def download_youtubedl_and_queue(video_url, add_to_playlist):
-    try:
-        filename_absolute = youtubedl_download(video_url, download_dir_youtubedl)
-        update_mpd_db(filename_absolute, add_to_playlist)
-    except (YoutubeDLFailedException, DownloadedFileNotFoundException) as msg:
-        print(msg)
+    filename_absolute = youtubedl_download(video_url, config["download_dirs"]["youtubedl"])
+    update_mpd_db(filename_absolute, add_to_playlist)
+    return make_song_paths_relative_to_mpd_root([filename_absolute])
 
 
 if __name__ == '__main__':
