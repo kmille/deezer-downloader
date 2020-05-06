@@ -475,7 +475,7 @@ def deezer_search(search, search_type):
             i['id'] = str(item['SNG_ID'])
             i['id_type'] = TYPE_TRACK
             i['title'] = item['SNG_TITLE']
-            i['img_url'] = '' #item['album']['cover_small']
+            i['img_url'] = '' # item['album']['cover_small']
             i['album'] = item['ALB_TITLE']
             i['album_id'] = item['ALB_ID']
             i['artist'] = item['ART_NAME']
