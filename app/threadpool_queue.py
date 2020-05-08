@@ -1,3 +1,4 @@
+
 import threading
 import time
 from queue import Queue
@@ -6,11 +7,17 @@ local_obj = threading.local()
 
 
 class ThreadpoolScheduler:
+
     def __init__(self):
-        print("creating Threadpool")
-        self.task_queue = Queue()
+        print("Starting Threadpool")
+        self.task_queue = Queue() # threadsafe queue where we put/get QueuedTask objects
+        self.worker_threads = [] # list of WorkerThread objects
+
+        # self.commands: {'function_name': function_pointer_to_the_function}
+        # {'download_deezer_song_and_queue': <function download_deezer_song_and_queue at 0x7ff81d739280>}
         self.commands = {}
-        self.worker_threads = []
+
+        # list of all QueuedTask objects we processed during runtime (used by /queue)
         self.all_tasks = []
 
     def run_workers(self, num_workers):
@@ -40,33 +47,36 @@ class ThreadpoolScheduler:
 
 
 class WorkerThread(threading.Thread):
+
     def __init__(self, index, task_queue):
         super().__init__()
-        self.index = index
-        self.task_queue = task_queue
+        self.index = index # just an id per Worker
+        self.task_queue = task_queue # shared between all WorkerThreads
 
     def run(self):
         while True:
-            print("worker "+str(self.index)+" waiting for task")
+            print(f"Worker {self.index} is waiting for a task")
             task = self.task_queue.get(block=True)
             if not task:
-                print("worker "+str(self.index)+" exiting")
+                print(f"Worker {self.index} is exiting")
                 return
-            print("worker " + str(self.index) + ": setting task " + str(task) + " to active")
+            print(f"Worker {self.index} is now working on task: {task.kwargs}")
             task.state = "active"
             self.ts_started = time.time()
             task.worker_index = self.index
             local_obj.current_task = task
             try:
                 task.result = task.exec()
-                task.state = "finished"
+                task.state = "mission accomplished"
             except Exception as ex:
                 task.state = "failed"
                 task.exception = ex
             self.ts_finished = time.time()
+            print(f"worker {self.index} is done with task: {task.kwargs} (state={task.state})")
 
 
 class QueuedTask:
+
     def __init__(self, description, fn_name, fn, **kwargs):
         self.description = description
         self.fn_name = fn_name
@@ -85,11 +95,6 @@ class QueuedTask:
         return self.fn(**self.kwargs)
 
 
-def self_task():
-    return local_obj.current_task
-
-
 def report_progress(value, maximum):
     local_obj.current_task.progress = value
     local_obj.current_task.progress_maximum = maximum
-

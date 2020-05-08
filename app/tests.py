@@ -8,9 +8,6 @@ from deezer import Deezer404Exception, DeezerApiException
 from spotify import get_songs_from_spotify_website, SpotifyWebsiteParserException
 from youtubedl import youtubedl_download, YoutubeDLFailedException
 
-
-from ipdb import set_trace
-
 known_song_keys = ["SNG_ID", "DURATION", "MD5_ORIGIN", "SNG_TITLE", "TRACK_NUMBER",
                    "ALB_PICTURE", "MEDIA_VERSION", "ART_NAME", "ALB_TITLE"]
 test_song = "/tmp/song-548935.mp3"

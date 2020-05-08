@@ -3,9 +3,6 @@ from bs4 import BeautifulSoup
 import json
 import re
 
-from ipdb import set_trace
-
-
 base_url = "https://open.spotify.com/embed/playlist/{}"
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36'}
 

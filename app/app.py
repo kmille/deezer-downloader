@@ -12,9 +12,6 @@ from music_backend import sched
 from deezer import deezer_search, start_deezer_keepalive, stop_deezer_keepalive, is_deezer_session_valid
 from configuration import config
 
-from ipdb import set_trace
-
-
 app = Flask(__name__)
 auto_index = AutoIndex(app, config["download_dirs"]["base"], add_url_rules=False)
 auto_index.add_icon_rule('music.png', ext='m3u8')
@@ -104,10 +101,15 @@ def show_queue():
         json: [ { description, command } ]
     """
     results = [
-        { 'id': id(task), 'description': task.description, 'command': task.fn_name, 'args': task.kwargs, 'state': task.state,
-         'result': task.result, 'exception': str(task.exception),
-          'progress': [task.progress, task.progress_maximum] }
-        for task in sched.all_tasks
+        {'id': id(task),
+         'description': task.description,
+         #'command': task.fn_name,
+         'args': task.kwargs,
+         'state': task.state,
+         'result': task.result,
+         'exception': str(task.exception),
+         'progress': [task.progress, task.progress_maximum]
+        } for task in sched.all_tasks
     ]
     return jsonify(results)
 
@@ -143,10 +145,13 @@ def deezer_download_song_or_album():
     desc = "Downloading song {}".format(user_input['type'])
     if user_input['type'] == "track":
         task = sched.enqueue_task(desc, "download_deezer_song_and_queue",
-                    track_id=user_input['music_id'], add_to_playlist=user_input['add_to_playlist'])
+                                  track_id=user_input['music_id'],
+                                  add_to_playlist=user_input['add_to_playlist'])
     else:
         task = sched.enqueue_task(desc, "download_deezer_album_and_queue_and_zip",
-                   album_id=user_input['music_id'], add_to_playlist=user_input['add_to_playlist'], create_zip=user_input['create_zip'])
+                                  album_id=user_input['music_id'],
+                                  add_to_playlist=user_input['add_to_playlist'],
+                                  create_zip=user_input['create_zip'])
     return jsonify({"task_id": id(task), })
 
 
@@ -160,9 +165,10 @@ def youtubedl_download():
         add_to_playlist: True|False (add to mpd playlist)
     """
     user_input = request.get_json(force=True)
-    desc = "I ❤ ABBA"
+    desc = "Downloading via youtube-dl"
     task = sched.enqueue_task(desc, "download_youtubedl_and_queue",
-               video_url=user_input['url'], add_to_playlist=user_input['add_to_playlist'])
+                              video_url=user_input['url'],
+                              add_to_playlist=user_input['add_to_playlist'])
     return jsonify({"task_id": id(task), })
 
 
@@ -178,11 +184,11 @@ def deezer_playlist_download():
         create_zip: True|False (create a zip for the playlist)
     """
     user_input = request.get_json(force=True)
-    desc = "I'm working on your Deezer playlist"
+    desc = "Downloading Deezer playlist"
     task = sched.enqueue_task(desc, "download_deezer_playlist_and_queue_and_zip",
-                playlist_id=user_input['playlist_url'],
-                add_to_playlist=user_input['add_to_playlist'],
-                create_zip=user_input['create_zip'])
+                              playlist_id=user_input['playlist_url'],
+                              add_to_playlist=user_input['add_to_playlist'],
+                              create_zip=user_input['create_zip'])
     return jsonify({"task_id": id(task), })
 
 
@@ -200,12 +206,12 @@ def spotify_playlist_download():
         create_zip: True|False (create a zip for the playlist)
     """
     user_input = request.get_json(force=True)
-    desc = "I'm working on your Spotify playlist"
+    desc = "Downloading Spotify playlist"
     task = sched.enqueue_task(desc, "download_spotify_playlist_and_queue_and_zip",
-                     playlist_name=user_input['playlist_name'],
-                     playlist_id=user_input['playlist_url'],
-                     add_to_playlist=user_input['add_to_playlist'],
-                     create_zip=user_input['create_zip'])
+                              playlist_name=user_input['playlist_name'],
+                              playlist_id=user_input['playlist_url'],
+                              add_to_playlist=user_input['add_to_playlist'],
+                              create_zip=user_input['create_zip'])
     return jsonify({"task_id": id(task), })
 
 

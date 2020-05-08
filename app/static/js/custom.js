@@ -140,10 +140,8 @@ $(document).ready(function() {
             queue_table.html("");
             
             for (var i = data.length - 1; i >= 0; i--) {
-                console.log(data[i])
-                var html="<tr><td>"+data[i].description+"</td><td>"+data[i].command+"</td><td>"+JSON.stringify(data[i].args)+"</td>"+
+                var html="<tr><td>"+data[i].description+"</td><td>"+JSON.stringify(data[i].args)+"</td>"+
                 "<td>"+data[i].state+"</td></tr>";
-                console.log(html);
                 $(html).appendTo(queue_table);
                 switch (data[i].state) {
                 case "active":

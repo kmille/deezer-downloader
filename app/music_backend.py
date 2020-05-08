@@ -170,6 +170,7 @@ def download_deezer_playlist_and_queue_and_zip(playlist_id, add_to_playlist, cre
 def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_to_playlist, create_zip):
     songs = get_songs_from_spotify_website(playlist_id)
     songs_absolute_location = []
+    print(f"We got {len(songs)} songs from the Spotify playlist")
     for i, song_of_playlist in enumerate(songs):
         report_progress(i, len(songs))
         # song_of_playlist: string (artist - song)
@@ -180,7 +181,8 @@ def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_
             songs_absolute_location.append(absolute_filename)
         except (IndexError, Deezer403Exception, Deezer404Exception) as msg:
             print(msg)
-            return
+            print(f"Could not find Spotify song ({song_of_playlist}) on Deezer?")
+            # return
     update_mpd_db(songs_absolute_location, add_to_playlist)
     songs_with_m3u8_file = create_m3u8_file(songs_absolute_location)
     if create_zip:

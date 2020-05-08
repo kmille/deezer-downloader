@@ -3,8 +3,6 @@ import os.path
 from shlex import quote
 from subprocess import Popen, PIPE
 
-from ipdb import set_trace
-
 from configuration import config
 youtube_dl_cmd = config["youtubedl"]["command"] + " -x --audio-format mp3 --audio-quality 0 {video_url} -o '{destination_dir}/%(title)s.%(ext)s'"
 
