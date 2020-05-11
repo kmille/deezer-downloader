@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from subprocess import Popen, PIPE
 from functools import wraps
-from threading import Thread
 import requests
 import atexit
 from flask import Flask, render_template, request, jsonify
@@ -22,8 +21,9 @@ giphy = giphypop.Giphy()
 @app.route("/")
 def index():
     return render_template("index.html",
-            api_root=config["http"]["api_root"], static_root=config["http"]["static_root"],
-            deezer_is_working=is_deezer_session_valid())
+                           api_root=config["http"]["api_root"],
+                           static_root=config["http"]["static_root"],
+                           deezer_is_working=is_deezer_session_valid())
 
 
 @app.route("/debug")
@@ -98,7 +98,7 @@ def show_queue():
     """
     shows queued tasks
     return:
-        json: [ { description, command } ]
+        json: [ { tasks } ]
     """
     results = [
         {'id': id(task),
@@ -229,4 +229,3 @@ def stop_workers():
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True, use_reloader=False)
-

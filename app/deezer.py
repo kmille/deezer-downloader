@@ -78,22 +78,6 @@ class ScriptExtractor(html.parser.HTMLParser):
         self.curtag = None
 
 
-#def find_re(txt, regex):
-#    """ Return either the first regex group, or the entire match """
-#    #print("TODO: find_re -> Das muss schöner gehen")
-#    #print(regex)
-#    m = re.search(regex, txt)
-#    if not m:
-#        #print("CASE 'not m'")
-#        return
-#    #gr = m.groups()
-#    #if gr:
-#        #print("CASE 'gr[0]'")
-#    #    return gr[0]
-#    #print("CASE 'm.group()'")
-#    return m.group()
-
-
 def md5hex(data):
     """ return hex string of md5 of the given string """
     # type(data): bytes
@@ -160,7 +144,6 @@ def decryptfile(fh, key, fo):
         i += 1
 
 
-
 def writeid3v1_1(fo, song):
 
     # Bugfix changed song["SNG_TITLE... to song.get("SNG_TITLE... to avoid 'key-error' in case the key does not exist
@@ -181,13 +164,13 @@ def writeid3v1_1(fo, song):
     # B => int
     # s => bytes
     data = struct.pack("3s" "30s" "30s" "30s" "4s" "28sB" "B"  "B",
-                       b"TAG",                                             # header
-                       song_get(song, "SNG_TITLE"),                             # title
-                       song_get(song, "ART_NAME"),                             # artist
-                       song_get(song, "ALB_TITLE"),                             # album
+                       b"TAG",                                            # header
+                       song_get(song, "SNG_TITLE"),                       # title
+                       song_get(song, "ART_NAME"),                        # artist
+                       song_get(song, "ALB_TITLE"),                       # album
                        album_get("PHYSICAL_RELEASE_DATE"),                # year
                        album_get("LABEL_NAME"), 0,                        # comment
-                       int(song_get(song, "TRACK_NUMBER")),                # tracknum
+                       int(song_get(song, "TRACK_NUMBER")),               # tracknum
                        255                                                # genre
                        )
 
@@ -360,7 +343,7 @@ def download_song(song, output_file):
         if fh.status_code != 200:
             # I don't why this happens. to reproduce:
             # go to https://www.deezer.com/de/playlist/1180748301
-            # search for Moby 
+            # search for Moby
             # open in a new tab the song Moby - Honey
             # this will give you a 404!?
             # but you can play the song in the browser
@@ -372,23 +355,6 @@ def download_song(song, output_file):
             writeid3v2(fo, song)
             decryptfile(fh, key, fo)
             writeid3v1_1(fo, song)
-
-#        toWS = MP3(output_file, ID3=ID3)
-#        try:
-#            toWS.add_tags()
-#        except:
-#            pass
-#
-#        toWS.tags.add(
-#            APIC(
-#                encoding=3,         # 3 is for utf-8
-#                mime='image/jpeg',  # image/jpeg or image/png
-#                type=3,             # 3 is for the cover image
-#                desc=u'Cover',
-#                data=downloadpicture(song["ALB_PICTURE"])
-#            )
-#        )
-#        toWS.save(v2_version=3)
 
     except Exception as e:
         raise
@@ -494,7 +460,7 @@ def parse_deezer_playlist(playlist_id):
     try:
         playlist_id = re.search(r'\d+', playlist_id).group(0)
     except AttributeError:
-        raise DeezerApiException("ERROR: Regex (\d+) for playlist_id failed. You gave me '{}'".format(playlist_id))
+        raise DeezerApiException("ERROR: Regex (\\d+) for playlist_id failed. You gave me '{}'".format(playlist_id))
 
     url_get_csrf_token = "https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token="
     req = session.post(url_get_csrf_token)
@@ -566,8 +532,6 @@ def test_deezer_login():
         _deezer_is_working = False
         return False
 
-
-#deezer = DeezerLogin()
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == "check-login":

@@ -1,19 +1,15 @@
-
 ;;; base config
 
 [mpd]
-; if you set this to Rrue, the backend will connect to mpd (localhost:6600) and update
+; if you set this to True, the backend will connect to mpd (localhost:6600) and update
 ; the music database after a completed download
 use_mpd = False
 host = localhost
 port = 6600
-
-music_dir_root = /var/lib/mpd/music
+music_dir_root = /tmp/deezer-downloader
 
 
 [download_dirs]
-; note: the paths should not end with a trailing slash
-
 base = /var/lib/mpd/music/downloads
 
 songs = %(base)s/songs
@@ -28,8 +24,7 @@ command = journalctl -u deezer-downloader -n 100 --output cat
 
 
 [http]
-; if the service is deployed behind a proxy and mounted in a subdirectory,
-; here you can configure the prefix, e.g.:
+; if used behind a proxy, specify base url prefix
 ; url_prefix = /deezer
 url_prefix = 
 
@@ -42,18 +37,22 @@ static_root = %(url_prefix)s/static
 workers = 2
 
 
-;;; download sources
-
 [deezer]
-; insert your sid cookie value here
+; valid sid cookie value
 ; (login manually using your web browser and take the sid cookie; begins with fr...)
 sid = fre42682825153a4c1f9672fd0bab32ed9d63b7c
 
 ; run a query on deezer every N minutes to keep the session alive
-keepalive = 30
+keepalive = 60
 
 
 [youtubedl]
+# you have to keep it up-to date manually!
 # command = /home/kmille/projects/deezer-downloader/app/venv/bin/youtube-dl
 command = /usr/bin/youtube-dl
 
+
+
+
+
+; vim: syntax=dosini

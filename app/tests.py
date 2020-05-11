@@ -175,7 +175,7 @@ class TestDeezerMethods(unittest.TestCase):
             playlist_name, songs = parse_deezer_playlist(invalid_playlist_id)
 
     def test_parse_invalid_input_for_deezer_playlist_with_id(self):
-        invalid_playlist_id = "!\"§$%&/((;-';k(()=+ü\?"
+        invalid_playlist_id = "!\"§$%&/((;-';k(()=+ü\\?"
         with self.assertRaises(DeezerApiException):
             playlist_name, songs = parse_deezer_playlist(invalid_playlist_id)
 
@@ -185,7 +185,6 @@ class TestDeezerMethods(unittest.TestCase):
             playlist_name, songs = parse_deezer_playlist(invalid_playlist_url)
     # END: parse_deezer_playlist
 
-    
     # BEGIN: download_song
     def test_download_song_valid(self):
         song_infos = deezer_search("faber tausendfrankenlang", TYPE_TRACK)[0]

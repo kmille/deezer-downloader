@@ -1,5 +1,4 @@
 import re
-import os.path
 from shlex import quote
 from subprocess import Popen, PIPE
 
@@ -34,7 +33,6 @@ def get_absolute_filename(stdout, stderr):
     return regex_foo.group(1)
 
 
-# called from extern
 def youtubedl_download(url, destination_dir):
     # url, e.g. https://www.youtube.com/watch?v=ZbZSe6N_BXs
     # destination_dir: /tmp/
