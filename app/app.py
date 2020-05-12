@@ -217,16 +217,14 @@ def spotify_playlist_download():
     return jsonify({"task_id": id(task), })
 
 
-if config.getint('deezer', 'keepalive', fallback=0) > 0:
-    start_deezer_keepalive()
-
-sched.run_workers(config.getint('threadpool', 'workers'))
-
-
 @atexit.register
 def stop_workers():
     sched.stop_workers()
     stop_deezer_keepalive()
+
+
+start_deezer_keepalive()
+sched.run_workers(config.getint('threadpool', 'workers'))
 
 
 if __name__ == '__main__':

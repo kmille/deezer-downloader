@@ -22,6 +22,8 @@ TYPE_ALBUM_TRACK = "album_track" # used for listing songs of an album
 # END TYPES
 
 session = None
+_keepalive_timer = None
+_deezer_is_working = False
 
 
 def init_deezer_session():
@@ -488,17 +490,13 @@ def parse_deezer_playlist(playlist_id):
     return playlist_name, json_data['SONGS']['data']
 
 
-_keepalive_timer = None
-_deezer_is_working = False
-
-
 def start_deezer_keepalive():
     global _keepalive_timer
 
     test_deezer_login()
-
-    _keepalive_timer = threading.Timer(60.0 * config.getint('deezer', 'keepalive'), start_deezer_keepalive)
-    _keepalive_timer.start()
+    if config['deezer'].getint('keepalive') > 0:
+        _keepalive_timer = threading.Timer(60.0 * config.getint('deezer', 'keepalive'), start_deezer_keepalive)
+        _keepalive_timer.start()
 
 
 def stop_deezer_keepalive():
