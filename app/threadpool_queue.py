@@ -68,6 +68,7 @@ class WorkerThread(threading.Thread):
                 task.result = task.exec()
                 task.state = "mission accomplished"
             except Exception as ex:
+                print(f"Got an Exception in function {task.fn_name} with parameters '{task.kwargs}\n{ex}'")
                 task.state = "failed"
                 task.exception = ex
             self.ts_finished = time.time()

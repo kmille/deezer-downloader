@@ -149,24 +149,24 @@ class TestDeezerMethods(unittest.TestCase):
     # BEGIN: parse_deezer_playlist
     def _call_parse_valid_deezer_playlist(self, playlist):
         playlist_name, songs = parse_deezer_playlist(playlist)
-        self.assertEqual(playlist_name, "Gitarre")
+        self.assertEqual(playlist_name, "test-playlist")
         self.assertIsInstance(songs, list)
-        self.assertEqual(len(songs), 13)
+        self.assertEqual(len(songs), 2)
         for song in songs:
             song_keys = list(song.keys())
             for key in known_song_keys:
                 self.assertIn(key, song_keys)
-        self.assertEqual(songs[0]["SNG_ID"], "725274")
-        self.assertEqual(songs[0]["ART_NAME"], "Red Hot Chili Peppers")
-        self.assertEqual(songs[0]["SNG_TITLE"], "Californication")
-        self.assertEqual(songs[0]["MD5_ORIGIN"], "0f951cee0984919d5453cad7e763cc04")
+        self.assertEqual(songs[0]["SNG_ID"], "113951680")
+        self.assertEqual(songs[0]["ART_NAME"], 'Fredrika Stahl')
+        self.assertEqual(songs[0]["SNG_TITLE"], 'Make a Change')
+        self.assertEqual(songs[0]["MD5_ORIGIN"], '57250623592ef44c8caeead79917f7e5')
 
     def test_parse_valid_deezer_playlist_with_url(self):
-        playlist_url = "https://www.deezer.com/de/playlist/3281396182"
+        playlist_url = "https://www.deezer.com/de/playlist/7639370122"
         self._call_parse_valid_deezer_playlist(playlist_url)
 
     def test_parse_valid_deezer_playlist_with_id(self):
-        playlist_id = "3281396182"
+        playlist_id = "7639370122"
         self._call_parse_valid_deezer_playlist(playlist_id)
 
     def test_parse_invalid_deezer_playlist_with_id(self):

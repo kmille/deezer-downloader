@@ -32,7 +32,7 @@ def get_songs_from_spotify_website(playlist):
 
     bs = BeautifulSoup(req.text, 'html.parser')
     try:
-        songs_txt = bs.find('script', {'id': 'resource'}).text.strip()
+        songs_txt = bs.find('script', {'id': 'resource'}).string.strip()
     except AttributeError:
         raise SpotifyWebsiteParserException("ERROR: Could not get songs from Spotify website. Wrong Playlist id? Tried {}".format(url))
     songs_json = json.loads(songs_txt)

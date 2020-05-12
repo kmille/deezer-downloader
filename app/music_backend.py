@@ -199,8 +199,4 @@ def download_youtubedl_and_queue(video_url, add_to_playlist):
 
 if __name__ == '__main__':
     pass
-    playlist_id = "878989033"
-    #playlist_id = "1180748301"
-    download_deezer_playlist_and_queue_and_zip(playlist_id, True, False)
-    #moby  = "68925038"
-    #download_deezer_song_and_queue(moby, False)
+    download_spotify_playlist_and_queue_and_zip("test", '21wZXvtrERELL0bVtKtuUh', False, False)
