@@ -23,6 +23,7 @@ def index():
     return render_template("index.html",
                            api_root=config["http"]["api_root"],
                            static_root=config["http"]["static_root"],
+                           use_mpd=str(config['mpd'].getboolean('use_mpd')).lower(),
                            deezer_is_working=is_deezer_session_valid())
 
 

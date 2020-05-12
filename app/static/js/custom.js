@@ -1,6 +1,4 @@
 
-var show_mpd_features = true;
-
 function deezer_download(music_id, type, add_to_playlist, create_zip) {
     $.post(deezer_downloader_api_root + '/download',
         JSON.stringify({ type: type, music_id: parseInt(music_id), add_to_playlist: add_to_playlist, create_zip: create_zip}),
