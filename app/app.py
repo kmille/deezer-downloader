@@ -18,38 +18,7 @@ auto_index.add_icon_rule('music.png', ext='m3u8')
 giphy = giphypop.Giphy()
 
 
-@app.route("/")
-def index():
-    return render_template("index.html",
-                           api_root=config["http"]["api_root"],
-                           static_root=config["http"]["static_root"],
-                           use_mpd=str(config['mpd'].getboolean('use_mpd')).lower(),
-                           deezer_is_working=is_deezer_session_valid())
-
-
-@app.route("/debug")
-def show_debug():
-    p = Popen(config["debug"]["command"], shell=True, stdout=PIPE)
-    p.wait()
-    stdout, __ = p.communicate()
-    return jsonify({'debug_msg': stdout.decode()})
-
-
-@app.route("/downloads/")
-@app.route("/downloads/<path:path>")
-def autoindex(path="."):
-    # directory index - flask version (let the user download mp3/zip in the browser)
-    try:
-        gif = giphy.random_gif(tag="cat")
-        media_url = gif.media_url
-    except requests.exceptions.HTTPError:
-        # the api is rate-limited. Fallback:
-        media_url = "https://cataas.com/cat"
-
-    template_context = {'gif_url': media_url}
-    return auto_index.render_autoindex(path, template_context=template_context)
-
-
+# user input validation
 def validate_schema(*parameters_to_check):
     def decorator(f):
         @wraps(f)
@@ -92,6 +61,38 @@ def validate_schema(*parameters_to_check):
             return f(*args, **kw)
         return wrapper
     return decorator
+
+
+@app.route("/")
+def index():
+    return render_template("index.html",
+                           api_root=config["http"]["api_root"],
+                           static_root=config["http"]["static_root"],
+                           use_mpd=str(config['mpd'].getboolean('use_mpd')).lower(),
+                           deezer_is_working=is_deezer_session_valid())
+
+
+@app.route("/debug")
+def show_debug():
+    p = Popen(config["debug"]["command"], shell=True, stdout=PIPE)
+    p.wait()
+    stdout, __ = p.communicate()
+    return jsonify({'debug_msg': stdout.decode()})
+
+
+@app.route("/downloads/")
+@app.route("/downloads/<path:path>")
+def autoindex(path="."):
+    # directory index - flask version (let the user download mp3/zip in the browser)
+    try:
+        gif = giphy.random_gif(tag="cat")
+        media_url = gif.media_url
+    except requests.exceptions.HTTPError:
+        # the api is rate-limited. Fallback:
+        media_url = "https://cataas.com/cat"
+
+    template_context = {'gif_url': media_url}
+    return auto_index.render_autoindex(path, template_context=template_context)
 
 
 @app.route('/queue', methods=['GET'])

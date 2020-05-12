@@ -6,3 +6,4 @@ SMLoadr/
 *.swp
 settings.ini
 *.log
+.vagrant
