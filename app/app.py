@@ -3,7 +3,7 @@ from subprocess import Popen, PIPE
 from functools import wraps
 import requests
 import atexit
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, escape
 from flask_autoindex import AutoIndex
 import giphypop
 
@@ -104,12 +104,12 @@ def show_queue():
     """
     results = [
         {'id': id(task),
-         'description': task.description,
+         'description': escape(task.description),
          #'command': task.fn_name,
-         'args': task.kwargs,
-         'state': task.state,
-         'result': task.result,
-         'exception': str(task.exception),
+         'args': escape(task.kwargs),
+         'state': escape(task.state),
+         'result': escape(task.result),
+         'exception': escape(str(task.exception)),
          'progress': [task.progress, task.progress_maximum]
         } for task in sched.all_tasks
     ]
