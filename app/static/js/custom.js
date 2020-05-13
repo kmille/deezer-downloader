@@ -144,17 +144,13 @@ $(document).ready(function() {
                 switch (data[i].state) {
                 case "active":
                     $("<tr><td colspan=4><progress value="+data[i].progress[0]+" max="+data[i].progress[1]+" style='width:100%'/></td></tr>").appendTo(queue_table);
-                    break;
                 case "failed":
                     $("<tr><td colspan=4 style='color:red'>"+data[i].exception+"</td></tr>").appendTo(queue_table);
-                    break;
-                case "finished":
-                    $("<tr><td colspan=4>"+data[i].result.map(file => "<a href='"+file+"'>"+file+"</a>").join("<br>")+"</td></tr>").appendTo(queue_table);
-                    break;
                 }
             }
-            if (queue_table.is(":visible"))
-                setTimeout(show_task_queue, 4000);
+            if ($("#nav-task-queue").hasClass("active")) {
+                setTimeout(show_task_queue, 1000);
+            }
         });
     }
 
