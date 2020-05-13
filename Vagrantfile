@@ -17,7 +17,7 @@ Vagrant.configure("2") do |config|
       apt-get update -q
       apt-get install -qy vim tmux git
       apt-get install -qy python3-virtualenv python3-dev
-      git clone https://github.com/kmille/deezer-downloader.git /opt/deezer --branch origin/luelista-pr20
+      git clone https://github.com/kmille/deezer-downloader.git /opt/deezer
       python3 -m virtualenv -p python3 /opt/deezer/app/venv
       source /opt/deezer/app/venv/bin/activate && pip install -r /opt/deezer/requirements.txt && deactivate
       source /opt/deezer/app/venv/bin/activate && pip install -U youtube-dl && deactivate
