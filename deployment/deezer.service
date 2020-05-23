@@ -3,6 +3,7 @@ Description = Deezer downloader
 After = network.target
 
 [Service]
+Environment=PYTHONUNBUFFERED=TRUE
 User = deezer
 Group = deezer
 WorkingDirectory = /opt/deezer/app
