@@ -49,7 +49,7 @@ ncmpcpp -h 127.0.0.1 # try the mpd client
 ### Deployment
 ```bash
 apt-get update -q
-apt-get install -qy vim tmux git gcc
+apt-get install -qy vim tmux git gcc ffmpeg
 apt-get install -qy python3-virtualenv python3-dev
 git clone https://github.com/kmille/deezer-downloader.git /opt/deezer
 python3 -m virtualenv -p python3 /opt/deezer/app/venv
