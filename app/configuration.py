@@ -1,4 +1,5 @@
 import sys
+import os
 import os.path
 from configparser import ConfigParser
 
@@ -21,3 +22,6 @@ if not config['mpd']['music_dir_root'].startswith(config['download_dirs']['base'
 if not os.path.exists(config['youtubedl']['command']):
     print(f"youtube-dl not found at {config['youtubedl']['command']}")
     sys.exit(1)
+
+if "DEEZER_SID" in os.environ.keys():
+    config["deezer"]["sid"] = os.environ["DEEZER_SID"]
