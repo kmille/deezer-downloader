@@ -1,7 +1,6 @@
 *.pyc
 venv
 session.pickle
-downloads
 SMLoadr/
 *.swp
 settings.ini

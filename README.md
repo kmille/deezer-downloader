@@ -45,8 +45,12 @@ xdg-open http://localhost:5000 # view frontend in the browser
 ncmpcpp -h 127.0.0.1 # try the mpd client
 ```
 
+### Docker
+
+There is a docker-compose file in the docker directory. Before using it execute `chmod 777 docker/downloads` as the container runs as a non root user . The `downloads` directory is the volume the container uses for the downloads. You also have to supply a valid Deezer cookie in the docker-compose file as environment variable. 
 
 ### Deployment
+
 ```bash
 apt-get update -q
 apt-get install -qy vim tmux git gcc ffmpeg

@@ -1,0 +1,12 @@
+---
+version: '2'
+
+services:
+  deezer-downloader:
+    build: .
+    environment:
+      - DEEZER_SID=fre42682825153a4c1f9672fd0bab32ed9d63b7c
+    volumes:
+      - ./downloads:/mnt/deezer-downloader
+    ports:
+      - "5000:5000" 
