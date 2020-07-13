@@ -332,8 +332,8 @@ def download_song(song, output_file):
     assert type(song) == dict, "song must be a dict"
     assert type(output_file) == str, "output_file must be a str"
 
-    #song_quality = 8 if song.get("FILESIZE_FLAC") else \ # needs premium subscription, untested
-    song_quality = 3 if song.get("FILESIZE_MP3_320") else \
+    song_quality = 9 if (song.get("FILESIZE_FLAC") and config['deezer']['flac_quality'] == 'True') else \
+                   3 if song.get("FILESIZE_MP3_320") else \
                    5 if song.get("FILESIZE_MP3_256") else \
                    1
 

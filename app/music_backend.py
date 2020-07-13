@@ -69,7 +69,7 @@ def clean_filename(path):
 
 
 def get_absolute_filename(search_type, song, playlist_name=None):
-    song_filename = "{} - {}.mp3".format(song['ART_NAME'], song['SNG_TITLE'])
+    song_filename = "{} - {}.{}".format(song['ART_NAME'], song['SNG_TITLE'], 'flac' if (config['deezer']['flac_quality'] == 'True') else 'mp3')
     song_filename = clean_filename(song_filename)
 
     if search_type == TYPE_TRACK:
