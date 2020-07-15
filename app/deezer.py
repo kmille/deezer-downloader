@@ -11,6 +11,7 @@ import struct
 import urllib.parse
 import html.parser
 import requests
+from requests.packages.urllib3.util.retry import Retry
 from binascii import a2b_hex, b2a_hex
 
 
@@ -21,33 +22,75 @@ TYPE_PLAYLIST = "playlist"
 TYPE_ALBUM_TRACK = "album_track" # used for listing songs of an album
 # END TYPES
 
-session = None
-_keepalive_timer = None
 _deezer_is_working = False
 
+session = requests.Session()
+userAgent = (
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+    'AppleWebKit/537.36 (KHTML, like Gecko) '
+    'Chrome/68.0.3440.106 Safari/537.36'
+    )
+httpHeaders = {
+        'User-Agent'      : userAgent,
+        'Content-Language': 'en-US',
+        'Cache-Control'   : 'max-age=0',
+        'Accept'          : '*/*',
+        'Accept-Charset'  : 'utf-8,ISO-8859-1;q=0.7,*;q=0.3',
+        'Accept-Language' : 'en-US;q=0.6,en;q=0.4',
+        'Connection'      : 'keep-alive',
+        }
+session.headers.update(httpHeaders)
 
-def init_deezer_session():
-    global session
-    header = {
-        'Pragma': 'no-cache',
-        'Origin': 'https://www.deezer.com',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36',
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'Accept': '*/*',
-        'Cache-Control': 'no-cache',
-        'X-Requested-With': 'XMLHttpRequest',
-        'Connection': 'keep-alive',
-        'Referer': 'https://www.deezer.com/login',
-        'DNT': '1',
-    }
-    session = requests.session()
-    session.headers.update(header)
-    session.cookies.update({'sid': config['deezer']['sid'], 'comeback': '1'})
+def apiCall(method, json_req=False):
+    ''' Requests info from the hidden api: gw-light.php.
+    '''
+    unofficialApiQueries = {
+        'api_version': '1.0',
+        'api_token'  : 'null' if method == 'deezer.getUserData' else CSRFToken,
+        'input'      : '3',
+        'method'     : method
+        }
+    req = requests_retry_session().post(
+        url='https://www.deezer.com/ajax/gw-light.php',
+        params=unofficialApiQueries,
+        json=json_req
+        ).json()
+    return req['results']
 
+def loginUserToken(token):
+    ''' Handles userToken for settings file, for initial setup.
+        If no USER_ID is found, False is returned and thus the
+        cookie arl is wrong. Instructions for obtaining your arl
+        string are in the README.md
+    '''
+    cookies = {'arl': token}
+    session.cookies.update(cookies)
+    req = apiCall('deezer.getUserData')
+    if not req['USER']['USER_ID']:
+        return False
+    else:
+        return True
 
-init_deezer_session()
+def getTokens():
+    req = apiCall('deezer.getUserData')
+    global CSRFToken
+    CSRFToken = req['checkForm']
+
+# https://www.peterbe.com/plog/best-practice-with-retries-with-requests
+def requests_retry_session(retries=3, backoff_factor=0.3,
+                           status_forcelist=(500, 502, 504)):
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+        method_whitelist=frozenset(['GET', 'POST'])
+    )
+    adapter = requests.adapters.HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
 
 
 class Deezer404Exception(Exception):
@@ -490,20 +533,6 @@ def parse_deezer_playlist(playlist_id):
     return playlist_name, json_data['SONGS']['data']
 
 
-def start_deezer_keepalive():
-    global _keepalive_timer
-
-    test_deezer_login()
-    if config['deezer'].getint('keepalive') > 0:
-        _keepalive_timer = threading.Timer(60.0 * config.getint('deezer', 'keepalive'), start_deezer_keepalive)
-        _keepalive_timer.start()
-
-
-def stop_deezer_keepalive():
-    if _keepalive_timer is not None:
-        _keepalive_timer.cancel()
-
-
 def is_deezer_session_valid():
     return _deezer_is_working
 
@@ -529,6 +558,16 @@ def test_deezer_login():
         print("Login is not working anymore.")
         _deezer_is_working = False
         return False
+
+
+def init_deezer_session():
+    if not loginUserToken(config['deezer']['arl']):
+        print("Not logged in. Maybe the arl token has expired?")
+        exit()
+    getTokens()
+    test_deezer_login()
+
+init_deezer_session()
 
 
 if __name__ == '__main__':

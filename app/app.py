@@ -8,7 +8,7 @@ from flask_autoindex import AutoIndex
 import giphypop
 
 from music_backend import sched
-from deezer import deezer_search, start_deezer_keepalive, stop_deezer_keepalive, is_deezer_session_valid
+from deezer import deezer_search, is_deezer_session_valid
 from configuration import config
 
 app = Flask(__name__)
@@ -220,10 +220,8 @@ def spotify_playlist_download():
 @atexit.register
 def stop_workers():
     sched.stop_workers()
-    stop_deezer_keepalive()
 
 
-start_deezer_keepalive()
 sched.run_workers(config.getint('threadpool', 'workers'))
 
 
