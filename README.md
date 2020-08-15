@@ -5,7 +5,7 @@
 - download songs, albums, public playlists from Deezer.com (account is required, free plan is enough)
 - download Spotify playlists (by parsing the Spotify website and download the songs from Deezer)
 - download as zip file (including m3u8 playlist file)
-- 320 kbit/s mp3s with ID3-Tags and album cover
+- 320 kbit/s mp3s with ID3-Tags and album cover (meanfile: flac is also supported)
 - download songs via youtube-dl
 - KISS front end
 - MPD integration (use it on a Raspberry Pi!)

@@ -23,5 +23,9 @@ if not os.path.exists(config['youtubedl']['command']):
     print(f"youtube-dl not found at {config['youtubedl']['command']}")
     sys.exit(1)
 
+if "flac_quality" not in config['deezer'] or config['deezer']['flac_quality'] not in ("True", "False"):
+    print("flac_quality muste be set (True or False)")
+    sys.exit(1)
+
 if "DEEZER_SID" in os.environ.keys():
     config["deezer"]["sid"] = os.environ["DEEZER_SID"]

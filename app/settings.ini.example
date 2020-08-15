@@ -46,7 +46,10 @@ workers = 2
 ; valid sid cookie value
 ; (login manually using your web browser and take the sid cookie; begins with fr...)
 sid = fre42682825153a4c1f9672fd0bab32ed9d63b7c
+
+; download flac files (if False mp3 is used)
 flac_quality = True
+
 ; run a query on deezer every N minutes to keep the session alive
 keepalive = 60
 
@@ -55,7 +58,6 @@ keepalive = 60
 # you have to keep it up-to date manually!
 # command = /home/kmille/projects/deezer-downloader/app/venv/bin/youtube-dl
 command = /usr/bin/youtube-dl
-
 
 
 

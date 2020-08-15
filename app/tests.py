@@ -8,6 +8,8 @@ from deezer import Deezer404Exception, DeezerApiException
 from spotify import get_songs_from_spotify_website, SpotifyWebsiteParserException
 from youtubedl import youtubedl_download, YoutubeDLFailedException
 
+from configuration import config
+
 known_song_keys = ["SNG_ID", "DURATION", "MD5_ORIGIN", "SNG_TITLE", "TRACK_NUMBER",
                    "ALB_PICTURE", "MEDIA_VERSION", "ART_NAME", "ALB_TITLE"]
 test_song = "/tmp/song-548935.mp3"
@@ -185,8 +187,9 @@ class TestDeezerMethods(unittest.TestCase):
             playlist_name, songs = parse_deezer_playlist(invalid_playlist_url)
     # END: parse_deezer_playlist
 
-    # BEGIN: download_song
-    def test_download_song_valid(self):
+    # BEGIN: test_download_song_validownload_song
+    def test_download_song_valid_mp3(self):
+        config['deezer']['flac_quality'] = "False"
         song_infos = deezer_search("faber tausendfrankenlang", TYPE_TRACK)[0]
         song = get_song_infos_from_deezer_website(TYPE_TRACK, song_infos['id'])
         try:
@@ -199,6 +202,22 @@ class TestDeezerMethods(unittest.TestCase):
         self.assertEqual(file_exists, True)
         file_type = magic.from_file(test_song)
         self.assertEqual(file_type, "Audio file with ID3 version 2.3.0, contains:MPEG ADTS, layer III, v1, 320 kbps, 44.1 kHz, Stereo")
+        os.remove(test_song)
+
+    def test_download_song_valid_flac(self):
+        config['deezer']['flac_quality'] = "True"
+        song_infos = deezer_search("faber tausendfrankenlang", TYPE_TRACK)[0]
+        song = get_song_infos_from_deezer_website(TYPE_TRACK, song_infos['id'])
+        try:
+            os.remove(test_song)
+        except FileNotFoundError:
+            # if we remove a file that does not exist
+            pass
+        download_song(song, test_song)
+        file_exists = os.path.exists(test_song)
+        self.assertEqual(file_exists, True)
+        file_type = magic.from_file(test_song)
+        self.assertEqual(file_type, 'Audio file with ID3 version 2.3.0, contains:FLAC audio bitstream data, 16 bit, stereo, 44.1 kHz, 10062444 samples')
         os.remove(test_song)
 
     def test_download_song_invalid_song_type(self):
