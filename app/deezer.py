@@ -1,7 +1,6 @@
 import sys
 import re
 import json
-import threading
 
 from configuration import config
 
@@ -22,8 +21,6 @@ TYPE_ALBUM_TRACK = "album_track" # used for listing songs of an album
 # END TYPES
 
 session = None
-_keepalive_timer = None
-_deezer_is_working = False
 
 
 def init_deezer_session():
@@ -44,10 +41,7 @@ def init_deezer_session():
     }
     session = requests.session()
     session.headers.update(header)
-    session.cookies.update({'sid': config['deezer']['sid'], 'comeback': '1'})
-
-
-init_deezer_session()
+    session.cookies.update({'arl': config['deezer']['cookie_arl'], 'comeback': '1'})
 
 
 class Deezer404Exception(Exception):
@@ -380,7 +374,7 @@ def get_song_infos_from_deezer_website(search_type, id):
     if resp.status_code == 404:
         raise Deezer404Exception("ERROR: Got a 404 for {} from Deezer".format(url))
     if "MD5_ORIGIN" not in resp.text:
-        raise Deezer403Exception("ERROR: we are not logged in on deezer.com")
+        raise Deezer403Exception("ERROR: we are not logged in on deezer.com. Please update the cookie")
 
     parser = ScriptExtractor()
     parser.feed(resp.text)
@@ -490,46 +484,24 @@ def parse_deezer_playlist(playlist_id):
     return playlist_name, json_data['SONGS']['data']
 
 
-def start_deezer_keepalive():
-    global _keepalive_timer
-
-    test_deezer_login()
-    if config['deezer'].getint('keepalive') > 0:
-        _keepalive_timer = threading.Timer(60.0 * config.getint('deezer', 'keepalive'), start_deezer_keepalive)
-        _keepalive_timer.start()
-
-
-def stop_deezer_keepalive():
-    if _keepalive_timer is not None:
-        _keepalive_timer.cancel()
-
-
-def is_deezer_session_valid():
-    return _deezer_is_working
-
-
 def test_deezer_login():
-    global _deezer_is_working
-    # sid cookie has no expire date. Session will be extended on the server side
-    # so we will just send a request regularly to not get logged out
     print("Let's check if the deezer login is still working")
     try:
         song = get_song_infos_from_deezer_website(TYPE_TRACK, "917265")
     except (Deezer403Exception, Deezer404Exception) as msg:
         print(msg)
         print("Login is not working anymore.")
-        _deezer_is_working = False
         return False
 
     if song:
         print("Login is still working.")
-        _deezer_is_working = True
         return True
     else:
         print("Login is not working anymore.")
-        _deezer_is_working = False
         return False
 
+
+init_deezer_session()
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == "check-login":

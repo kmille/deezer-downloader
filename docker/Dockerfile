@@ -21,4 +21,4 @@ RUN chown -R deezer /opt/deezer
 
 USER deezer
 EXPOSE 5000
-CMD /opt/deezer/app/venv/bin/python /opt/deezer/app/app.py
+CMD /opt/deezer/app/venv/bin/python -u /opt/deezer/app/app.py

@@ -5,7 +5,7 @@ services:
   deezer-downloader:
     build: .
     environment:
-      - DEEZER_SID=fre42682825153a4c1f9672fd0bab32ed9d63b7c
+      - DEEZER_COOKIE_ARL=changeme
     volumes:
       - ./downloads:/mnt/deezer-downloader
     ports:

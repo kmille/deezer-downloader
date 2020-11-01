@@ -8,7 +8,6 @@ host = localhost
 port = 6600
 music_dir_root = /tmp/deezer-downloader
 
-
 [download_dirs]
 base = /tmp/deezer-downloader
 
@@ -18,10 +17,9 @@ zips = %(base)s/zips
 playlists = %(base)s/playlists
 youtubedl = %(base)s/youtube-dl
 
-
 [debug]
+; debug output used for /debug
 command = journalctl -u deezer-downloader -n 100 --output cat
-
 
 [http]
 ; flask options
@@ -32,27 +30,23 @@ debug = True
 ; if used behind a proxy, specify base url prefix
 ; url_prefix = /deezer
 url_prefix = 
-
 api_root = %(url_prefix)s
 static_root = %(url_prefix)s/static
-
 
 [threadpool]
 ; number of workers in thread pool, this specifies the maximum number of parallel downloads
 workers = 2
 
-
 [deezer]
-; valid sid cookie value
-; (login manually using your web browser and take the sid cookie; begins with fr...)
-sid = fre42682825153a4c1f9672fd0bab32ed9d63b7c
+; valid arl cookie value
+; login manually using your web browser and take the arl ookie
+cookie_arl = [a-f0-9]{192}
 
 ; download flac files (if False mp3 is used)
 flac_quality = True
 
 ; run a query on deezer every N minutes to keep the session alive
 keepalive = 60
-
 
 [youtubedl]
 # you have to keep it up-to date manually!

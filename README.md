@@ -5,7 +5,7 @@
 - download songs, albums, public playlists from Deezer.com (account is required, free plan is enough)
 - download Spotify playlists (by parsing the Spotify website and download the songs from Deezer)
 - download as zip file (including m3u8 playlist file)
-- 320 kbit/s mp3s with ID3-Tags and album cover (meanfile: flac is also supported)
+- 320 kbit/s mp3s with ID3-Tags and album cover (or flac if you want)
 - download songs via youtube-dl
 - KISS front end
 - MPD integration (use it on a Raspberry Pi!)
@@ -17,7 +17,7 @@
 
 There is a settings file template called `settings.ini.example`. You can specify the download directory with  `download_dir`. Pressing the download button only downloads the song/album/playlist. If you set `use_mpd=True` in the `settings.ini` the backend will connect to mpd (localhost:6600) and update the music database. Pressing the play button will download the music. If `use_mpd=True`  is set the mpd database will be updated and the song/album/playlist will be added to the playlist. In `settings.ini` `music_dir` should be the music root location of mpd. The `download_dir` must be a subdirectory of `music_dir`. 
 
-As Deezer sometimes requires a captcha to login the auto login features was removed. Instead you have to manually insert a valid Deezer cookie to the `settings.ini`. The relevant cookie is the `sid` cookie. A dedicated thread in the background is used to keep the cookie alive.
+As Deezer sometimes requires a captcha to login the auto login features was removed. Instead you have to manually insert a valid Deezer cookie to the `settings.ini`. The relevant cookie is the `arl` cookie. 
 
 
 
@@ -47,7 +47,8 @@ ncmpcpp -h 127.0.0.1 # try the mpd client
 
 ### Docker
 
-There is a docker-compose file in the docker directory. Before using it execute `chmod 777 docker/downloads` as the container runs as a non root user . The `downloads` directory is the volume the container uses for the downloads. You also have to supply a valid Deezer cookie in the docker-compose file as environment variable. 
+There is a docker-compose file in the docker directory. The `docker/downloads` directory is mounted into the container and will be used as download directory. You have to check the permissions of the `docker/downloads` directory as docker mounts it with the same owner/group/permissions as on the host. The `deezer` user in the docker container has uid 1000. If you also have the uid 1000 then there should be no problem. You also have to supply a valid Deezer cookie in the docker-compose file as environment variable.  
+For debugging: `sudo docker-compose build --force-rm && sudo docker-compose up`
 
 ### Deployment
 
@@ -126,6 +127,11 @@ https://github.com/kmille/music-ansible (almost always outdated)
 
 
 ### Changelog
+
+#### Version 1.2 (01.11.2020)
+
+- **breaking change:** now use the `arl` cookie instead of the `sid` cookie. This cookie does not expire so we don't need the background thread that keeps the session alive
+- add support for flac as download format
 
 #### Version 1.1 (13.05.2020)
 

@@ -8,7 +8,7 @@ from flask_autoindex import AutoIndex
 import giphypop
 
 from music_backend import sched
-from deezer import deezer_search, start_deezer_keepalive, stop_deezer_keepalive, is_deezer_session_valid
+from deezer import deezer_search
 from configuration import config
 
 app = Flask(__name__)
@@ -68,8 +68,7 @@ def index():
     return render_template("index.html",
                            api_root=config["http"]["api_root"],
                            static_root=config["http"]["static_root"],
-                           use_mpd=str(config['mpd'].getboolean('use_mpd')).lower(),
-                           deezer_is_working=is_deezer_session_valid())
+                           use_mpd=str(config['mpd'].getboolean('use_mpd')).lower())
 
 
 @app.route("/debug")
@@ -220,12 +219,10 @@ def spotify_playlist_download():
 @atexit.register
 def stop_workers():
     sched.stop_workers()
-    stop_deezer_keepalive()
 
 
-start_deezer_keepalive()
+# do not put this in 'if __name__ == '__main__':'. Otherwise it won't get executed if run by gunicorn
 sched.run_workers(config.getint('threadpool', 'workers'))
-
 
 if __name__ == '__main__':
     app.run(host=config['http']['host'],

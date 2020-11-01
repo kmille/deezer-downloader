@@ -31,6 +31,7 @@ Vagrant.configure("2") do |config|
       systemctl restart mpd
       echo "1) Adjust the Deezer Cookie in /opt/deezer/app/settings.ini" >> /etc/motd
       echo "2) Run it: /opt/deezer/app/venv/bin/python /opt/deezer/app/app.py" >> /etc/motd
-      echo "3) Try out: ncmpcpp -h 127.0.0.1 (you won't hear anything. Use it on a Rasberry Pi!" >> /etc/motd
+      echo "3) Try out: ncmpcpp -h 127.0.0.1 (you won't hear anything because you are in a vm. But you can use it on a Rasberry Pi" >> /etc/motd
+      echo "4) Downloaded files are in /tmp/deezer-downloader" >> /etc/motd
    SHELL
 end

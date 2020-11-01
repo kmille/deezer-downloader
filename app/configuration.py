@@ -15,9 +15,10 @@ config.read(config_abs)
 
 assert list(config.keys()) == ['DEFAULT', 'mpd', 'download_dirs', 'debug', 'http', 'threadpool', 'deezer', 'youtubedl'], f"Validating settings.ini failed. Check {__file__}"
 
-if not config['mpd']['music_dir_root'].startswith(config['download_dirs']['base']):
-    print("base download dir must be a subdirectory of the mpd music_dir_root")
-    sys.exit(1)
+if config['mpd']['use_mpd']:
+    if not config['mpd']['music_dir_root'].startswith(config['download_dirs']['base']):
+        print("base download dir must be a subdirectory of the mpd music_dir_root")
+        sys.exit(1)
 
 if not os.path.exists(config['youtubedl']['command']):
     print(f"youtube-dl not found at {config['youtubedl']['command']}")
@@ -27,5 +28,5 @@ if "flac_quality" not in config['deezer'] or config['deezer']['flac_quality'] no
     print("flac_quality muste be set (True or False)")
     sys.exit(1)
 
-if "DEEZER_SID" in os.environ.keys():
-    config["deezer"]["sid"] = os.environ["DEEZER_SID"]
+if "DEEZER_COOKIE_ARL" in os.environ.keys():
+    config["deezer"]["cookie_arl"] = os.environ["DEEZER_COOKIE_ARL"]
