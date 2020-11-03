@@ -85,7 +85,7 @@ def md5hex(data):
 
 def hexaescrypt(data, key):
     """ returns hex string of aes encrypted data """
-    c = AES.new(key, AES.MODE_ECB)
+    c = AES.new(key.encode(), AES.MODE_ECB)
     return b2a_hex(c.encrypt(data))
 
 
@@ -113,7 +113,7 @@ def calcbfkey(songid):
 
 def blowfishDecrypt(data, key):
     iv = a2b_hex("0001020304050607")
-    c = Blowfish.new(key, Blowfish.MODE_CBC, iv)
+    c = Blowfish.new(key.encode(), Blowfish.MODE_CBC, iv)
     return c.decrypt(data)
 
 
