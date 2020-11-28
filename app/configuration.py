@@ -15,7 +15,7 @@ config.read(config_abs)
 
 assert list(config.keys()) == ['DEFAULT', 'mpd', 'download_dirs', 'debug', 'http', 'threadpool', 'deezer', 'youtubedl'], f"Validating settings.ini failed. Check {__file__}"
 
-if config['mpd']['use_mpd']:
+if config['mpd']['use_mpd'] == "True":
     if not config['mpd']['music_dir_root'].startswith(config['download_dirs']['base']):
         print("base download dir must be a subdirectory of the mpd music_dir_root")
         sys.exit(1)
