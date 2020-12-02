@@ -29,7 +29,7 @@ jedi==0.17.2
 Jinja2==2.11.2
 MarkupSafe==1.1.1
 mutagen==1.45.1
-parso==0.8.0
+parso==0.7.1
 pathlib2==2.3.5
 pdbpp==0.10.2
 pexpect==4.8.0
