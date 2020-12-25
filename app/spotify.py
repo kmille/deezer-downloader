@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+from urllib.parse import unquote
 import json
 import re
 
@@ -35,7 +36,7 @@ def get_songs_from_spotify_website(playlist):
         songs_txt = bs.find('script', {'id': 'resource'}).string.strip()
     except AttributeError:
         raise SpotifyWebsiteParserException("ERROR: Could not get songs from Spotify website. Wrong Playlist id? Tried {}".format(url))
-    songs_json = json.loads(songs_txt)
+    songs_json = json.loads(unquote(songs_txt))
 
     for track in songs_json['tracks']['items']:
         artist = track['track']['artists'][0]['name']
