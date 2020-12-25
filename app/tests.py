@@ -161,6 +161,7 @@ class TestDeezerMethods(unittest.TestCase):
         self.assertEqual(songs[0]["SNG_ID"], "113951680")
         self.assertEqual(songs[0]["ART_NAME"], 'Fredrika Stahl')
         self.assertEqual(songs[0]["SNG_TITLE"], 'Make a Change')
+        # MD5_ORIGIN is only there if we are logged in
         self.assertEqual(songs[0]["MD5_ORIGIN"], '57250623592ef44c8caeead79917f7e5')
 
     def test_parse_valid_deezer_playlist_with_url(self):

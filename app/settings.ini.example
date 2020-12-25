@@ -43,7 +43,7 @@ workers = 2
 cookie_arl = [a-f0-9]{192}
 
 ; download flac files (if False mp3 is used)
-flac_quality = True
+flac_quality = False
 
 ; run a query on deezer every N minutes to keep the session alive
 keepalive = 60
