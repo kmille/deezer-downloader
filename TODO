@@ -1,0 +1,7 @@
+FEATURE REQUESTS
+- proxy support
+- run mpd.update only on sub dirs => faster
+- use flake8
+- make frontend more user friendly on mobile devices
+- use type Anotations and test it with mypy
+- write an ansible playbook
