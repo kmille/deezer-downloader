@@ -34,7 +34,8 @@ $(document).ready(function() {
     if(!show_mpd_features) {
         $("#yt_download_play").hide()
         $("#spotify_download_play").hide()
-        $("#deezer_download_play").hide()
+        $("#deezer_playlist_download_play").hide()
+        $("#deezer_favorites_download_play").hide()
     };
 
 
@@ -73,6 +74,18 @@ $(document).ready(function() {
             });
     }
     
+
+    function deezer_favorites_download(add_to_playlist, create_zip) {
+        $.post(deezer_downloader_api_root + '/favorites/deezer',
+            JSON.stringify({ user_id: $('#deezer-favorites-userid').val(),
+                             add_to_playlist: add_to_playlist,
+                             create_zip: create_zip}),
+            function(data) {
+                console.log(data);
+                $.jGrowl("As you wish", { life: 4000 });
+            });
+    }
+
 
     function search(type) {
         deezer_load_list(type, $('#songs-albums-query').val());
@@ -193,21 +206,35 @@ $(document).ready(function() {
     // END SPOTIFY
 
     
-    // BEGIN DEEZER
-    $("#deezer_download_play").click(function() {
+    // BEGIN DEEZER PLAYLIST
+    $("#deezer_playlist_download_play").click(function() {
         deezer_playlist_download(true, false);
     });
 
-    $("#deezer_download").click(function() {
+    $("#deezer_playlist_download").click(function() {
         deezer_playlist_download(false, false);
     });
 
-    $("#deezer_zip").click(function() {
+    $("#deezer_playlist_zip").click(function() {
         deezer_playlist_download(false, true);
     });
-    // END DEEZER
+    // END DEEZER PLAYLIST
 
-    
+    // BEGIN DEEZER FAVORITE SONGS
+    $("#deezer_favorites_download_play").click(function() {
+        deezer_favorites_download(true, false);
+    });
+
+    $("#deezer_favorites_download").click(function() {
+        deezer_favorites_download(false, false);
+    });
+
+    $("#deezer_favorites_zip").click(function() {
+        deezer_favorites_download(false, true);
+    });
+    // END DEEZER FAVORITE SONGS
+
+
     function show_tab(id_nav, id_content) {
     // nav 
     $(".nav-link").removeClass("active")

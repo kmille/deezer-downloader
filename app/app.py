@@ -58,6 +58,9 @@ def validate_schema(*parameters_to_check):
                     return jsonify({"error": "playlist_name is not a string"}), 400
                 if len(j['playlist_name'].strip()) == 0:
                     return jsonify({"error": "playlist_name is empty"}), 400
+            if "user_id" in j.keys():
+                if type(j['user_id']) != str or not j['user_id'].isnumeric():
+                    return jsonify({"error": "user_id must be a numeric string"}), 400
             return f(*args, **kw)
         return wrapper
     return decorator
@@ -211,6 +214,27 @@ def spotify_playlist_download():
     task = sched.enqueue_task(desc, "download_spotify_playlist_and_queue_and_zip",
                               playlist_name=user_input['playlist_name'],
                               playlist_id=user_input['playlist_url'],
+                              add_to_playlist=user_input['add_to_playlist'],
+                              create_zip=user_input['create_zip'])
+    return jsonify({"task_id": id(task), })
+
+
+@app.route('/favorites/deezer', methods=['POST'])
+@validate_schema("user_id", "add_to_playlist", "create_zip")
+def deezer_favorites_download():
+    """
+    downloads favorite songs of a Deezer user (looks like this in the brwoser:
+       https://www.deezer.com/us/profile/%%user_id%%/loved)
+    a subdirecotry with the name of the user_id will be created.
+    para:
+        user_id: deezer user_id
+        add_to_playlist: True|False (add to mpd playlist)
+        create_zip: True|False (create a zip for the playlist)
+    """
+    user_input = request.get_json(force=True)
+    desc = "Downloading Deezer favorites"
+    task = sched.enqueue_task(desc, "download_deezer_favorites",
+                              user_id=user_input['user_id'],
                               add_to_playlist=user_input['add_to_playlist'],
                               create_zip=user_input['create_zip'])
     return jsonify({"task_id": id(task), })

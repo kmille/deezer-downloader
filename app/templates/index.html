@@ -51,7 +51,7 @@
       <a class="nav-link" id="nav-spotify-playlists" data-toggle="tab" href="#spotify-playlists">Spotify Playlists (3)</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" id="nav-deezer-playlists" data-toggle="tab" href="#deezer-playlists">Deezer Playlists (4)</a>
+      <a class="nav-link" id="nav-deezer" data-toggle="tab" href="#deezer">Deezer (4)</a>
     </li>
     <li class="nav-item">
       <a class="nav-link" id="nav-file-downloads" href="downloads/" target="_blank" >Files (5)</a>
@@ -134,7 +134,7 @@
 
 
 
-     <div id="deezer-playlists" class="container tab-pane fade">
+     <div id="deezer" class="container tab-pane fade">
        <br>
        <h3>Download Deezer playlist</h3>
        <div class="input-group">
@@ -144,12 +144,29 @@
        <br>
        <div class="input-group">
                <span class="input-group-btn">
-                   <button type="button" class="btn btn-info" id="deezer_download_play">Download & Play</button>
-                   <button type="button" class="btn btn-info" id="deezer_download">Download</button>
-                   <button type="button" class="btn btn-info" id="deezer_zip">Give me a zip</button>
+                   <button type="button" class="btn btn-info" id="deezer_playlist_download_play">Download & Play</button>
+                   <button type="button" class="btn btn-info" id="deezer_playlist_download">Download</button>
+                   <button type="button" class="btn btn-info" id="deezer_playlist_zip">Give me a zip</button>
                    <button type="button" class="btn btn-info" onclick="$('#deezer-playlist-url').val('')" >Clear</button>
                </span>
        </div>
+       
+       <br>
+       <h3>Download Deezer favorite songs</h3>
+       <div class="input-group">
+           <input type="text" class="form-control" id="deezer-favorites-userid" placeholder="user id of Deezer user"songs />
+           &nbsp;
+       </div>
+       <br>
+       <div class="input-group">
+               <span class="input-group-btn">
+                   <button type="button" class="btn btn-info" id="deezer_favorites_download_play">Download & Play</button>
+                   <button type="button" class="btn btn-info" id="deezer_favorites_download">Download</button>
+                   <button type="button" class="btn btn-info" id="deezer_favorites_zip">Give me a zip</button>
+                   <button type="button" class="btn btn-info" onclick="$('#deezer-favorites-userid').val('')" >Clear</button>
+               </span>
+       </div>
+     
      </div> <!-- end div tab deezer playlists -->
 
 

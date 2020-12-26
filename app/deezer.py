@@ -1,6 +1,7 @@
 import sys
 import re
 import json
+from typing import Optional, Sequence
 
 from configuration import config
 
@@ -482,6 +483,19 @@ def parse_deezer_playlist(playlist_id):
 
     print("Got {} songs from API".format(json_data['SONGS']['count']))
     return playlist_name, json_data['SONGS']['data']
+
+
+def get_deezer_favorites(user_id: str) -> Optional[Sequence[int]]:
+    if not user_id.isnumeric():
+        raise Exception(f"User id '{user_id}' must be numeric")
+    resp = session.get(f"https://api.deezer.com/user/{user_id}/tracks")
+    assert resp.status_code == 200, f"got invalid status asking for favorite song\n{resp.text}s"
+    resp_json = resp.json()
+    if "error" in resp_json.keys():
+        raise Exception(f"Upstream api error getting favorite songs for user {user_id}:\n{resp_json['error']}")
+    print(f"Got {resp_json['total']} favorite songs for user {user_id} from the api")
+    songs = [song['id'] for song in resp_json['data']]
+    return songs
 
 
 def test_deezer_login():

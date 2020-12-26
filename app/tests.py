@@ -2,7 +2,7 @@ import os
 import unittest
 import magic
 
-from deezer import deezer_search, get_song_infos_from_deezer_website, parse_deezer_playlist, download_song
+from deezer import deezer_search, get_song_infos_from_deezer_website, parse_deezer_playlist, download_song, get_deezer_favorites
 from deezer import TYPE_TRACK, TYPE_ALBUM
 from deezer import Deezer404Exception, DeezerApiException
 from spotify import get_songs_from_spotify_website, SpotifyWebsiteParserException
@@ -187,6 +187,25 @@ class TestDeezerMethods(unittest.TestCase):
         with self.assertRaises(DeezerApiException):
             playlist_name, songs = parse_deezer_playlist(invalid_playlist_url)
     # END: parse_deezer_playlist
+
+    # BEGIN: get_deezer_favorites
+    def test_get_deezer_favorites_userid_not_numeric(self):
+        user_id = "123notnumeric"
+        with self.assertRaises(Exception):
+            get_deezer_favorites(user_id)
+
+    def test_get_deezer_favorites_userid_api_error(self):
+        user_id = "0"
+        with self.assertRaises(Exception):
+            get_deezer_favorites(user_id)
+
+    def test_get_deezer_favorites_userid_valid(self):
+        user_id = "705965861"
+        songs = get_deezer_favorites(user_id)
+        self.assertIsInstance(songs, list)
+        for song in songs:
+            self.assertIsInstance(song, int)
+    # END: get_deezer_favorites
 
     # BEGIN: test_download_song_validownload_song
     def test_download_song_valid_mp3(self):
