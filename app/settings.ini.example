@@ -25,7 +25,7 @@ command = journalctl -u deezer-downloader -n 100 --output cat
 ; flask options
 host = 127.0.0.1
 port = 5000
-debug = True
+debug = False
 
 ; if used behind a proxy, specify base url prefix
 ; url_prefix = /deezer
@@ -35,7 +35,7 @@ static_root = %(url_prefix)s/static
 
 [threadpool]
 ; number of workers in thread pool, this specifies the maximum number of parallel downloads
-workers = 2
+workers = 4
 
 [deezer]
 ; valid arl cookie value
