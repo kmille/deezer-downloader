@@ -1,4 +1,6 @@
 ## Music Downloader  :notes: :headphones: :dancer: :unicorn:
+![Run python tests](https://github.com/kmille/deezer-downloader/workflows/Run%20python%20tests/badge.svg) ![latest tag](https://img.shields.io/github/v/tag/kmille/deezer-downloader?sort=semver) ![Python 3.6](https://img.shields.io/badge/python-%3E=3.6-blue.svg)
+
 
 ### Features
 
@@ -117,11 +119,15 @@ ncmpcpp mpd client.
 
 ### Tests
 
-python -m unittest -f tests.py  
+```bash
+cd app
+source venv/bin/activate
+python -m pytest -v tests.py
+```
 
 
 
-### Deployment with ansible (includig mpd and ympd)
+### Deployment with Ansible (including mpd and ympd)
 https://github.com/kmille/music-ansible (almost always outdated)
 
 

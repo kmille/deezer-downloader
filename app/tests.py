@@ -285,7 +285,9 @@ class TestYoutubeMethods(unittest.TestCase):
         self.assertEqual(file_exists, True)
         file_type = magic.from_file(destination_file)
         os.remove(destination_file)
-        self.assertEqual(file_type, "Audio file with ID3 version 2.4.0, contains:MPEG ADTS, layer III, v1, 64 kbps, 48 kHz, Stereo")
+        # this does not work on Ubuntu 18.04: "  64 kbps" != " 64 kbps" (there is one more space!?
+        self.assertIn("Audio file with ID3 version 2.4.0, contains:MPEG ADTS, layer III", file_type)
+        self.assertIn("64 kbps, 48 kHz, Stereo", file_type)
 
     def test_youtube_dl_invalid_url(self):
         url = "https://www.heise.de"
