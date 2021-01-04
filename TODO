@@ -1,7 +1,10 @@
 FEATURE REQUESTS
 - proxy support
+- add end-to-end tests like described here: https://flask.palletsprojects.com/en/1.1.x/testing/
 - run mpd.update only on sub dirs => faster
 - use flake8
 - make frontend more user friendly on mobile devices
-- use type Anotations and test it with mypy
-- write an ansible playbook
+- use type anotations and test it with mypy
+- update the Ansible playbook
+- build a package and pusht it to pypi
+- make it usable from command line
