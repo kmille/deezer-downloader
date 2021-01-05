@@ -49,7 +49,7 @@ ncmpcpp -h 127.0.0.1 # try the mpd client
 
 ### Docker
 
-You can use the Docker image hosted on [hub.docker.com](https://hub.docker.com/repository/docker/kmille2/deezer-downloader/general). Login into your free Deezer account and grab the `arl` cookie. Then:
+You can use the Docker image hosted on [hub.docker.com](https://hub.docker.com/r/kmille2/deezer-downloader). Login into your free Deezer account and grab the `arl` cookie. Then:
 
 ```bash
 mkdir downloads
