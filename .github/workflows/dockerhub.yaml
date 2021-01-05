@@ -5,6 +5,7 @@ on:
     branches:
       - "!*"
     tags:
+      - '*'
 
 jobs:
   path-context:
