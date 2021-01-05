@@ -1,7 +1,8 @@
-name: push docker image to dockerhub
+name: push to dockerhub
 
 on:
   push:
+    # run only if a tag is pushed
     branches:
       - "!*"
     tags:
@@ -18,12 +19,6 @@ jobs:
         - name: Get the version
           id: vars
           run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
-
-        - name: debug
-          run: echo ${GITHUB_REF:10}
-
-        - name: debug2
-          run: echo ${{steps.vars.outputs.tag}}
 
         - name: Build the tagged Docker image
           run: |
