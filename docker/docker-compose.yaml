@@ -6,7 +6,7 @@ services:
     build: .
     environment:
       - DEEZER_COOKIE_ARL=changeme
-      - DEEZER_FLAC_QUALITY=false
+      - DEEZER_FLAC_QUALITY=False
     volumes:
       - ./downloads:/mnt/deezer-downloader
     ports:

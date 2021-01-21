@@ -25,7 +25,7 @@ if not os.path.exists(config['youtubedl']['command']):
     sys.exit(1)
 
 if "DEEZER_FLAC_QUALITY" in os.environ.keys():
-    config["deezer"]["flac_quality"] = bool(os.environ["DEEZER_FLAC_QUALITY"])
+    config["deezer"]["flac_quality"] = os.environ["DEEZER_FLAC_QUALITY"]
 
 if "flac_quality" not in config['deezer'] or config['deezer'].getboolean('flac_quality') not in (True, False):
     print("flac_quality muste be set (True or False)")
