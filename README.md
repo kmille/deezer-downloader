@@ -53,7 +53,7 @@ You can use the Docker image hosted on [hub.docker.com](https://hub.docker.com/r
 
 ```bash
 mkdir downloads
-sudo docker run -p 5000:5000 --volume $(pwd)/downloads/:/mnt/deezer-downloader --env DEEZER_COOKIE_ARL=changeme kmille2/deezer-downloader:latest 
+sudo docker run -p 5000:5000 --volume $(pwd)/downloads/:/mnt/deezer-downloader --env DEEZER_COOKIE_ARL=changeme --env DEEZER_FLAC_QUALITY=True kmille2/deezer-downloader:latest 
 xdg-open http://localhost:5000
 ```
 
@@ -141,7 +141,10 @@ https://github.com/kmille/music-ansible (almost always outdated)
 
 ### Changelog
 
-#### Version 1.3 (05.11.2021)
+#### Version 1.3.1 (21.01.2021)
+- allow to set download quality (flac|mp3) via environment variable DEEZER_FLAC_QUALITY (#43)
+
+#### Version 1.3 (05.11.2020)
 
 - feature: download your favorite Deezer songs
 - automated tests with Github Actions
