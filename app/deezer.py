@@ -488,7 +488,7 @@ def parse_deezer_playlist(playlist_id):
 def get_deezer_favorites(user_id: str) -> Optional[Sequence[int]]:
     if not user_id.isnumeric():
         raise Exception(f"User id '{user_id}' must be numeric")
-    resp = session.get(f"https://api.deezer.com/user/{user_id}/tracks")
+    resp = session.get(f"https://api.deezer.com/user/{user_id}/tracks?limit=10000000000")
     assert resp.status_code == 200, f"got invalid status asking for favorite song\n{resp.text}s"
     resp_json = resp.json()
     if "error" in resp_json.keys():
