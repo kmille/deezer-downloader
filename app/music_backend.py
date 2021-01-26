@@ -24,8 +24,8 @@ check_download_dirs_exist()
 
 
 def make_song_paths_relative_to_mpd_root(songs, prefix=""):
-    if not config["mpd"]["music_dir_root"].endswith("/"):
-        config["mpd"]["music_dir_root"] += "/"
+    # ensure last slash
+    config["mpd"]["music_dir_root"] = os.path.join(config["mpd"]["music_dir_root"], '')
     songs_paths_relative_to_mpd_root = []
     for song in songs:
         songs_paths_relative_to_mpd_root.append(prefix + song[len(config["mpd"]["music_dir_root"]):])
@@ -99,14 +99,14 @@ def download_song_and_get_absolute_filename(search_type, song, playlist_name=Non
 
 def create_zip_file(songs_absolute_location):
     # take first song in list and take the parent dir (name of album/playlist")
-    parent_dir = songs_absolute_location[0].split("/")[-2]
+    parent_dir = basename(os.path.dirname(songs_absolute_location[0]))
     location_zip_file = os.path.join(config["download_dirs"]["zips"], "{}.zip".format(parent_dir))
     print("Creating zip file '{}'".format(location_zip_file))
     with ZipFile(location_zip_file, 'w', compression=ZIP_DEFLATED) as zip:
         for song_location in songs_absolute_location:
             try:
                 print("Adding song {}".format(song_location))
-                zip.write(song_location, arcname="{}/{}".format(parent_dir, basename(song_location)))
+                zip.write(song_location, arcname=os.path.join(parent_dir, basename(song_location)))
             except FileNotFoundError:
                 print("Could not find file '{}'".format(song_location))
     print("Done with the zip")
@@ -116,7 +116,7 @@ def create_zip_file(songs_absolute_location):
 def create_m3u8_file(songs_absolute_location):
     playlist_directory, __ = os.path.split(songs_absolute_location[0])
     # 00 as prefix => will be shown as first in dir listing
-    m3u8_filename = "00 {}.m3u8".format(playlist_directory.split("/")[-1])
+    m3u8_filename = "00 {}.m3u8".format(os.path.basename(playlist_directory))
     print("Creating m3u8 file: '{}'".format(m3u8_filename))
     m3u8_file_abs = os.path.join(playlist_directory, m3u8_filename)
     with open(m3u8_file_abs, "w") as f:
