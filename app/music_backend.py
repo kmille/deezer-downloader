@@ -2,6 +2,7 @@ import time
 import os.path
 from os.path import basename
 import mpd
+import platform
 from zipfile import ZipFile, ZIP_DEFLATED
 
 from configuration import config
@@ -65,7 +66,10 @@ def update_mpd_db(songs, add_to_playlist):
 
 
 def clean_filename(path):
-    return path.replace("/", "")
+    if any(platform.win32_ver()):
+        return path.replace("<", "").replace(">", "").replace(":", "").replace("\"", "'").replace("/", "").replace("\\", "").replace("|", "").replace("?", "").replace("*", "")
+    else:
+        return path.replace("/", "")
 
 
 def download_song_and_get_absolute_filename(search_type, song, playlist_name=None):
