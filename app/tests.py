@@ -68,7 +68,9 @@ class TestDeezerMethods(unittest.TestCase):
         self.assertEqual(song["SNG_ID"], "69962764")
         self.assertEqual(song["ART_NAME"], "The Clash")
         self.assertEqual(song["SNG_TITLE"], "Should I Stay or Should I Go")
-        self.assertEqual(song["MD5_ORIGIN"], "df51967a8b9b88d079fb0d9f4a0c1c38")
+        # MD5_ORIGIN changes over time
+        #self.assertEqual(song["MD5_ORIGIN"], "df51967a8b9b88d079fb0d9f4a0c1c38")
+        self.assertEqual(len(song["MD5_ORIGIN"]), 32)
 
     def test_get_album_infos_from_website(self):
         songs = get_song_infos_from_deezer_website(TYPE_ALBUM, "1434890")
