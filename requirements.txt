@@ -13,7 +13,7 @@ giphypop==0.3
 idna==2.10
 iniconfig==1.1.1
 itsdangerous==1.1.0
-Jinja2==2.11.2
+Jinja2==2.11.3
 MarkupSafe==1.1.1
 packaging==20.8
 pdbpp==0.10.2
