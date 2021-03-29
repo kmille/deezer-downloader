@@ -20,7 +20,7 @@ pdbpp==0.10.2
 pluggy==0.13.1
 py==1.10.0
 pycryptodome==3.9.9
-Pygments==2.7.3
+Pygments==2.7.4
 pyparsing==2.4.7
 pyrepl==0.9.0
 pytest==6.2.1
