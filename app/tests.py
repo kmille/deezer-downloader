@@ -5,7 +5,7 @@ import magic
 from deezer import deezer_search, get_song_infos_from_deezer_website, parse_deezer_playlist, download_song, get_deezer_favorites
 from deezer import TYPE_TRACK, TYPE_ALBUM
 from deezer import Deezer404Exception, DeezerApiException
-from spotify import get_songs_from_spotify_website, SpotifyWebsiteParserException
+from spotify import get_songs_from_spotify_website, SpotifyWebsiteParserException, parse_uri, SpotifyInvalidUrlException
 from youtubedl import youtubedl_download, YoutubeDLFailedException
 
 from configuration import config
@@ -236,6 +236,33 @@ class TestDeezerMethods(unittest.TestCase):
 
 
 class TestSpotifyMethods(unittest.TestCase):
+    def test_parse_url_spotify(self):
+        res = parse_uri("spotify:album:Hksdhfaif23ffushef9823")
+        self.assertEqual(res['type'], "album")
+        self.assertEqual(res['id'], "Hksdhfaif23ffushef9823")
+
+        res = parse_uri("spotify:playlist:Hksdhfaif23ffushef9823")
+        self.assertEqual(res['type'], "playlist")
+        self.assertEqual(res['id'], "Hksdhfaif23ffushef9823")
+
+        res = parse_uri("spotify:track:Hksdhfaif23ffushef9823")
+        self.assertEqual(res['type'], "track")
+        self.assertEqual(res['id'], "Hksdhfaif23ffushef9823")
+
+    def test_parse_url_open_domain(self):
+        res = parse_uri("https://open.spotify.com/track/Hksdhfaif23ffushef9823")
+        self.assertEqual(res['type'], "track")
+        self.assertEqual(res['id'], "Hksdhfaif23ffushef9823")
+
+    def test_parse_url_play_domain(self):
+        res = parse_uri("https://play.spotify.com/track/Hksdhfaif23ffushef9823")
+        self.assertEqual(res['type'], "track")
+        self.assertEqual(res['id'], "Hksdhfaif23ffushef9823")
+
+    def test_parse_url_embed_domain(self):
+        res = parse_uri("https://embed.spotify.com/?uri=spotify:track:Hksdhfaif23ffushef9823")
+        self.assertEqual(res['type'], "track")
+        self.assertEqual(res['id'], "Hksdhfaif23ffushef9823")
 
     def _test_parse_spotify_playlist_website(self, playlist):
         songs = get_songs_from_spotify_website(playlist)
@@ -255,12 +282,12 @@ class TestSpotifyMethods(unittest.TestCase):
 
     def test_spotify_parser_invalid_playlist_id(self):
         playlist_id = "thisdoesnotexist"
-        with self.assertRaises(SpotifyWebsiteParserException):
+        with self.assertRaises(SpotifyInvalidUrlException):
             get_songs_from_spotify_website(playlist_id)
 
     def test_spotify_parser_invalid_playlist_url(self):
         playlist_url = "https://www.heise.de"
-        with self.assertRaises(SpotifyWebsiteParserException):
+        with self.assertRaises(SpotifyInvalidUrlException):
             get_songs_from_spotify_website(playlist_url)
 
 
