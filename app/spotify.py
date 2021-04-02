@@ -97,7 +97,7 @@ def get_songs_from_spotify_website(playlist):
         for track in resp['items']:
             return_data.append(parse_track(track))
 
-    return return_data
+    return [track for track in return_data if track]
 
 
 def parse_track(track):
@@ -113,7 +113,9 @@ def get_json_from_api(api_url, access_token):
     req = requests.get(api_url, headers={'Authorization': 'Bearer {}'.format(access_token)})
 
     if req.status_code == 429:
-        sleep(int(req.headers.get("Retry-After")) + 1)
+        seconds = int(req.headers.get("Retry-After")) + 1
+        print("INFO: rate limited! Sleeping for {} seconds".format(seconds))
+        sleep(seconds)
         return None
 
     if req.status_code != 200:

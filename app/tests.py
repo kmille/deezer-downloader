@@ -282,7 +282,7 @@ class TestSpotifyMethods(unittest.TestCase):
 
     def test_spotify_parser_invalid_playlist_id(self):
         playlist_id = "thisdoesnotexist"
-        with self.assertRaises(SpotifyInvalidUrlException):
+        with self.assertRaises(SpotifyWebsiteParserException):
             get_songs_from_spotify_website(playlist_id)
 
     def test_spotify_parser_invalid_playlist_url(self):
