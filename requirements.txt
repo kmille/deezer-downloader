@@ -1,6 +1,4 @@
 attrs==20.3.0
-beautifulsoup4==4.9.3
-bs4==0.0.1
 certifi==2020.12.5
 chardet==4.0.0
 click==7.1.2
@@ -27,7 +25,6 @@ pytest==6.2.2
 python-magic==0.4.22
 python-mpd2==3.0.4
 requests==2.25.1
-soupsieve==2.2.1
 toml==0.10.2
 urllib3==1.26.4
 Werkzeug==1.0.1
