@@ -1,4 +1,6 @@
 FEATURE REQUESTS
+- remove ads
+- rewrite logging: make it more clody/k8s compatible/custom log output/receiver
 - proxy support
 - add end-to-end tests like described here: https://flask.palletsprojects.com/en/1.1.x/testing/
 - run mpd.update only on sub dirs => faster
