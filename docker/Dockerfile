@@ -2,6 +2,8 @@ FROM ubuntu:focal-20210416
 MAINTAINER kmille@androidloves.me
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=TRUE
+
 RUN apt-get update -y && \
     apt-get install -y git python3 python3-virtualenv && \
     apt-get install -y --no-install-recommends ffmpeg
