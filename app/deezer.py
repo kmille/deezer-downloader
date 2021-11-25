@@ -327,9 +327,13 @@ def download_song(song, output_file):
     assert type(song) == dict, "song must be a dict"
     assert type(output_file) == str, "output_file must be a str"
 
-    song_quality = 9 if song.get("FILESIZE_FLAC") and config['deezer'].getboolean('flac_quality') else \
-                   3 if song.get("FILESIZE_MP3_320") else \
-                   5 if song.get("FILESIZE_MP3_256") else \
+    if config['deezer'].getboolean('flac_quality') and song.get("FILESIZE_FLAC") == '0':
+        print("WARNING: Can not download this song in flac format. Downloading it as mp3")
+        output_file = output_file.replace(".flac", ".mp3")
+
+    song_quality = 9 if song.get("FILESIZE_FLAC") and song.get("FILESIZE_FLAC") != '0' and config['deezer'].getboolean('flac_quality') else \
+                   3 if song.get("FILESIZE_MP3_320") and song.get("FILESIZE_MP3_320") != '0' else \
+                   5 if song.get("FILESIZE_MP3_256") and song.get("FILESIZE_MP3_256") != '0' else \
                    1
 
     urlkey = genurlkey(song["SNG_ID"], song["MD5_ORIGIN"], song["MEDIA_VERSION"], song_quality)
