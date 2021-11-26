@@ -42,9 +42,6 @@ workers = 4
 ; login manually using your web browser and take the arl ookie
 cookie_arl = [a-f0-9]{192}
 
-; download flac files (if False mp3 is used)
-flac_quality = False
-
 ; run a query on deezer every N minutes to keep the session alive
 keepalive = 60
 
