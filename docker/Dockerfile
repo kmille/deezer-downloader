@@ -1,5 +1,5 @@
-# Pull git base image for downloading the repo.
 FROM alpine/git:latest
+
 MAINTAINER kmille@androidloves.me
 
 RUN git clone https://github.com/kmille/deezer-downloader.git /opt/deezer

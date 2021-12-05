@@ -209,23 +209,7 @@ class TestDeezerMethods(unittest.TestCase):
         file_exists = os.path.exists(test_song)
         self.assertEqual(file_exists, True)
         file_type = magic.from_file(test_song)
-        self.assertEqual(file_type, "Audio file with ID3 version 2.3.0, contains:MPEG ADTS, layer III, v1, 320 kbps, 44.1 kHz, Stereo")
-        os.remove(test_song)
-
-    def test_download_song_valid_flac(self):
-        config['deezer']['flac_quality'] = "True"
-        song_infos = deezer_search("faber tausendfrankenlang", TYPE_TRACK)[0]
-        song = get_song_infos_from_deezer_website(TYPE_TRACK, song_infos['id'])
-        try:
-            os.remove(test_song)
-        except FileNotFoundError:
-            # if we remove a file that does not exist
-            pass
-        download_song(song, test_song)
-        file_exists = os.path.exists(test_song)
-        self.assertEqual(file_exists, True)
-        file_type = magic.from_file(test_song)
-        self.assertEqual(file_type, 'Audio file with ID3 version 2.3.0, contains:FLAC audio bitstream data, 16 bit, stereo, 44.1 kHz, 10062444 samples')
+        self.assertEqual(file_type, "Audio file with ID3 version 2.3.0, contains:MPEG ADTS, layer III, v1, 128 kbps, 44.1 kHz, Stereo")
         os.remove(test_song)
 
     def test_download_song_invalid_song_type(self):

@@ -7,7 +7,7 @@
 - download songs, albums, public playlists from Deezer.com (account is required, free plan is enough)
 - download Spotify playlists (by parsing the Spotify website and download the songs from Deezer)
 - download as zip file (including m3u8 playlist file)
-- 320 kbit/s mp3s with ID3-Tags and album cover (or flac if you want)
+- 320 kbit/s mp3s with ID3-Tags and album cover (UPDATE: right now only 128bkit/s mp3 works, see #66)
 - download songs via youtube-dl
 - KISS front end
 - MPD integration (use it on a Raspberry Pi!)
@@ -140,6 +140,11 @@ https://github.com/kmille/music-ansible (almost always outdated)
 
 
 ### Changelog
+
+#### Version 1.3.2 (26.11.2021)
+- fix broken deezer download functionality (#66, removes the ability to download flac quality)
+- update third party dependencies
+- update ubuntu base image for the docker container
 
 #### Version 1.3.1 (21.01.2021)
 - allow to set download quality (flac|mp3) via environment variable DEEZER_FLAC_QUALITY (#43)
