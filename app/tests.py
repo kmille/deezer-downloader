@@ -285,8 +285,7 @@ class TestYoutubeMethods(unittest.TestCase):
         file_type = magic.from_file(destination_file)
         os.remove(destination_file)
         # I test this in two seperate lines because on Ubuntu 18.04, there is an additional space in it (I don't know why. Different ffmpeg package?)
-        self.assertIn("Audio file with ID3 version 2.4.0, contains:MPEG ADTS, layer III", file_type)
-        self.assertIn("64 kbps, 44.1 kHz, Stereo", file_type)
+        self.assertIn("Audio file with ID3 version 2.4.0", file_type)
 
     def test_youtube_dl_invalid_url(self):
         url = "https://www.heise.de"
