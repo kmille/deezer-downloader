@@ -1,8 +1,4 @@
 *.pyc
 venv
-session.pickle
-SMLoadr/
-*.swp
 settings.ini
-*.log
 .vagrant
