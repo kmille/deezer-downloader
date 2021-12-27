@@ -141,6 +141,10 @@ https://github.com/kmille/music-ansible (almost always outdated)
 
 ### Changelog
 
+#### Version 1.3.3 (27.12.2021)
+- replace youtube-dl by yt-dl
+- update third party dependencies
+
 #### Version 1.3.2 (26.11.2021)
 - fix broken deezer download functionality (#66, removes the ability to download flac quality)
 - update third party dependencies
