@@ -1,0 +1,14 @@
+flask
+requests
+Flask-AutoIndex
+gunicorn
+jinja2
+giphypop
+python-mpd2
+yt-dlp
+pycryptodome
+
+# dev
+pdbpp
+pytest
+python-magic
