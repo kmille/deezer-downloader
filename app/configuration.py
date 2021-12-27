@@ -21,7 +21,7 @@ if config['mpd'].getboolean('use_mpd'):
         sys.exit(1)
 
 if not os.path.exists(config['youtubedl']['command']):
-    print(f"ERROR: youtube-dl not found at {config['youtubedl']['command']}")
+    print(f"ERROR: yt-dlp not found at {config['youtubedl']['command']}")
     sys.exit(1)
 
 if "DEEZER_COOKIE_ARL" in os.environ.keys():

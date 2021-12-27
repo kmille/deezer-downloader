@@ -8,7 +8,7 @@
 - download Spotify playlists (by parsing the Spotify website and download the songs from Deezer)
 - download as zip file (including m3u8 playlist file)
 - 320 kbit/s mp3s with ID3-Tags and album cover (UPDATE: right now only 128bkit/s mp3 works, see #66)
-- download songs via youtube-dl
+- download songs via yt-dlp
 - KISS front end
 - MPD integration (use it on a Raspberry Pi!)
 - simple REST api
@@ -53,13 +53,13 @@ You can use the Docker image hosted on [hub.docker.com](https://hub.docker.com/r
 
 ```bash
 mkdir downloads
-sudo docker run -p 5000:5000 --volume $(pwd)/downloads/:/mnt/deezer-downloader --env DEEZER_COOKIE_ARL=changeme --env DEEZER_FLAC_QUALITY=True kmille2/deezer-downloader:latest 
+sudo docker run -p 5000:5000 --volume $(pwd)/downloads/:/mnt/deezer-downloader --env DEEZER_COOKIE_ARL=changeme kmille2/deezer-downloader:latest 
 xdg-open http://localhost:5000
 ```
 
 If you want to debug or build it from source: there is a docker-compose file in the docker directory. The `docker/downloads` directory is mounted into the container and will be used as download directory. You have to check the permissions of the `docker/downloads` directory as docker mounts it with the same owner/group/permissions as on the host. The `deezer` user in the docker container has uid 1000. If you also have the uid 1000 then there should be no problem. For debugging: `sudo docker-compose build --force-rm && sudo docker-compose up`
 
-### Deployment
+### Manual deployment
 
 ```bash
 apt-get update -q
@@ -69,7 +69,7 @@ git clone https://github.com/kmille/deezer-downloader.git /opt/deezer
 python3 -m virtualenv -p python3 /opt/deezer/app/venv
 source /opt/deezer/app/venv/bin/activate
 pip install -r /opt/deezer/requirements.txt
-pip install -U youtube-dl
+pip install -U yt-dlp
 cp /opt/deezer/app/settings.ini.example /opt/deezer/app/settings.ini
 # Adjust /opt/deezer/app/settings.ini
 /opt/deezer/app/venv/bin/python /opt/deezer/app/app.py
