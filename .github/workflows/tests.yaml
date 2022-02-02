@@ -30,7 +30,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         pip install -r requirements.txt
-        pip install -U youtube-dl
+        pip install -U yt-dlp
     - name: Lint with flake8
       run: |
         cd app
@@ -40,5 +40,5 @@ jobs:
         cd app
         mv settings.ini.example settings.ini
         sed -i 's/^cookie_arl.*/cookie_arl = ${{ secrets.DEEZER_COOKIE_ARL }}/' settings.ini
-        sed -i "s@^command.*@command = $(which youtube-dl)@" settings.ini
+        sed -i "s@^command.*@command = $(which yt-dlp)@" settings.ini
         pytest -v tests.py
