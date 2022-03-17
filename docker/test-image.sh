@@ -29,7 +29,8 @@ ls -lh 'downloads/youtube-dl/Stereoact feat. Kerstin Ott - Die Immer Lacht (Offi
 file 'downloads/youtube-dl/Stereoact feat. Kerstin Ott - Die Immer Lacht (Official Video HD).mp3'
 rm 'downloads/youtube-dl/Stereoact feat. Kerstin Ott - Die Immer Lacht (Official Video HD).mp3'
 
-echo "Tests succeeded."
+echo "remove container/image?"
+read
 
 # cleanup
 echo "Cleaning up"
