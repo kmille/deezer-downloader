@@ -279,6 +279,7 @@ class TestSpotifyMethods(unittest.TestCase):
 class TestYoutubeMethods(unittest.TestCase):
 
     def test_youtube_dl_valid_url(self):
+        os.remove("/tmp/Pharrell Williams - Happy (Video).mp3")
         url = "https://www.youtube.com/watch?v=ZbZSe6N_BXs"
         destination_file = youtubedl_download(url, "/tmp")
         file_exists = os.path.exists(destination_file)
