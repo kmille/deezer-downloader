@@ -1,4 +1,4 @@
-FROM ubuntu:focal-20220302
+FROM ubuntu:focal-20220826
 MAINTAINER kmille@androidloves.me
 
 ENV DEBIAN_FRONTEND=noninteractive

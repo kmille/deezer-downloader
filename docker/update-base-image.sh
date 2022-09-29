@@ -2,7 +2,11 @@
 set -eu
 
 CURRENT_UBUNTU_TAG=$(cat Dockerfile | grep ^FROM | cut -d : -f 2)
-LATEST_UBUNTU_TAG=$(wget -q https://registry.hub.docker.com/v1/repositories/ubuntu/tags -O -  | sed -e 's/[][]//g' -e 's/"//g' -e 's/ //g' | tr '}' '\n'  | awk -F: '{print $3}' | grep ^focal | sort -V | tail -n 1)
+
+# TODO: this is broken
+#LATEST_UBUNTU_TAG=$(wget -q https://registry.hub.docker.com/v1/repositories/ubuntu/tags -O -  | sed -e 's/[][]//g' -e 's/"//g' -e 's/ //g' | tr '}' '\n'  | awk -F: '{print $3}' | grep ^focal | sort -V | tail -n 1)
+LATEST_UBUNTU_TAG=focal-20220826
+
 LATEST_UBUNTU_TAG_DATE=$(echo $LATEST_UBUNTU_TAG | cut -d - -f 2)
 LATEST_DD_TAG=$(git describe --tags --abbrev=0)
 
