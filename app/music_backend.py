@@ -66,6 +66,7 @@ def update_mpd_db(songs, add_to_playlist):
 
 
 def clean_filename(path):
+    path = path.replace("\t", " ")
     if any(platform.win32_ver()):
         return path.replace("<", "").replace(">", "").replace(":", "").replace("\"", "'").replace("/", "").replace("\\", "").replace("|", "").replace("?", "").replace("*", "")
     else:
