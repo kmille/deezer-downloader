@@ -1,4 +1,7 @@
+settings.ini
+
 *.pyc
 venv
-settings.ini
 .vagrant
+.pytest_cache
+__pycache__

@@ -5,13 +5,13 @@ import mpd
 import platform
 from zipfile import ZipFile, ZIP_DEFLATED
 
-from configuration import config
-from youtubedl import youtubedl_download
-from spotify import get_songs_from_spotify_website
-from deezer import TYPE_TRACK, TYPE_ALBUM, TYPE_PLAYLIST, get_song_infos_from_deezer_website, download_song, parse_deezer_playlist, deezer_search, get_deezer_favorites
-from deezer import Deezer403Exception, Deezer404Exception
+from deezer_downloader.configuration import config
+from deezer_downloader.youtubedl import youtubedl_download
+from deezer_downloader.spotify import get_songs_from_spotify_website
+from deezer_downloader.deezer import TYPE_TRACK, TYPE_ALBUM, TYPE_PLAYLIST, get_song_infos_from_deezer_website, download_song, parse_deezer_playlist, deezer_search, get_deezer_favorites
+from deezer_downloader.deezer import Deezer403Exception, Deezer404Exception
 
-from threadpool_queue import ThreadpoolScheduler, report_progress
+from deezer_downloader.threadpool_queue import ThreadpoolScheduler, report_progress
 sched = ThreadpoolScheduler()
 
 

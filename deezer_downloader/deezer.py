@@ -3,7 +3,7 @@ import re
 import json
 from typing import Optional, Sequence
 
-from configuration import config
+from deezer_downloader.configuration import config
 
 from Crypto.Hash import MD5
 from Crypto.Cipher import AES, Blowfish

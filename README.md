@@ -96,31 +96,31 @@ ctrl-shift-[1-7] switch tabs
 
 Search for songs. You can listen to a 30 second preview in the browser.  
 
-![](/screenshots/2020-05-13-211356_screenshot.png)  
+![](/docs/screenshots/2020-05-13-211356_screenshot.png)  
 
 Search for albums. You can download them as zip file.  
 
-![](/screenshots/2020-05-13-213544_screenshot.png)
+![](/docs/screenshots/2020-05-13-213544_screenshot.png)
 
 List songs of an album.
 
-![](/screenshots/2020-05-13-211528_screenshot.png)
+![](/docs/screenshots/2020-05-13-211528_screenshot.png)
 
 Download songs with youtube-dl  
 
-![](/screenshots/2020-05-13-211622_screenshot.png)
+![](/docs/screenshots/2020-05-13-211622_screenshot.png)
 
 Download a Spotify playlist.   
 
-![](/screenshots/2020-05-13-211629_screenshot.png)  
+![](/docs/screenshots/2020-05-13-211629_screenshot.png)  
 
 Download a Deezer playlist.    
 
-![](/screenshots/2020-05-13-211633_screenshot.png)  
+![](/docs/screenshots/2020-05-13-211633_screenshot.png)  
 
 ncmpcpp mpd client.  
 
-![](/screenshots/2020-05-13-212025_screenshot.png)  
+![](/docs/screenshots/2020-05-13-212025_screenshot.png)  
 
 
 

@@ -7,9 +7,9 @@ from flask import Flask, render_template, request, jsonify, escape
 from flask_autoindex import AutoIndex
 import giphypop
 
-from music_backend import sched
-from deezer import deezer_search
-from configuration import config
+from deezer_downloader.music_backend import sched
+from deezer_downloader.deezer import deezer_search
+from deezer_downloader.configuration import config
 
 app = Flask(__name__)
 auto_index = AutoIndex(app, config["download_dirs"]["base"], add_url_rules=False)

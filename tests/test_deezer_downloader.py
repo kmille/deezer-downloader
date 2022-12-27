@@ -3,13 +3,13 @@ import unittest
 import magic
 import pytest
 
-from deezer import deezer_search, get_song_infos_from_deezer_website, parse_deezer_playlist, download_song, get_deezer_favorites
-from deezer import TYPE_TRACK, TYPE_ALBUM
-from deezer import Deezer404Exception, DeezerApiException
-from spotify import get_songs_from_spotify_website, SpotifyWebsiteParserException, parse_uri, SpotifyInvalidUrlException
-from youtubedl import youtubedl_download, YoutubeDLFailedException
+from deezer_downloader.deezer import deezer_search, get_song_infos_from_deezer_website, parse_deezer_playlist, download_song, get_deezer_favorites
+from deezer_downloader.deezer import TYPE_TRACK, TYPE_ALBUM
+from deezer_downloader.deezer import Deezer404Exception, DeezerApiException
+from deezer_downloader.spotify import get_songs_from_spotify_website, SpotifyWebsiteParserException, parse_uri, SpotifyInvalidUrlException
+from deezer_downloader.youtubedl import youtubedl_download, YoutubeDLFailedException
 
-from configuration import config
+from deezer_downloader.configuration import config
 
 known_song_keys = ["SNG_ID", "DURATION", "MD5_ORIGIN", "SNG_TITLE", "TRACK_NUMBER",
                    "ALB_PICTURE", "MEDIA_VERSION", "ART_NAME", "ALB_TITLE"]
