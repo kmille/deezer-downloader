@@ -68,9 +68,12 @@ def update_mpd_db(songs, add_to_playlist):
 def clean_filename(path):
     path = path.replace("\t", " ")
     if any(platform.win32_ver()):
-        return path.replace("<", "").replace(">", "").replace(":", "").replace("\"", "'").replace("/", "").replace("\\", "").replace("|", "").replace("?", "").replace("*", "")
+        path.replace("\"", "'")
+        array_of_special_characters = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
     else:
-        return path.replace("/", "")
+        array_of_special_characters = ['/', ':', '"', '?']
+
+    return ''.join([c for c in path if c not in array_of_special_characters])
 
 
 def download_song_and_get_absolute_filename(search_type, song, playlist_name=None):
