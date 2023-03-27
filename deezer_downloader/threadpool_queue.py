@@ -48,7 +48,7 @@ class ThreadpoolScheduler:
 class WorkerThread(threading.Thread):
 
     def __init__(self, index, task_queue):
-        super().__init__()
+        super().__init__(daemon=True)
         self.index = index # just an id per Worker
         self.task_queue = task_queue # shared between all WorkerThreads
 
@@ -66,6 +66,7 @@ class WorkerThread(threading.Thread):
             local_obj.current_task = task
             try:
                 task.result = task.exec()
+                print("Setting state to mission accomplished to worker", self.index)
                 task.state = "mission accomplished"
             except Exception as ex:
                 print(f"Got an Exception in function {task.fn_name} with parameters '{task.kwargs}\n{ex}'")
@@ -76,7 +77,6 @@ class WorkerThread(threading.Thread):
 
 
 class QueuedTask:
-
     def __init__(self, description, fn_name, fn, **kwargs):
         self.description = description
         self.fn_name = fn_name

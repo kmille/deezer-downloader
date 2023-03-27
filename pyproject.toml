@@ -14,9 +14,9 @@ python-mpd2 = "^3.0.5"
 yt-dlp = "^2022.11.11"
 pycryptodome = "^3.16.0"
 jinja2 = "^3.1.2"
-gunicorn = "^20.1.0"
 flask-autoindex = "^0.6.6"
 giphypop = "^0.3"
+waitress = "^2.1.2"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -27,3 +27,9 @@ python-magic = "^0.4.27"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+deezer-downloader = 'deezer_downloader.cli.runner:main'
+
+[tool.setuptools.package-data]
+deezer_downloader = ["cli/settings.ini.template"]

@@ -9,10 +9,9 @@
 - download as zip file (including m3u8 playlist file)
 - 320 kbit/s mp3s with ID3-Tags and album cover (UPDATE: right now only 128bkit/s mp3 works, see #66)
 - download songs via yt-dlp
-- KISS front end
+- KISS (keep it simple and stupid) front end
 - MPD integration (use it on a Raspberry Pi!)
 - simple REST api
-
 
 
 ### How to use it
@@ -20,8 +19,6 @@
 There is a settings file template called `settings.ini.example`. You can specify the download directory with  `download_dir`. Pressing the download button only downloads the song/album/playlist. If you set `use_mpd=True` in the `settings.ini` the backend will connect to mpd (localhost:6600) and update the music database. Pressing the play button will download the music. If `use_mpd=True`  is set the mpd database will be updated and the song/album/playlist will be added to the playlist. In `settings.ini` `music_dir` should be the music root location of mpd. The `download_dir` must be a subdirectory of `music_dir`. 
 
 As Deezer sometimes requires a captcha to login the auto login features was removed. Instead you have to manually insert a valid Deezer cookie to the `settings.ini`. The relevant cookie is the `arl` cookie. 
-
-
 
 ### Run it as a service
 
@@ -32,9 +29,20 @@ We use it with nginx and [ympd](https://github.com/notandy/ympd) as mpd frontend
 
 The deployment directory contains a systemd unit file and a nginx vhost config file. There is also a [patch](https://github.com/kmille/music-ansible/blob/master/roles/ympd/files/fix_header.patch) to add a link to the ympd frontend. The `debug` tab will show you the debug output of the app.
 
+### How to use it
+#### with pip
+You can run `pip install --user deezer-downloader`. Then you can run `~/.local/bin/deezer-downloader --help`
 
+#### with Docker
+You can use the Docker image hosted on [hub.docker.com](https://hub.docker.com/r/kmille2/deezer-downloader). Login into your free Deezer account and grab the `arl` cookie. Then:
 
-### Try it out
+```bash
+mkdir downloads
+sudo docker run -p 5000:5000 --volume $(pwd)/downloads/:/mnt/deezer-downloader --env DEEZER_COOKIE_ARL=changeme kmille2/deezer-downloader:latest 
+xdg-open http://localhost:5000
+```
+
+#### with Vagrant
 
 ```bash	
 vagrant up
@@ -47,32 +55,22 @@ xdg-open http://localhost:5000 # view frontend in the browser
 ncmpcpp -h 127.0.0.1 # try the mpd client
 ```
 
-### Docker
-
-You can use the Docker image hosted on [hub.docker.com](https://hub.docker.com/r/kmille2/deezer-downloader). Login into your free Deezer account and grab the `arl` cookie. Then:
-
-```bash
-mkdir downloads
-sudo docker run -p 5000:5000 --volume $(pwd)/downloads/:/mnt/deezer-downloader --env DEEZER_COOKIE_ARL=changeme kmille2/deezer-downloader:latest 
-xdg-open http://localhost:5000
-```
 
 If you want to debug or build it from source: there is a docker-compose file in the docker directory. The `docker/downloads` directory is mounted into the container and will be used as download directory. You have to check the permissions of the `docker/downloads` directory as docker mounts it with the same owner/group/permissions as on the host. The `deezer` user in the docker container has uid 1000. If you also have the uid 1000 then there should be no problem. For debugging: `sudo docker-compose build --force-rm && sudo docker-compose up`
 
-### Manual deployment
+#### deploper setup
 
 ```bash
 apt-get update -q
 apt-get install -qy vim tmux git gcc ffmpeg
 apt-get install -qy python3-virtualenv python3-dev
-git clone https://github.com/kmille/deezer-downloader.git /opt/deezer
-python3 -m virtualenv -p python3 /opt/deezer/app/venv
-source /opt/deezer/app/venv/bin/activate
-pip install -r /opt/deezer/requirements.txt
-pip install -U yt-dlp
-cp /opt/deezer/app/settings.ini.example /opt/deezer/app/settings.ini
-# Adjust /opt/deezer/app/settings.ini
-/opt/deezer/app/venv/bin/python /opt/deezer/app/app.py
+git clone https://github.com/kmille/deezer-downloader.git
+cd deezer-downloader
+poetry install
+poetry run python deezer-downloader --show-config-template > settings.ini
+# update at least the `arl_cookie`
+poetry run python deezer-downloader --config settings.ini
+DEEZER_DOWNLOADER_CONFIG_FILE=settings.ini poetry run pytest -v -s
 
 # for mpd
 apt-get install -yq mpd ncmpcpp
@@ -80,8 +78,6 @@ apt-get install -yq mpd ncmpcpp
 systemctl restart mpd
 ncmpcpp -h 127.0.0.1
 ```
-
-
 
 ### Shortcuts
 ctrl-m: focus search bar  
@@ -127,12 +123,10 @@ ncmpcpp mpd client.
 ### Tests
 
 ```bash
-cd app
-source venv/bin/activate
-python -m pytest -v tests.py
+cd deezer-downloader
+DEEZER_DOWNLOADER_CONFIG_FILE=settings.ini poetry run pytest -v -s
+# if you don't setDEEZER_DOWNLOADER_CONFIG_FILE the default template file will be used. Some tests will fail because there is no valid arl_cookie.
 ```
-
-
 
 ### Deployment with Ansible (including mpd and ympd)
 https://github.com/kmille/music-ansible (almost always outdated)
@@ -140,6 +134,14 @@ https://github.com/kmille/music-ansible (almost always outdated)
 
 
 ### Changelog
+
+#### Version 2.0.0 (27.03.2023)
+- use poetry as build system
+- build package and uploada to pypi
+- worker threads now "daemon threads" (they now just stop if you stop deezer-downloader)
+- update config template (remove http.debug)
+- update dependencies
+- switch to waitress (from gunicorn
 
 #### Version 1.3.3 (27.12.2021)
 - replace youtube-dl by yt-dl

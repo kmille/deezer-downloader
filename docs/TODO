@@ -1,5 +1,4 @@
 FEATURE REQUESTS
-- remove ads
 - rewrite logging: make it more clody/k8s compatible/custom log output/receiver
 - proxy support
 - add end-to-end tests like described here: https://flask.palletsprojects.com/en/1.1.x/testing/
@@ -7,6 +6,30 @@ FEATURE REQUESTS
 - use flake8
 - make frontend more user friendly on mobile devices
 - use type anotations and test it with mypy
-- update the Ansible playbook
-- build a package and pusht it to pypi
-- make it usable from command line
+
+ende zu ende tests
+backward compatibel machen: was wenn Menschen das jetzt klonen
+firejail profile
+
+
+## Readmap deezer-downloader Paketierung/Umstrukturierung
+- Deployment
+    - Update Vagrantfile
+    - Update Dockerfile: use pip instead of manual installation
+        - Update base image
+        - Update dependencies
+    - Add AUR package
+
+- TO TEST
+    - Vagrantfile
+    - systemd unit file
+
+- Update docs
+    - AUR package
+    - install dev environment
+    - Update badges
+
+## AFTER REWRITE
+- Pull Requests
+- Issues
+- eigene Wünsche ...

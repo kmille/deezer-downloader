@@ -67,7 +67,7 @@ def get_songs_from_spotify_website(playlist):
     return_data = []
     url_info = parse_uri(playlist)
 
-    req = requests.get(token_url)
+    req = requests.get(token_url, headers=headers)
     if req.status_code != 200:
         raise SpotifyWebsiteParserException(
             "ERROR: {} gave us not a 200. Instead: {}".format(token_url, req.status_code))
@@ -110,7 +110,8 @@ def parse_track(track):
 
 
 def get_json_from_api(api_url, access_token):
-    req = requests.get(api_url, headers={'Authorization': 'Bearer {}'.format(access_token)})
+    headers.update({'Authorization': 'Bearer {}'.format(access_token)})
+    req = requests.get(api_url, headers=headers)
 
     if req.status_code == 429:
         seconds = int(req.headers.get("Retry-After")) + 1

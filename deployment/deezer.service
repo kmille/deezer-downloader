@@ -7,7 +7,7 @@ Environment=PYTHONUNBUFFERED=TRUE
 User = deezer
 Group = deezer
 WorkingDirectory = /opt/deezer/app
-ExecStart = /opt/deezer/app/venv/bin/gunicorn --bind 127.0.0.1:8081 app:app
+ExecStart = /usr/bin/deezer-downloader --config /home/deezer/deezer-downloader.ini
 PrivateTmp = false
 
 [Install]

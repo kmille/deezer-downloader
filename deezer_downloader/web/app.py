@@ -7,15 +7,26 @@ from flask import Flask, render_template, request, jsonify, escape
 from flask_autoindex import AutoIndex
 import giphypop
 
-from deezer_downloader.music_backend import sched
-from deezer_downloader.deezer import deezer_search
 from deezer_downloader.configuration import config
+from deezer_downloader.web.music_backend import sched
+from deezer_downloader.deezer import deezer_search
 
 app = Flask(__name__)
 auto_index = AutoIndex(app, config["download_dirs"]["base"], add_url_rules=False)
 auto_index.add_icon_rule('music.png', ext='m3u8')
 
 giphy = giphypop.Giphy()
+
+
+def init():
+    sched.run_workers(config.getint('threadpool', 'workers'))
+
+    @atexit.register
+    def stop_workers():
+        sched.stop_workers()
+
+
+init()
 
 
 # user input validation
@@ -238,18 +249,3 @@ def deezer_favorites_download():
                               add_to_playlist=user_input['add_to_playlist'],
                               create_zip=user_input['create_zip'])
     return jsonify({"task_id": id(task), })
-
-
-@atexit.register
-def stop_workers():
-    sched.stop_workers()
-
-
-# do not put this in 'if __name__ == '__main__':'. Otherwise it won't get executed if run by gunicorn
-sched.run_workers(config.getint('threadpool', 'workers'))
-
-if __name__ == '__main__':
-    app.run(host=config['http']['host'],
-            port=config['http'].getint('port'),
-            debug=config['http'].getboolean('debug'),
-            use_reloader=False)

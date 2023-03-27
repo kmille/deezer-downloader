@@ -2,6 +2,17 @@ import os
 import unittest
 import magic
 import pytest
+from pathlib import Path
+
+from deezer_downloader.configuration import load_config
+
+if "DEEZER_DOWNLOADER_CONFIG_FILE" in os.environ:
+    config_file = Path(os.environ["DEEZER_DOWNLOADER_CONFIG_FILE"])
+else:
+    config_file = (Path(__file__).parents[1] / Path("deezer_downloader") / Path("cli") / Path("deezer-downloader.ini.template")).resolve()
+
+load_config(config_file)
+from deezer_downloader.configuration import config
 
 from deezer_downloader.deezer import deezer_search, get_song_infos_from_deezer_website, parse_deezer_playlist, download_song, get_deezer_favorites
 from deezer_downloader.deezer import TYPE_TRACK, TYPE_ALBUM
@@ -192,7 +203,7 @@ class TestDeezerMethods(unittest.TestCase):
     # Exception: Upstream api error getting favorite songs for user 705965861
     # {'type': 'DataException', 'message': 'no data', 'code': 800}"
     def test_get_deezer_favorites_userid_valid(self):
-        user_id = "705965861"
+        user_id = "2517244282" # own of test (works)
         songs = get_deezer_favorites(user_id)
         self.assertIsInstance(songs, list)
         for song in songs:
@@ -283,7 +294,7 @@ class TestSpotifyMethods(unittest.TestCase):
 class TestYoutubeMethods(unittest.TestCase):
 
     def test_youtube_dl_valid_url(self):
-        os.remove("/tmp/Pharrell Williams - Happy (Video).mp3")
+        Path("/tmp/Pharrell Williams - Happy (Video).mp3").unlink(missing_ok=True)
         url = "https://www.youtube.com/watch?v=ZbZSe6N_BXs"
         destination_file = youtubedl_download(url, "/tmp")
         file_exists = os.path.exists(destination_file)

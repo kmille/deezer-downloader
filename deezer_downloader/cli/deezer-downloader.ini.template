@@ -1,4 +1,5 @@
-;;; base config
+;;; template configuration for deezer-downlaoder
+;;; you need to adjust: deezer.cookie_arl
 
 [mpd]
 ; if you set this to True, the backend will connect to mpd (localhost:6600) and update
@@ -22,10 +23,9 @@ youtubedl = %(base)s/youtube-dl
 command = journalctl -u deezer-downloader -n 100 --output cat
 
 [http]
-; flask options
+; web backend options
 host = 127.0.0.1
 port = 5000
-debug = False
 
 ; if used behind a proxy, specify base url prefix
 ; url_prefix = /deezer
@@ -43,11 +43,8 @@ workers = 4
 cookie_arl = [a-f0-9]{192}
 
 [youtubedl]
-# you have to keep it up-to date manually!
-#command = /home/kmille/projects/deezer-downloader/app/venv/bin/yt-dlp
+; you are responsible for keeping yt-dlp up-to-date (https://github.com/yt-dlp/yt-dlp)
+; command = /home/kmille/projects/deezer-downloader/app/venv/bin/yt-dlp
 command = /usr/bin/yt-dlp
-
-
-
 
 ; vim: syntax=dosini
