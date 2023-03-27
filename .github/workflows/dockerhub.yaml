@@ -32,7 +32,7 @@ jobs:
 
         - name: Build the latest Docker image
           run: |
-            cd docker
+            cd deployment/docker
             docker build . --file Dockerfile --tag kmille2/deezer-downloader:latest
         - name: Push the latest Docker image
           run: docker push kmille2/deezer-downloader:latest
