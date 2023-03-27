@@ -25,7 +25,7 @@ jobs:
 
         - name: Build the tagged Docker image
           run: |
-            cd docker
+            cd deployment/docker
             docker build . --file Dockerfile --tag kmille2/deezer-downloader:${{steps.vars.outputs.tag}}
         - name: Push the tagged Docker image
           run: docker push kmille2/deezer-downloader:${{steps.vars.outputs.tag}}
