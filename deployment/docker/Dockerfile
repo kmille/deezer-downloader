@@ -9,7 +9,7 @@ RUN apt-get update -y && \
     apt-get install -y --no-install-recommends ffmpeg
 
 RUN pip install -U yt-dlp
-RUN pip install yt-dlp deezer-downloader
+RUN pip install deezer-downloader
 
 RUN /usr/local/bin/deezer-downloader --show-config-template > /etc/deezer-downloader.ini && \
      sed -i "s,.*command = /usr/bin/yt-dlp.*,command = $(which yt-dlp)," /etc/deezer-downloader.ini && \
