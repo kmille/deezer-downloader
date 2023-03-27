@@ -8,6 +8,7 @@ RUN apt-get update -y && \
     apt-get install -y python3-pip && \
     apt-get install -y --no-install-recommends ffmpeg
 
+RUN pip install -U yt-dlp
 RUN pip install yt-dlp deezer-downloader
 
 RUN /usr/local/bin/deezer-downloader --show-config-template > /etc/deezer-downloader.ini && \
