@@ -2,8 +2,6 @@ name: tests
 
 on:
   push:
-    branches:
-      - master
     tags:
   schedule:
     - cron: '0 8 * * *'
@@ -12,16 +10,16 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.7, 3.8, 3.9, '3.10']
+    #strategy:
+    #  matrix:
+    #    python-version: [3.7, 3.8, 3.9, '3.10']
 
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
+    #- name: Set up Python ${{ matrix.python-version }}
+    #uses: actions/setup-python@v2
+    #  with:
+    #    python-version: ${{ matrix.python-version }}
     - name: Install system dependencies with apt-get
       run: |
         sudo apt-get update && sudo apt-get install -y ffmpeg
@@ -32,11 +30,9 @@ jobs:
         poetry install
     - name: Lint with flake8
       run: |
-        cd deezer_downloader
-        poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        poetry run flake8 --count --select=E9,F63,F7,F82 --show-source --statistics
     - name: Test with pytest
       run: |
-        cd app
         poetry run deezer-downloader --show-config-template > settings.ini
         sed -i 's/^cookie_arl.*/cookie_arl = ${{ secrets.DEEZER_COOKIE_ARL }}/' settings.ini
         sed -i "s@^command.*@command = $(which yt-dlp)@" settings.ini
