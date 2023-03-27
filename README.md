@@ -20,14 +20,7 @@ There is a settings file template called `settings.ini.example`. You can specify
 
 As Deezer sometimes requires a captcha to login the auto login features was removed. Instead you have to manually insert a valid Deezer cookie to the `settings.ini`. The relevant cookie is the `arl` cookie. 
 
-### Run it as a service
 
-We use it with nginx and [ympd](https://github.com/notandy/ympd) as mpd frontend
-
-- / goes to ympd
-- /d/ goes to the downloader
-
-The deployment directory contains a systemd unit file and a nginx vhost config file. There is also a [patch](https://github.com/kmille/music-ansible/blob/master/roles/ympd/files/fix_header.patch) to add a link to the ympd frontend. The `debug` tab will show you the debug output of the app.
 
 ### How to use it
 #### with pip
@@ -47,46 +40,63 @@ xdg-open http://localhost:5000
 ```bash	
 vagrant up
 vagrant ssh
-sudo vim /opt/deezer/app/settings.ini # insert your Deezer cookie
-/opt/deezer/app/venv/bin/python /opt/deezer/app/app.py # start the backend
+sudo vim /opt/deezer/settings.ini # insert your Deezer cookie
+cd /opt/deezer && sudo poetry run deezer-downloader --config settings.ini
 
 # On the host:
 xdg-open http://localhost:5000 # view frontend in the browser
 ncmpcpp -h 127.0.0.1 # try the mpd client
 ```
 
+#### as a service
+
+We use it with nginx and [ympd](https://github.com/notandy/ympd) as mpd frontend
+
+- / goes to ympd
+- /d/ goes to the downloader
+
+The deployment directory contains a systemd unit file and a nginx vhost config file. There is also a [patch](https://github.com/kmille/music-ansible/blob/master/roles/ympd/files/fix_header.patch) to add a link to the ympd frontend. The `debug` tab will show you the debug output of the app.Shortcuts
+
+
 
 If you want to debug or build it from source: there is a docker-compose file in the docker directory. The `docker/downloads` directory is mounted into the container and will be used as download directory. You have to check the permissions of the `docker/downloads` directory as docker mounts it with the same owner/group/permissions as on the host. The `deezer` user in the docker container has uid 1000. If you also have the uid 1000 then there should be no problem. For debugging: `sudo docker-compose build --force-rm && sudo docker-compose up`
 
-#### deploper setup
+#### developer setup (tested on Ubuntu Jammy)
 
 ```bash
-apt-get update -q
-apt-get install -qy vim tmux git gcc ffmpeg
-apt-get install -qy python3-virtualenv python3-dev
-git clone https://github.com/kmille/deezer-downloader.git
-cd deezer-downloader
-poetry install
-poetry run python deezer-downloader --show-config-template > settings.ini
-# update at least the `arl_cookie`
-poetry run python deezer-downloader --config settings.ini
-DEEZER_DOWNLOADER_CONFIG_FILE=settings.ini poetry run pytest -v -s
+  sudo apt-get update -q
+  sudo apt-get install -qy vim tmux git ffmpeg
 
-# for mpd
-apt-get install -yq mpd ncmpcpp
-# adjust the file paths in /etc/mpd.conf and settings.ini
-systemctl restart mpd
-ncmpcpp -h 127.0.0.1
+  # python3-poetry is too old (does not support groups ...)
+  sudo apt-get install -qy python3-pip
+  sudo pip install poetry
+  git clone https://github.com/kmille/deezer-downloader.git
+  cd deezer-downloader
+  poetry install
+  poetry run deezer-downloader --show-config-template > settings.ini
+
+  # enable yt-dlp
+  sudo pip install yt-dlp
+  sed -i 's,.*command = /usr/bin/yt-dlp.*,command = /usr/local/bin/yt-dlp,' settings.ini
+
+  # enable mpd
+  sudo apt-get install -yq mpd ncmpcpp
+  sudo sed -i 's,^music_directory.*,music_directory         "/tmp/deezer-downloader",' /etc/mpd.conf
+  sudo systemctl restart mpd
+  sed -i 's/.*use_mpd = False.*/use_mpd = True/' settings.ini
+
+  # 1) Adjust the Deezer cookie: vim settings.ini
+  # 2) Run tests: DEEZER_DOWNLOADER_CONFIG_FILE=settings.ini poetry run pytest -v -s
+  # 3) Run it: poetry run deezer-downloader --config settings.ini
+  # 4) Try out: ncmpcpp -h 127.0.0.1 && xdg-open http://localhost:5000
+  # 5) Downloaded files are in /tmp/deezer-downloader
 ```
 
-### Shortcuts
 ctrl-m: focus search bar  
 Enter: serach for songs   
 Alt+Enter: search for albums  
 ctrl-b: go to / (this is where our ympd is)  
 ctrl-shift-[1-7] switch tabs    
-
-
 
 ### Some screenshots
 
@@ -117,8 +127,6 @@ Download a Deezer playlist.
 ncmpcpp mpd client.  
 
 ![](/docs/screenshots/2020-05-13-212025_screenshot.png)  
-
-
 
 ### Tests
 

@@ -17,28 +17,27 @@ jobs:
         python-version: [3.7, 3.8, 3.9, '3.10']
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install system dependencies with apt-get
       run: |
-        sudo apt-get update && sudo apt-get install -y gcc ffmpeg
+        sudo apt-get update && sudo apt-get install -y ffmpeg
     - name: Install python dependencies with pip
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest
-        pip install -r requirements.txt
-        pip install -U yt-dlp
+        pip install poetry yt-dlp
+        poetry install
     - name: Lint with flake8
       run: |
-        cd app
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        cd deezer_downloader
+        poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
     - name: Test with pytest
       run: |
         cd app
-        mv settings.ini.example settings.ini
+        poetry run deezer-downloader --show-config-template > settings.ini
         sed -i 's/^cookie_arl.*/cookie_arl = ${{ secrets.DEEZER_COOKIE_ARL }}/' settings.ini
         sed -i "s@^command.*@command = $(which yt-dlp)@" settings.ini
-        pytest -v tests.py
+        DEEZER_DOWNLOADER_CONFIG_FILE=settings.ini poetry run pytest -v -s

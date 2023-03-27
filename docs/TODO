@@ -13,15 +13,14 @@ firejail profile
 
 
 ## Readmap deezer-downloader Paketierung/Umstrukturierung
+- Bug: Downloading song album
 - Deployment
-    - Update Vagrantfile
     - Update Dockerfile: use pip instead of manual installation
         - Update base image
         - Update dependencies
     - Add AUR package
 
 - TO TEST
-    - Vagrantfile
     - systemd unit file
 
 - Update docs
