@@ -5,6 +5,7 @@ DEEZER_COOKIE_ARL=changeme
 
 sudo docker kill deezer-downloader 2>&1 >/dev/null || true
 sudo docker rm deezer-downloader 2>&1 >/dev/null || true
+sudo docker rmi kmille2/deezer-downloader >/dev/null
 echo "Running deezer downloader in the background"
 sudo docker run -d --name deezer-downloader -p 5000:5000 --volume $(pwd)/downloads/:/mnt/deezer-downloader \
                 --env DEEZER_COOKIE_ARL=$DEEZER_COOKIE_ARL "kmille2/deezer-downloader:latest" >/dev/null
@@ -36,3 +37,4 @@ read
 echo "Cleaning up"
 sudo docker kill deezer-downloader >/dev/null
 sudo docker rm deezer-downloader >/dev/null
+sudo docker rmi kmille2/deezer-downloader >/dev/null
