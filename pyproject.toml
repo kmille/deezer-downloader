@@ -5,6 +5,9 @@ description = "download music from Deezer with a nice front end"
 authors = ["kmille <github@androidloves.me>"]
 readme = "README.md"
 packages = [{include = "deezer_downloader"}]
+repository = "https://github.com/kmille/deezer-downloader"
+homepage = "https://github.com/kmille/deezer-downloader"
+
 
 [tool.poetry.dependencies]
 python = "^3.10"
