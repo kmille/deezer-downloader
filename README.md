@@ -1,4 +1,4 @@
-## Music Downloader  :notes: :headphones: :dancer: :unicorn:
+## Music Downloader 🎶 🎧 💃 🦄
 ![tests](https://github.com/kmille/deezer-downloader/workflows/tests/badge.svg) ![push image to dockerhub](https://github.com/kmille/deezer-downloader/workflows/push%20to%20dockerhub/badge.svg) ![docker pulls](https://img.shields.io/docker/pulls/kmille2/deezer-downloader) ![latest tag](https://img.shields.io/github/v/tag/kmille/deezer-downloader?sort=semver) ![Python 3.6](https://img.shields.io/badge/python-%3E=3.6-blue.svg) ![pypi-version](https://img.shields.io/pypi/v/deezer-downloader) ![pypi-downloads](https://img.shields.io/pypi/dm/deezer-downloader)
 
 
