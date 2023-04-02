@@ -9,8 +9,13 @@ def run_backend():
     from deezer_downloader.configuration import config
     from deezer_downloader.web.app import app
 
-    listen = f"{config['http']['host']}:{config['http'].getint('port')}"
-    waitress.serve(app, listen=listen)
+    if config['http'].getboolean('debug'):
+        app.run(debug=True,
+                host=config['http']['host'],
+                port=config['http'].getint('port'))
+    else:
+        listen = f"{config['http']['host']}:{config['http'].getint('port')}"
+        waitress.serve(app, listen=listen)
 
 
 def main():

@@ -26,6 +26,8 @@ command = journalctl -u deezer-downloader -n 100 --output cat
 ; web backend options
 host = 127.0.0.1
 port = 5000
+; run development server of flask with auto reload feature (only for development)
+debug = False
 
 ; if used behind a proxy, specify base url prefix
 ; url_prefix = /deezer
