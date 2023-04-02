@@ -27,8 +27,9 @@ def main():
         sys.exit(1)
 
     if args.version:
-        import deezer_downloader
-        print(sys.argv[0], deezer_downloader.__version__)
+        from importlib.metadata import version
+        v = version("deezer_downloader")
+        print(sys.argv[0], f"v{v}")
         sys.exit(0)
 
     if args.show_config_template:
