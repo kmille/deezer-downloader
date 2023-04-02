@@ -492,6 +492,21 @@ def get_deezer_favorites(user_id: str) -> Optional[Sequence[int]]:
     resp_json = resp.json()
     if "error" in resp_json.keys():
         raise Exception(f"Upstream api error getting favorite songs for user {user_id}:\n{resp_json['error']}")
+    # check is set next
+    
+    while "next" in resp_json.keys():
+        resp = session.get(resp_json["next"])
+        assert resp.status_code == 200, f"got invalid status asking for favorite song\n{resp.text}s"
+        resp_json_next = resp.json()
+        if "error" in resp_json_next.keys():
+            raise Exception(f"Upstream api error getting favorite songs for user {user_id}:\n{resp_json_next['error']}")
+        resp_json["data"] += resp_json_next["data"]
+
+        if "next" in resp_json_next.keys():
+            resp_json["next"] = resp_json_next["next"]
+        else:
+            del resp_json["next"]
+ 
     print(f"Got {resp_json['total']} favorite songs for user {user_id} from the api")
     songs = [song['id'] for song in resp_json['data']]
     return songs
