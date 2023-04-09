@@ -9,7 +9,7 @@ def run_backend():
     from deezer_downloader.configuration import config
     from deezer_downloader.web.app import app
 
-    if config['http'].getboolean('debug'):
+    if __name__ == '__main__':
         app.run(debug=True,
                 host=config['http']['host'],
                 port=config['http'].getint('port'))
