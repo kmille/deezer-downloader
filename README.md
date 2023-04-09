@@ -150,7 +150,7 @@ https://github.com/kmille/music-ansible (almost always outdated)
 - worker threads now "daemon threads" (they now just stop if you stop deezer-downloader)
 - update config template (remove http.debug)
 - update dependencies
-- switch to waitress (from gunicorn
+- switch to waitress (from gunicorn)
 
 #### Version 1.3.3 (27.12.2021)
 - replace youtube-dl by yt-dl
