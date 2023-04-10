@@ -6,8 +6,7 @@ After = network.target
 Environment=PYTHONUNBUFFERED=TRUE
 User = deezer
 Group = deezer
-WorkingDirectory = /opt/deezer/app
-ExecStart = /usr/bin/deezer-downloader --config /home/deezer/deezer-downloader.ini
+ExecStart=/home/deezer/.local/bin/deezer-downloader -c /home/deezer/.deezer-downloader.ini
 PrivateTmp = false
 
 [Install]
