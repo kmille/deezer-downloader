@@ -1,20 +1,19 @@
 FROM python:3.10-alpine3.17 AS builder
 RUN pip install poetry
 COPY . /app
-WORKdir /app
+WORKDIR /app
 RUN poetry build --format=wheel
 
 
 FROM python:3.10-alpine3.17
 ENV PYTHONUNBUFFERED=TRUE
 
-COPY --from=builder /app/dist/deezer_downloader*.whl .
-
 RUN apk add --no-cache ffmpeg && \
     adduser -D deezer && \
     mkdir -p /mnt/deezer-downloader && \
     chown deezer:deezer /mnt/deezer-downloader
 
+COPY --from=builder /app/dist/deezer_downloader*.whl .
 RUN pip install deezer_downloader*.whl && \
     /usr/local/bin/deezer-downloader --show-config-template > /etc/deezer-downloader.ini && \
     sed -i "s,.*command = /usr/bin/yt-dlp.*,command = $(which yt-dlp)," /etc/deezer-downloader.ini && \
