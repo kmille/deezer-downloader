@@ -24,7 +24,7 @@ TYPE_ALBUM_TRACK = "album_track" # used for listing songs of an album
 session = None
 
 
-def init_deezer_session():
+def init_deezer_session(proxy_server):
     global session
     header = {
         'Pragma': 'no-cache',
@@ -43,6 +43,9 @@ def init_deezer_session():
     session = requests.session()
     session.headers.update(header)
     session.cookies.update({'arl': config['deezer']['cookie_arl'], 'comeback': '1'})
+    if len(proxy_server.strip()) > 0:
+        print(f"Using proxy {proxy_server}")
+        session.proxies.update({"https": proxy_server})
 
 
 class Deezer404Exception(Exception):
@@ -528,8 +531,6 @@ def test_deezer_login():
         print("Login is not working anymore.")
         return False
 
-
-init_deezer_session()
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == "check-login":

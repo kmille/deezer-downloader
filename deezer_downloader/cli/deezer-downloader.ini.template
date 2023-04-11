@@ -33,6 +33,13 @@ url_prefix =
 api_root = %(url_prefix)s
 static_root = %(url_prefix)s/static
 
+[proxy]
+; server:
+;   - https://user:pass@host:port
+;   - socks5://127.0.0.1:9050
+;   - socks5h://127.0.0.1:9050 (DNS goes also over proxy)
+server =
+
 [threadpool]
 ; number of workers in thread pool, this specifies the maximum number of parallel downloads
 workers = 4

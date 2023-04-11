@@ -16,7 +16,7 @@ def load_config(config_abs):
     config = ConfigParser()
     config.read(config_abs)
 
-    assert list(config.keys()) == ['DEFAULT', 'mpd', 'download_dirs', 'debug', 'http', 'threadpool', 'deezer', 'youtubedl'], f"Validating config file failed. Check {config_abs}"
+    assert list(config.keys()) == ['DEFAULT', 'mpd', 'download_dirs', 'debug', 'http', 'threadpool', 'deezer', 'youtubedl', 'proxy'], f"Validating config file failed. Check {config_abs}"
 
     if config['mpd'].getboolean('use_mpd'):
         if not config['mpd']['music_dir_root'].startswith(config['download_dirs']['base']):
@@ -26,6 +26,13 @@ def load_config(config_abs):
     if not Path(config['youtubedl']['command']).exists():
         print(f"ERROR: yt-dlp not found at {config['youtubedl']['command']}")
         sys.exit(1)
+
+    proxy_server = config['proxy']['server']
+    if len(proxy_server) > 0:
+        if not proxy_server.startswith("https://") and \
+           not proxy_server.startswith("socks5"): # there is also socks5h
+            print(f"ERROR: invalid proxy server address: {config['proxy']['server']}")
+            sys.exit(1)
 
     if "DEEZER_COOKIE_ARL" in os.environ.keys():
         config["deezer"]["cookie_arl"] = os.environ["DEEZER_COOKIE_ARL"]

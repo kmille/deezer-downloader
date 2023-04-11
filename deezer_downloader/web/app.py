@@ -9,7 +9,7 @@ import giphypop
 
 from deezer_downloader.configuration import config
 from deezer_downloader.web.music_backend import sched
-from deezer_downloader.deezer import deezer_search
+from deezer_downloader.deezer import deezer_search, init_deezer_session
 
 app = Flask(__name__)
 auto_index = AutoIndex(app, config["download_dirs"]["base"], add_url_rules=False)
@@ -20,6 +20,7 @@ giphy = giphypop.Giphy()
 
 def init():
     sched.run_workers(config.getint('threadpool', 'workers'))
+    init_deezer_session(config['proxy']['server'])
 
     @atexit.register
     def stop_workers():
