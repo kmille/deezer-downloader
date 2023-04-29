@@ -55,9 +55,10 @@ def parse_uri(uri):
     raise SpotifyInvalidUrlException("ERROR: unable to determine Spotify URL type or type is unsupported.")
 
 
-def get_songs_from_spotify_website(playlist):
+def get_songs_from_spotify_website(playlist, proxy):
     # parses Spotify Playlist from Spotify website
     # playlist: playlist url or playlist id as string
+    # proxy: https/socks5 proxy (e. g. socks5://user:pass@127.0.0.1:1080/)
     # e.g. https://open.spotify.com/playlist/0wl9Q3oedquNlBAJ4MGZtS
     # e.g. https://open.spotify.com/embed/0wl9Q3oedquNlBAJ4MGZtS
     # e.g. 0wl9Q3oedquNlBAJ4MGZtS
@@ -67,7 +68,7 @@ def get_songs_from_spotify_website(playlist):
     return_data = []
     url_info = parse_uri(playlist)
 
-    req = requests.get(token_url, headers=headers)
+    req = requests.get(token_url, headers=headers, proxies={"https": proxy})
     if req.status_code != 200:
         raise SpotifyWebsiteParserException(
             "ERROR: {} gave us not a 200. Instead: {}".format(token_url, req.status_code))
@@ -76,7 +77,7 @@ def get_songs_from_spotify_website(playlist):
     if url_info['type'] == "playlist":
         url = playlist_base_url.format(url_info["id"])
         while True:
-            resp = get_json_from_api(url, token["accessToken"])
+            resp = get_json_from_api(url, token["accessToken"], proxy)
             for track in resp['items']:
                 return_data.append(parse_track(track["track"]))
 
@@ -84,15 +85,15 @@ def get_songs_from_spotify_website(playlist):
                 break
             url = resp['next']
     elif url_info["type"] == "track":
-        resp = get_json_from_api(track_base_url.format(url_info["id"]), token["accessToken"])
+        resp = get_json_from_api(track_base_url.format(url_info["id"]), token["accessToken"], proxy)
         if resp is None:  # try again in case of rate limit
-            resp = get_json_from_api(track_base_url.format(url_info["id"]), token["accessToken"])
+            resp = get_json_from_api(track_base_url.format(url_info["id"]), token["accessToken"], proxy)
 
         return_data.append(parse_track(resp))
     elif url_info["type"] == "album":
-        resp = get_json_from_api(album_base_url.format(url_info["id"]), token["accessToken"])
+        resp = get_json_from_api(album_base_url.format(url_info["id"]), token["accessToken"], proxy)
         if resp is None:  # try again in case of rate limit
-            resp = get_json_from_api(album_base_url.format(url_info["id"]), token["accessToken"])
+            resp = get_json_from_api(album_base_url.format(url_info["id"]), token["accessToken"], proxy)
 
         for track in resp['items']:
             return_data.append(parse_track(track))
@@ -109,9 +110,9 @@ def parse_track(track):
     return re.sub(r'\([^)]*\)', '', full)
 
 
-def get_json_from_api(api_url, access_token):
+def get_json_from_api(api_url, access_token, proxy):
     headers.update({'Authorization': 'Bearer {}'.format(access_token)})
-    req = requests.get(api_url, headers=headers)
+    req = requests.get(api_url, headers=headers, proxies={"https": proxy})
 
     if req.status_code == 429:
         seconds = int(req.headers.get("Retry-After")) + 1

@@ -13,6 +13,7 @@
 - KISS (keep it simple and stupid) front end
 - MPD integration (use it on a Raspberry Pi!)
 - simple REST api
+- proxy support (https/socks5)
 
 
 ### How to use it
