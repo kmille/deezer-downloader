@@ -212,7 +212,6 @@ class TestDeezerMethods(unittest.TestCase):
 
     # BEGIN: test_download_song_validownload_song
     def test_download_song_valid_mp3(self):
-        config['deezer']['flac_quality'] = "False"
         song_infos = deezer_search("faber tausendfrankenlang", TYPE_TRACK)[0]
         song = get_song_infos_from_deezer_website(TYPE_TRACK, song_infos['id'])
         try:
