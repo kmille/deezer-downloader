@@ -14,18 +14,17 @@ else:
 load_config(config_file)
 from deezer_downloader.configuration import config
 
+from deezer_downloader.deezer import init_deezer_session, TYPE_TRACK, TYPE_ALBUM
 from deezer_downloader.deezer import deezer_search, get_song_infos_from_deezer_website, parse_deezer_playlist, download_song, get_deezer_favorites
-from deezer_downloader.deezer import TYPE_TRACK, TYPE_ALBUM
 from deezer_downloader.deezer import Deezer404Exception, DeezerApiException
 from deezer_downloader.spotify import get_songs_from_spotify_website, SpotifyWebsiteParserException, parse_uri, SpotifyInvalidUrlException
 from deezer_downloader.youtubedl import youtubedl_download, YoutubeDLFailedException
-
-from deezer_downloader.configuration import config
 
 known_song_keys = ["SNG_ID", "DURATION", "MD5_ORIGIN", "SNG_TITLE", "TRACK_NUMBER",
                    "ALB_PICTURE", "MEDIA_VERSION", "ART_NAME", "ALB_TITLE"]
 test_song = "/tmp/song-548935.mp3"
 
+init_deezer_session(config['proxy']['server'])
 
 class TestDeezerMethods(unittest.TestCase):
 
@@ -199,9 +198,6 @@ class TestDeezerMethods(unittest.TestCase):
         with self.assertRaises(Exception):
             get_deezer_favorites(user_id)
 
-    @pytest.mark.skip(reason="API changed")
-    # Exception: Upstream api error getting favorite songs for user 705965861
-    # {'type': 'DataException', 'message': 'no data', 'code': 800}"
     def test_get_deezer_favorites_userid_valid(self):
         user_id = "2517244282" # own of test (works)
         songs = get_deezer_favorites(user_id)
@@ -264,7 +260,7 @@ class TestSpotifyMethods(unittest.TestCase):
         self.assertEqual(res['id'], "Hksdhfaif23ffushef9823")
 
     def _test_parse_spotify_playlist_website(self, playlist):
-        songs = get_songs_from_spotify_website(playlist)
+        songs = get_songs_from_spotify_website(playlist, None)
         self.assertIn("Cyndi Lauper Time After Time", songs)
 
     def test_spotify_parser_valid_playlist_embed_url(self):
@@ -282,12 +278,12 @@ class TestSpotifyMethods(unittest.TestCase):
     def test_spotify_parser_invalid_playlist_id(self):
         playlist_id = "thisdoesnotexist"
         with self.assertRaises(SpotifyWebsiteParserException):
-            get_songs_from_spotify_website(playlist_id)
+            get_songs_from_spotify_website(playlist_id, None)
 
     def test_spotify_parser_invalid_playlist_url(self):
         playlist_url = "https://www.heise.de"
         with self.assertRaises(SpotifyInvalidUrlException):
-            get_songs_from_spotify_website(playlist_url)
+            get_songs_from_spotify_website(playlist_url, None)
 
 
 class TestYoutubeMethods(unittest.TestCase):
