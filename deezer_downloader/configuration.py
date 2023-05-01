@@ -15,7 +15,6 @@ def load_config(config_abs):
 
     config = ConfigParser()
     config.read(config_abs)
-    breakpoint()
 
     assert list(config.keys()) == ['DEFAULT', 'mpd', 'download_dirs', 'debug', 'http', 'proxy', 'threadpool', 'deezer', 'youtubedl'], f"Validating config file failed. Check {config_abs}"
 
