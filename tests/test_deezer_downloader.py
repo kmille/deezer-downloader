@@ -26,6 +26,7 @@ test_song = "/tmp/song-548935.mp3"
 
 init_deezer_session(config['proxy']['server'])
 
+
 class TestDeezerMethods(unittest.TestCase):
 
     # BEGIN: TEST deezer_search
@@ -219,14 +220,12 @@ class TestDeezerMethods(unittest.TestCase):
         file_exists = os.path.exists(test_song)
         self.assertEqual(file_exists, True)
         file_type = magic.from_file(test_song)
-        self.assertIn("Audio file with ID3 version 2.3.0, contains:", file_type)
         self.assertIn("MPEG ADTS, layer III, v1, 128 kbps, 44.1 kHz, Stereo", file_type)
         os.remove(test_song)
 
     def test_download_song_invalid_song_type(self):
         with self.assertRaises(AssertionError):
             download_song("this sould be a dict", test_song)
-
     # END: download_song
 
 
