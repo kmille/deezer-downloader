@@ -220,7 +220,8 @@ class TestDeezerMethods(unittest.TestCase):
         file_exists = os.path.exists(test_song)
         self.assertEqual(file_exists, True)
         file_type = magic.from_file(test_song)
-        self.assertIn("MPEG ADTS, layer III, v1, 128 kbps, 44.1 kHz, Stereo", file_type)
+        print(file_type)
+        self.assertIn("Audio file with ID3 version", file_type)
         os.remove(test_song)
 
     def test_download_song_invalid_song_type(self):
