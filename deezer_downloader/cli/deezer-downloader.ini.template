@@ -46,7 +46,7 @@ workers = 4
 
 [deezer]
 ; valid arl cookie value
-; login manually using your web browser and take the arl ookie
+; login manually using your web browser and take the arl cookie
 cookie_arl = [a-f0-9]{192}
 
 [youtubedl]
