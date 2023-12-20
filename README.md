@@ -23,9 +23,38 @@ There is a settings file template called `settings.ini.example`. You can specify
 
 As Deezer sometimes requires a captcha to login the auto login features was removed. Instead you have to manually insert a valid Deezer cookie to the `settings.ini`. The relevant cookie is the `arl` cookie. 
 
+```bash
+kmille@linbox:deezer-downloader poetry run deezer-downloader --help
+usage: deezer-downloader [-h] [-v] [-t] [-c CONFIG]
+
+Download music from Deezer with a nice front end
+
+options:
+  -h, --help            show this help message and exit
+  -v, --version         show version and exit
+  -t, --show-config-template
+                        show config template. At least you have to insert the ARL cookie
+  -c CONFIG, --config CONFIG
+                        config file - if not supplied, the following directories are considered looking for deezer-downloader.ini: current working directory, XDG_CONFIG_HOME environment variable, ~/.config, /etc)
+kmille@linbox:deezer-downloader
+
+kmille@linbox:deezer-downloader poetry run deezer-downloader --config settings.ini
+Starting Threadpool
+/home/kmille/.cache/pypoetry/virtualenvs/deezer-downloader-NFDPq16k-py3.11/lib/python3.11/site-packages/giphypop.py:241: UserWarning: You are using the giphy public api key. This should be used for testing only and may be deactivated in the future. See https://github.com/Giphy/GiphyAPI.
+  warnings.warn('You are using the giphy public api key. This '
+Worker 0 is waiting for a task
+Worker 1 is waiting for a task
+Worker 2 is waiting for a task
+Worker 3 is waiting for a task
+Worker 0 is now working on task: {'track_id': 8086130, 'add_to_playlist': False}
+Downloading 'Adele - Set Fire to the Rain.mp3'
+Dowload finished: /tmp/deezer-downloader/songs/Adele - Set Fire to the Rain.mp3
+Setting state to mission accomplished to worker 0
+worker 0 is done with task: {'track_id': 8086130, 'add_to_playlist': False} (state=mission accomplished)
+```
 
 
-### How to use it
+### How to get it up and running
 #### with pip
 You can run `pip install --user deezer-downloader`. Then you can run `~/.local/bin/deezer-downloader --help`
 
