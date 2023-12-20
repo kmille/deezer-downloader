@@ -1,11 +1,11 @@
-FROM python:3.10-alpine3.17 AS builder
+FROM python:3.11-alpine3.18 AS builder
 RUN pip install poetry
 COPY . /app
 WORKDIR /app
 RUN poetry build --format=wheel
 
 
-FROM python:3.10-alpine3.17
+FROM python:3.11-alpine3.18
 ENV PYTHONUNBUFFERED=TRUE
 
 RUN apk add --no-cache ffmpeg && \
