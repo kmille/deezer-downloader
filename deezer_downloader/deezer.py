@@ -163,7 +163,7 @@ def writeid3v1_1(fo, song):
     # what struct.pack expects
     # B => int
     # s => bytes
-    data = struct.pack("3s" "30s" "30s" "30s" "4s" "28sB" "B"  "B",
+    data = struct.pack("3s" "30s" "30s" "30s" "4s" "28sB" "H"  "B",
                        b"TAG",                                            # header
                        song_get(song, "SNG_TITLE"),                       # title
                        song_get(song, "ART_NAME"),                        # artist
