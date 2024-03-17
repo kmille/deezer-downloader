@@ -2,14 +2,12 @@
 [![tests](https://github.com/kmille/deezer-downloader/actions/workflows/tests.yaml/badge.svg)](https://github.com/kmille/deezer-downloader/actions/workflows/tests.yaml)
 ![latest tag](https://img.shields.io/github/v/tag/kmille/deezer-downloader?sort=semver) ![Python 3.6](https://img.shields.io/badge/python-%3E=3.6-blue.svg) ![pypi-version](https://img.shields.io/pypi/v/deezer-downloader) ![pypi-downloads](https://img.shields.io/pypi/dm/deezer-downloader)
 
-
-
 ### Features
 
 - download songs, albums, public playlists from Deezer.com (account is required, free plan is enough)
 - download Spotify playlists (by parsing the Spotify website and download the songs from Deezer)
 - download as zip file (including m3u8 playlist file)
-- 320 kbit/s mp3s with ID3-Tags and album cover (UPDATE: right now only 128bkit/s mp3 works, see #66)
+- ~~320 kbit/s~~ (currently only 128 kbit/s, see [this issue](https://github.com/kmille/deezer-downloader/issues/66#issuecomment-2002309521)) mp3s with ID3-Tags and album cover
 - download songs via yt-dlp
 - KISS (keep it simple and stupid) front end
 - MPD integration (use it on a Raspberry Pi!)
@@ -21,7 +19,7 @@
 
 There is a settings file template called `settings.ini.example`. You can specify the download directory with  `download_dir`. Pressing the download button only downloads the song/album/playlist. If you set `use_mpd=True` in the `settings.ini` the backend will connect to mpd (localhost:6600) and update the music database. Pressing the play button will download the music. If `use_mpd=True`  is set the mpd database will be updated and the song/album/playlist will be added to the playlist. In `settings.ini` `music_dir` should be the music root location of mpd. The `download_dir` must be a subdirectory of `music_dir`. 
 
-As Deezer sometimes requires a captcha to login the auto login features was removed. Instead you have to manually insert a valid Deezer cookie to the `settings.ini`. The relevant cookie is the `arl` cookie. 
+As Deezer sometimes requires a captcha to login the auto login features was removed. Instead you have to manually insert a valid Deezer cookie to the `settings.ini`. The relevant cookie is the `arl` cookie. **Important: The ARL cookie must be of a non-premium account!**
 
 ```bash
 kmille@linbox:deezer-downloader poetry run deezer-downloader --help
@@ -59,7 +57,7 @@ worker 0 is done with task: {'track_id': 8086130, 'add_to_playlist': False} (sta
 You can run `pip install --user deezer-downloader`. Then you can run `~/.local/bin/deezer-downloader --help`
 
 #### with Docker
-You can use the Docker image hosted on [hub.docker.com](https://hub.docker.com/r/kmille2/deezer-downloader). Login into your free Deezer account and grab the `arl` cookie. Then:
+You can use the Docker image hosted on [hub.docker.com](https://hub.docker.com/r/kmille2/deezer-downloader). Login into your **free** Deezer account and grab the `arl` cookie. Then:
 
 ```bash
 mkdir downloads
