@@ -105,9 +105,11 @@ def download_song_and_get_absolute_filename(search_type, song, playlist_name=Non
 
     if os.path.exists(absolute_filename):
         print("Skipping song '{}'. Already exists.".format(absolute_filename))
+    if os.path.exists(absolute_filename.replace('.mp3', '.flac')):
+        print("Skipping song '{}'. Already exists.".format(absolute_filename.replace('.mp3', '.flac')))    
     else:
         print("Downloading '{}'".format(song_filename))
-        download_song(song, absolute_filename)
+        absolute_filename = download_song(song, absolute_filename)
     return absolute_filename
 
 

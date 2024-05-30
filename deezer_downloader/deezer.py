@@ -12,7 +12,8 @@ import urllib.parse
 import html.parser
 import requests
 from binascii import a2b_hex, b2a_hex
-
+import random
+from time import sleep
 
 # BEGIN TYPES
 TYPE_TRACK = "track"
@@ -22,6 +23,8 @@ TYPE_ALBUM_TRACK = "album_track" # used for listing songs of an album
 # END TYPES
 
 session = None
+license_token = None
+web_sound_quality = {}
 
 
 def init_deezer_session(proxy_server):
@@ -46,6 +49,7 @@ def init_deezer_session(proxy_server):
     if len(proxy_server.strip()) > 0:
         print(f"Using proxy {proxy_server}")
         session.proxies.update({"https": proxy_server})
+    get_user_data()
 
 
 class Deezer404Exception(Exception):
@@ -330,14 +334,19 @@ def download_song(song, output_file):
     assert type(song) == dict, "song must be a dict"
     assert type(output_file) == str, "output_file must be a str"
 
-    song_quality = 3 if song.get("FILESIZE_MP3_320") and song.get("FILESIZE_MP3_320") != '0' else \
+    if license_token and web_sound_quality.get('lossless'):
+        song, url, extension = get_song_url(song)
+    else:
+        song_quality = 3 if song.get("FILESIZE_MP3_320") and song.get("FILESIZE_MP3_320") != '0' else \
                    5 if song.get("FILESIZE_MP3_256") and song.get("FILESIZE_MP3_256") != '0' else \
                    1
-
-    urlkey = genurlkey(song["SNG_ID"], song["MD5_ORIGIN"], song["MEDIA_VERSION"], song_quality)
-    key = calcbfkey(song["SNG_ID"])
-    try:
+        urlkey = genurlkey(song["SNG_ID"], song["MD5_ORIGIN"], song["MEDIA_VERSION"], song_quality)
         url = "https://e-cdns-proxy-%s.dzcdn.net/mobile/1/%s" % (song["MD5_ORIGIN"][0], urlkey.decode())
+    key = calcbfkey(song["SNG_ID"])
+    if not url:
+        print("ERROR: Can not download this song. Failed to get url.")
+        return output_file
+    try:
         fh = session.get(url)
         if fh.status_code != 200:
             # I don't why this happens. to reproduce:
@@ -347,18 +356,19 @@ def download_song(song, output_file):
             # this will give you a 404!?
             # but you can play the song in the browser
             print("ERROR: Can not download this song. Got a {}".format(fh.status_code))
-            return
-
-        with open(output_file, "w+b") as fo:
+            return output_file
+        file_name = output_file.replace('.mp3', f'.{extension.lower()}')
+        with open(file_name, "w+b") as fo:
             # add songcover and DL first 30 sec's that are unencrypted
             writeid3v2(fo, song)
             decryptfile(fh, key, fo)
             writeid3v1_1(fo, song)
+        return file_name
 
     except Exception as e:
         raise
     else:
-        print("Dowload finished: {}".format(output_file))
+        print("Download finished: {}".format(output_file))
 
 
 def get_song_infos_from_deezer_website(search_type, id):
@@ -515,6 +525,60 @@ def get_deezer_favorites(user_id: str) -> Optional[Sequence[int]]:
     return songs
 
 
+def get_user_data():
+    global license_token
+    global web_sound_quality
+    try:
+        user_data = session.get('https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token=')
+        user_data_json = user_data.json()['results']
+        options = user_data_json['USER']['OPTIONS']
+        web_sound_quality = options['web_sound_quality']
+        license_token = options.get('license_token')
+        return user_data_json
+
+    except (Deezer403Exception, Deezer404Exception) as msg:
+        print(msg)
+        print("user data is not working anymore.")
+        return False    
+
+def get_song_url(song, i=0):
+    if i > 2:
+        raise ValueError("get song url attempts exceeded")
+
+    if i == 1 and song.get('FALLBACK'):
+        song = song['FALLBACK']
+    try:
+        track_token = song['TRACK_TOKEN']
+        body = {
+            "license_token": license_token,
+            "media":[
+                {
+                    "type":"FULL",
+                    "formats":[
+                        {"cipher":"BF_CBC_STRIPE","format":"FLAC"},
+                        {"cipher":"BF_CBC_STRIPE","format":"MP3_320"},
+                        {"cipher":"BF_CBC_STRIPE","format":"MP3_128"},
+                        {"cipher":"BF_CBC_STRIPE","format":"MP3_64"},
+                        {"cipher":"BF_CBC_STRIPE","format":"MP3_MISC"}
+                    ]
+                }
+            ],
+            "track_tokens":[track_token]
+        }
+        r = session.post("https://media.deezer.com/v1/get_url", data=json.dumps(body))
+        data = r.json()
+        if not data['data'][0].get('media'):
+            print(data)
+            sleep((random.random()+2**i))
+            return get_song_url(song, i+1)
+
+        result = data['data'][0]['media'][0]
+        return (song, result['sources'][0]['url'], result['format'].split('_')[0])
+    except (Deezer403Exception, Deezer404Exception) as msg:
+        print(msg)
+        print("get song url is not working anymore.")
+        return song, False, 'mp3'
+
 def test_deezer_login():
     print("Let's check if the deezer login is still working")
     try:
@@ -535,3 +599,8 @@ def test_deezer_login():
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == "check-login":
         test_deezer_login()
+    if len(sys.argv) > 2 and sys.argv[1] == "dl-playlist":
+        init_deezer_session('')
+        pl = parse_deezer_playlist(sys.argv[2])
+        for song in pl[1]:
+            download_song(song, f'{pl[0]}/{song["ART_NAME"]} - {song["SNG_TITLE"]}.flac')
