@@ -342,6 +342,7 @@ def download_song(song, output_file):
                    1
         urlkey = genurlkey(song["SNG_ID"], song["MD5_ORIGIN"], song["MEDIA_VERSION"], song_quality)
         url = "https://e-cdns-proxy-%s.dzcdn.net/mobile/1/%s" % (song["MD5_ORIGIN"][0], urlkey.decode())
+        extension = 'mp3'
     key = calcbfkey(song["SNG_ID"])
     if not url:
         print("ERROR: Can not download this song. Failed to get url.")
