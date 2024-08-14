@@ -166,7 +166,7 @@ def writeid3v1_1(fo, song):
     data = struct.pack("3s" "30s" "30s" "30s" "4s" "28sB" "H"  "B",
                        b"TAG",                                            # header
                        song_get(song, "SNG_TITLE"),                       # title
-                       song_get(song, "ART_NAME"),                        # artist
+                       song_get(song, "ALB_ART_NAME"),                    # album artist or artist
                        song_get(song, "ALB_TITLE"),                       # album
                        album_get("PHYSICAL_RELEASE_DATE"),                # year
                        album_get("LABEL_NAME"), 0,                        # comment
@@ -276,6 +276,12 @@ def writeid3v2(fo, song):
     except:
         pass
 
+    #get artists list or use album's artist if there is only one
+    if(len(song["ARTISTS"]) > 1):
+        artists = "\x00".join([artist['ART_NAME'] for artist in song["ARTISTS"]])
+    else:
+        artists = song["ALB_ART_NAME"]
+
     # http://id3.org/id3v2.3.0#Attached_picture
     id3 = [
         maketag("TRCK", makeutf8(track)),     # The 'Track number/Position in set' frame is a numeric string containing the order number of the audio-file on its original recording. This may be extended with a "/" character and a numeric string containing the total numer of tracks/elements on the original recording. E.g. "4/9".
@@ -286,14 +292,13 @@ def writeid3v2(fo, song):
         maketag("TPUB", makeutf8(album_get("LABEL_NAME"))),     # The 'Publisher' frame simply contains the name of the label or publisher.
         maketag("TSIZ", makeutf8(str(FileSize))),     # The 'Size' frame contains the size of the audiofile in bytes, excluding the ID3v2 tag, represented as a numeric string.
         maketag("TFLT", makeutf8("MPG/3")),
-
+        maketag("TPE1", makeutf8(artists)), # The 'Lead artist(s)/Lead performer(s)/Soloist(s)/Performing group' is used for the main artist(s). They are seperated with the "NULL" character.
         ]  # decimal, no term NUL
     id3.extend([
         maketag(ID_id3_frame, makeutf8(song_get(song, ID_song))) for (ID_id3_frame, ID_song) in \
         (
-            ("TALB", "ALB_TITLE"),   # The 'Album/Movie/Show title' frame is intended for the title of the recording(/source of sound) which the audio in the file is taken from.
-            ("TPE1", "ART_NAME"),   # The 'Lead artist(s)/Lead performer(s)/Soloist(s)/Performing group' is used for the main artist(s). They are seperated with the "/" character.
-            ("TPE2", "ART_NAME"),   # The 'Band/Orchestra/Accompaniment' frame is used for additional information about the performers in the recording.
+            ("TALB", "ALB_TITLE"),   # The 'Album/Movie/Show title' frame is intended for the title of the recording(/source of sound) which the audio in the file is taken from. 
+            ("TPE2", "ALB_ART_NAME"),   # The 'Band/Orchestra/Accompaniment' frame is used for additional information about the performers in the recording.
             ("TPOS", "DISK_NUMBER"),   # The 'Part of a set' frame is a numeric string that describes which part of a set the audio came from. This frame is used if the source described in the "TALB" frame is divided into several mediums, e.g. a double CD. The value may be extended with a "/" character and a numeric string containing the total number of parts in the set. E.g. "1/2".
             ("TIT2", "SNG_TITLE"),   # The 'Title/Songname/Content description' frame is the actual name of the piece (e.g. "Adagio", "Hurricane Donna").
             ("TSRC", "ISRC"),   # The 'ISRC' frame should contain the International Standard Recording Code (ISRC) (12 characters).
@@ -371,20 +376,22 @@ def get_song_infos_from_deezer_website(search_type, id):
     # 1. open playlist https://www.deezer.com/de/playlist/1180748301 and click on song Honey from Moby in a new tab:
     # 2. Deezer gives you a 404: https://www.deezer.com/de/track/68925038
     # Deezer403Exception if we are not logged in
+    def get_and_parse_data_from_deezer_website(search_type, id):
+        url = "https://www.deezer.com/de/{}/{}".format(search_type, id)
+        resp = session.get(url)
+        if resp.status_code == 404:
+            raise Deezer404Exception("ERROR: Got a 404 for {} from Deezer".format(url))
+        if "MD5_ORIGIN" not in resp.text:
+            raise Deezer403Exception("ERROR: we are not logged in on deezer.com. Please update the cookie")
 
-    url = "https://www.deezer.com/de/{}/{}".format(search_type, id)
-    resp = session.get(url)
-    if resp.status_code == 404:
-        raise Deezer404Exception("ERROR: Got a 404 for {} from Deezer".format(url))
-    if "MD5_ORIGIN" not in resp.text:
-        raise Deezer403Exception("ERROR: we are not logged in on deezer.com. Please update the cookie")
-
-    parser = ScriptExtractor()
-    parser.feed(resp.text)
-    parser.close()
-
+        parser = ScriptExtractor()
+        parser.feed(resp.text)
+        parser.close()
+        return parser
+    
+    search_parser = get_and_parse_data_from_deezer_website(search_type, id)
     songs = []
-    for script in parser.scripts:
+    for script in search_parser.scripts:
         regex = re.search(r'{"DATA":.*', script)
         if regex:
             DZR_APP_STATE = json.loads(regex.group())
@@ -393,10 +400,18 @@ def get_song_infos_from_deezer_website(search_type, id):
             if DZR_APP_STATE['DATA']['__TYPE__'] == 'playlist' or DZR_APP_STATE['DATA']['__TYPE__'] == 'album':
                 # songs if you searched for album/playlist
                 for song in DZR_APP_STATE['SONGS']['data']:
+                    #we append the album name to the song
+                    song['ALB_ART_NAME'] = album_Data.get('ART_NAME','')
                     songs.append(song)
             elif DZR_APP_STATE['DATA']['__TYPE__'] == 'song':
                 # just one song on that page
                 songs.append(DZR_APP_STATE['DATA'])
+                # we get the album name for that song and append it to the song (or copy the artist name if it doesn't exist or is empty)
+                song_parser = get_and_parse_data_from_deezer_website(TYPE_ALBUM, DZR_APP_STATE['DATA']['ALB_ID'])
+                for song_script in song_parser.scripts:
+                    song_regex = re.search(r'{"DATA":.*', song_script)
+                    if song_regex:
+                        songs[0]['ALB_ART_NAME'] = json.loads(song_regex.group()).get("DATA").get('ART_NAME',songs[0]['ART_NAME'])
     return songs[0] if search_type == TYPE_TRACK else songs
 
 
