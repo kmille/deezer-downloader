@@ -280,7 +280,10 @@ def writeid3v2(fo, song):
     if(len(song["ARTISTS"]) > 1):
         artists = "\x00".join([artist['ART_NAME'] for artist in song["ARTISTS"]])
     else:
-        artists = song["ALB_ART_NAME"]
+        if(song["ART_NAME"] != song["ALB_ART_NAME"]):
+            artists = song["ART_NAME"]
+        else:
+            artists = song["ALB_ART_NAME"]
 
     # http://id3.org/id3v2.3.0#Attached_picture
     id3 = [
@@ -383,7 +386,7 @@ def get_song_infos_from_deezer_website(search_type, id):
             raise Deezer404Exception("ERROR: Got a 404 for {} from Deezer".format(url))
         if "MD5_ORIGIN" not in resp.text:
             raise Deezer403Exception("ERROR: we are not logged in on deezer.com. Please update the cookie")
-#glagla
+
         parser = ScriptExtractor()
         parser.feed(resp.text)
         parser.close()
