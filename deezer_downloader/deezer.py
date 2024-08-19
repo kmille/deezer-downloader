@@ -377,13 +377,13 @@ def get_song_infos_from_deezer_website(search_type, id):
     # 2. Deezer gives you a 404: https://www.deezer.com/de/track/68925038
     # Deezer403Exception if we are not logged in
     def get_and_parse_data_from_deezer_website(search_type, id):
-        url = "https://www.deezer.com/de/{}/{}".format(search_type, id)
+        url = "https://www.deezer.com/en/{}/{}".format(search_type, id)
         resp = session.get(url)
         if resp.status_code == 404:
             raise Deezer404Exception("ERROR: Got a 404 for {} from Deezer".format(url))
         if "MD5_ORIGIN" not in resp.text:
             raise Deezer403Exception("ERROR: we are not logged in on deezer.com. Please update the cookie")
-
+#glagla
         parser = ScriptExtractor()
         parser.feed(resp.text)
         parser.close()
