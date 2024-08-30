@@ -287,7 +287,9 @@ class TestSpotifyMethods(unittest.TestCase):
 
 
 class TestYoutubeMethods(unittest.TestCase):
+    is_github_ci = len(os.environ.get("GITHUB_ACTION", "")) > 0
 
+    @pytest.mark.xfail(is_github_ci, reason="Fails with 'Sign in to confirm you’re not a bot. This helps protect our community. Learn more'", raises=YoutubeDLFailedException)
     def test_youtube_dl_valid_url(self):
         Path("/tmp/Pharrell Williams - Happy (Video).mp3").unlink(missing_ok=True)
         url = "https://www.youtube.com/watch?v=ZbZSe6N_BXs"
@@ -304,6 +306,7 @@ class TestYoutubeMethods(unittest.TestCase):
         with self.assertRaises(YoutubeDLFailedException):
             youtubedl_download(url, "/tmp")
 
+    @pytest.mark.xfail(is_github_ci, reason="Fails with 'Sign in to confirm you’re not a bot. This helps protect our community. Learn more'", raises=YoutubeDLFailedException)
     def test_youtube_dl_command_execution(self):
         url = "https://www.youtube.com/watch?v=ZbZSe6N_BXs&$(touch /tmp/pwned.txt)"
         youtubedl_download(url, "/tmp")
