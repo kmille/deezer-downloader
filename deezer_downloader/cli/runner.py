@@ -20,9 +20,10 @@ def run_backend():
 
 def main():
     parser = argparse.ArgumentParser(prog='deezer-downloader',
-                                     description="Download music from Deezer with a nice front end")
+                                     description="Download music from Deezer and Spotify with a simple web frontend, through a local-hosted service written in Python.",
+                                     epilog="More info at https://github.com/kmille/deezer-downloader.")
     parser.add_argument("-v", "--version", action='store_true', help="show version and exit")
-    parser.add_argument("-t", "--show-config-template", action='store_true', help="show config template. At least you have to insert the ARL cookie")
+    parser.add_argument("-t", "--show-config-template", action='store_true', help="show config template - you have to provide the ARL cookie at least")
     parser.add_argument("-c", "--config", help="config file - if not supplied, the following directories are considered looking for deezer-downloader.ini: current working directory, XDG_CONFIG_HOME environment variable, ~/.config, /etc)")
 
     args = parser.parse_args()
