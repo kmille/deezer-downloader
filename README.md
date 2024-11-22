@@ -1,6 +1,6 @@
 ## Music Downloader 🎶 🎧 💃 🦄
 [![tests](https://github.com/kmille/deezer-downloader/actions/workflows/tests.yaml/badge.svg)](https://github.com/kmille/deezer-downloader/actions/workflows/tests.yaml)
-![latest tag](https://img.shields.io/github/v/tag/kmille/deezer-downloader?sort=semver) ![Python 3.6](https://img.shields.io/badge/python-%3E=3.6-blue.svg) ![pypi-version](https://img.shields.io/pypi/v/deezer-downloader) ![pypi-downloads](https://img.shields.io/pypi/dm/deezer-downloader)
+![latest tag](https://img.shields.io/github/v/tag/kmille/deezer-downloader?sort=semver) ![Python 3.9](https://img.shields.io/badge/python-%3E=3.9-blue.svg) ![pypi-version](https://img.shields.io/pypi/v/deezer-downloader) ![pypi-downloads](https://img.shields.io/pypi/dm/deezer-downloader)
 
 ### Features
 
