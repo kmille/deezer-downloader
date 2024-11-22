@@ -3,7 +3,8 @@ from subprocess import Popen, PIPE
 from functools import wraps
 import requests
 import atexit
-from flask import Flask, render_template, request, jsonify, escape
+from flask import Flask, render_template, request, jsonify
+from markupsafe import escape
 from flask_autoindex import AutoIndex
 import giphypop
 
