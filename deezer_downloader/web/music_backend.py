@@ -138,7 +138,7 @@ def create_m3u8_file(songs_absolute_location):
     m3u8_filename = "00 {}.m3u8".format(os.path.basename(playlist_directory))
     print("Creating m3u8 file: '{}'".format(m3u8_filename))
     m3u8_file_abs = os.path.join(playlist_directory, m3u8_filename)
-    with open(m3u8_file_abs, "w") as f:
+    with open(m3u8_file_abs, "w", encoding="utf-8") as f:
         for song in songs_absolute_location:
             if os.path.exists(song):
                 f.write(basename(song) + "\n")
