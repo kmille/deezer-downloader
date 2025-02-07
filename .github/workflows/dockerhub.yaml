@@ -4,7 +4,7 @@ on:
   push:
     # run only if a tag is pushed
     branches:
-      - "!*"
+      - master
     tags:
       - '*'
 
@@ -19,13 +19,17 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Get the Docker base image version
+        id: vars
+        run: echo ::set-output name=alpine::$(echo ${tac Dockerfile | grep -m 1 ^FROM | cut -d - -f 2)
+
       - name: Get the version
         id: vars
         run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
 
       - name: Build the tagged Docker image
         run: |
-          docker build . --tag kmille2/deezer-downloader:${{steps.vars.outputs.tag}}
+          docker build . --tag kmille2/deezer-downloader:${{steps.vars.outputs.alpine}}-${{steps.vars.outputs.tag}}
       - name: Push the tagged Docker image
         run: docker push kmille2/deezer-downloader:${{steps.vars.outputs.tag}}
 
