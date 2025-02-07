@@ -40,39 +40,39 @@ def validate_schema(*parameters_to_check):
             print("User request: {} with {}".format(request.path, j))
             # check if all parameters are supplied by the user
             if set(j.keys()) != set(parameters_to_check):
-                return jsonify({"error": 'parameters not fitting. Required: {}'.format(parameters_to_check)}), 400
+                return jsonify({"error": 'parameters missing, required fields: {}'.format(parameters_to_check)}), 400
             if "type" in j.keys():
                 if j['type'] not in ["album", "track", "album_track"]:
                     return jsonify({"error": "type must be album, track or album_track"}), 400
             if "music_id" in j.keys():
-                if type(j['music_id']) != int:
+                if type(j['music_id']) is not int:
                     return jsonify({"error": "music_id must be a integer"}), 400
             if "add_to_playlist" in j.keys():
-                if type(j['add_to_playlist']) != bool:
+                if type(j['add_to_playlist']) is not bool:
                     return jsonify({"error": "add_to_playlist must be a boolean"}), 400
             if "create_zip" in j.keys():
-                if type(j['create_zip']) != bool:
+                if type(j['create_zip']) is not bool:
                     return jsonify({"error": "create_zip must be a boolean"}), 400
             if "query" in j.keys():
-                if type(j['query']) != str:
+                if type(j['query']) is not str:
                     return jsonify({"error": "query is not a string"}), 400
                 if j['query'] == "":
                     return jsonify({"error": "query is empty"}), 400
             if "url" in j.keys():
-                if (type(j['url']) != str) or (not j['url'].startswith("http")):
+                if (type(j['url']) is not str) or (not j['url'].startswith("http")):
                     return jsonify({"error": "url is not a url. http... only"}), 400
             if "playlist_url" in j.keys():
-                if type(j['playlist_url']) != str:
+                if type(j['playlist_url']) is not str:
                     return jsonify({"error": "playlist_url is not a string"}), 400
                 if len(j['playlist_url'].strip()) == 0:
                     return jsonify({"error": "playlist_url is empty"}), 400
             if "playlist_name" in j.keys():
-                if type(j['playlist_name']) != str:
+                if type(j['playlist_name']) is not str:
                     return jsonify({"error": "playlist_name is not a string"}), 400
                 if len(j['playlist_name'].strip()) == 0:
                     return jsonify({"error": "playlist_name is empty"}), 400
             if "user_id" in j.keys():
-                if type(j['user_id']) != str or not j['user_id'].isnumeric():
+                if type(j['user_id']) is not str or not j['user_id'].isnumeric():
                     return jsonify({"error": "user_id must be a numeric string"}), 400
             return f(*args, **kw)
         return wrapper
