@@ -8,8 +8,8 @@
 - download songs, albums, public playlists from Deezer.com (account is required, free plan is enough)
 - download Spotify playlists (by parsing the Spotify website and download the songs from Deezer)
 - download as zip file (including m3u8 playlist file)
-- ~~320 kbit/s~~ (currently only 128 kbit/s, see [this issue](https://github.com/kmille/deezer-downloader/issues/66#issuecomment-2002309521)) MP3s with ID3-Tags and album cover
-  - **UPDATE 2024/11**: It seems like 320 kbit/s MP3s and FLAC [works again](https://github.com/kmille/deezer-downloader/pull/111)
+- quality: flac or 320 kbit/s mp3 with premium subscription or 128 kbit/s MP3s with free subscription
+- ID3-Tags and embedded album cover
 - download songs via yt-dlp
 - KISS (keep it simple and stupid) front end
 - MPD integration (use it on a Raspberry Pi!)
@@ -38,7 +38,7 @@
 ## Get started
 
 ### 1. Install Python
-[Here.](https://www.python.org/about/)
+[python.org](https://www.python.org/about/)
 
 ### 2. Install deezer-downloader
 ```bash
@@ -50,7 +50,7 @@ If you want to use the Docker image, [scroll](#run-with-docker) down a bit.
 ### 3. Retrieve your `arl` cookie
 
 On Firefox or Chrome-based browser:
-- Log into your **FREE** Deezer account (do **NOT** use a premium account)
+- Log into your Deezer account
 - Open the DevTools (`F12` or `Ctrl+Shift+C` or `Ctrl+Shift+I`)
 - Go to `Storage` tab
 - In the cookies, find `arl`: a ~200 characters alphanumeric key
@@ -61,7 +61,7 @@ Retrieve the template:
 deezer-downloader --show-config-template > config.ini
 ```
 You need to set at least:
-- under `[deezer]`: `cookie_arl`, your **NON PREMIUM** arl key
+- under `[deezer]`: `cookie_arl`, your arl cookie
 - under `[youtubedl]`: `command`, your yt-dlp install path\
 As stated in the config template, deezer-downloader do NOT keep yt-dlp updated, you will have to monitor this yourself.
 
@@ -84,7 +84,7 @@ Enjoy! 🦄
 
 There is a settings file template called `settings.ini.example`. You can specify the download directory with  `download_dir`. Pressing the download button only downloads the song/album/playlist. If you set `use_mpd=True` in the `settings.ini` the backend will connect to mpd (localhost:6600) and update the music database. Pressing the play button will download the music. If `use_mpd=True`  is set the mpd database will be updated and the song/album/playlist will be added to the playlist. In `settings.ini` `music_dir` should be the music root location of mpd. The `download_dir` must be a subdirectory of `music_dir`. 
 
-As Deezer sometimes requires a captcha to login the auto login features was removed. Instead you have to manually insert a valid Deezer cookie to the `settings.ini`. The relevant cookie is the `arl` cookie. **Important: The ARL cookie must be of a non-premium account!**
+As Deezer sometimes requires a captcha to login the auto login features was removed. Instead you have to manually insert a valid Deezer cookie to the `settings.ini`. The relevant cookie is the `arl` cookie.
 
 ```bash
 kmille@linbox:deezer-downloader poetry run deezer-downloader --help
@@ -119,7 +119,7 @@ worker 0 is done with task: {'track_id': 8086130, 'add_to_playlist': False} (sta
 
 ### Run with Docker
 
-There is a Docker image hosted on [hub.docker.com](https://hub.docker.com/r/kmille2/deezer-downloader). Please use an ARL cookie of an account with a free subscription.
+There is a Docker image hosted on [hub.docker.com](https://hub.docker.com/r/kmille2/deezer-downloader). Please use an ARL cookie of your Deezer account.
 
 ```bash
 mkdir downloads
@@ -237,6 +237,7 @@ DEEZER_DOWNLOADER_CONFIG_FILE=settings.ini poetry run pytest -v -s
 ## Changelog
 
 ### Version 2.0.0 (27.03.2023)
+
 - use poetry as build system
 - build package and uploada to pypi
 - worker threads now "daemon threads" (they now just stop if you stop deezer-downloader)

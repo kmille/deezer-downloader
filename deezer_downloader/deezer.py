@@ -22,23 +22,46 @@ TYPE_ALBUM_TRACK = "album_track" # used for listing songs of an album
 # END TYPES
 
 session = None
-license_token = None
+license_token = {}
+sound_format = ""
 USER_AGENT = "Mozilla/5.0 (X11; Linux i686; rv:135.0) Gecko/20100101 Firefox/135.0"
 
 
-def get_license_token():
-    global license_token
+def get_user_data() -> tuple[str, str]:
     try:
         user_data = session.get('https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token=')
         user_data_json = user_data.json()['results']
         options = user_data_json['USER']['OPTIONS']
         license_token = options['license_token']
+        web_sound_quality = options['web_sound_quality']
+        return license_token, web_sound_quality
     except (requests.exceptions.RequestException, KeyError) as e:
-        print(f"Could not get license token: {e}")
+        print(f"ERROR: Could not get license token: {e}")
 
 
-def init_deezer_session(proxy_server):
-    global session
+# quality_config comes from config file
+# web_sound_quality is a dict coming from Deezer API and depends on ARL cookie (premium subscription)
+def set_song_quality(quality_config: str, web_sound_quality: dict):
+    global sound_format
+    flac_supported = web_sound_quality['lossless'] is True
+    if flac_supported:
+        if quality_config == "flac":
+            sound_format = "FLAC"
+        else:
+            sound_format = "MP3_320"
+    else:
+        if quality_config == "flac":
+            print("WARNING: flac quality is configured in config file but not supported (no premium subscription?). Falling back to mp3")
+        sound_format = "MP3_128"
+
+
+def get_file_extension() -> str:
+    return "flac" if sound_format == "FLAC" else "mp3"
+
+
+# quality is mp3 or flac
+def init_deezer_session(proxy_server: str, quality: str) -> None:
+    global session, license_token, web_sound_quality
     header = {
         'Pragma': 'no-cache',
         'Origin': 'https://www.deezer.com',
@@ -59,7 +82,8 @@ def init_deezer_session(proxy_server):
     if len(proxy_server.strip()) > 0:
         print(f"Using proxy {proxy_server}")
         session.proxies.update({"https": proxy_server})
-    get_license_token()
+    license_token, web_sound_quality = get_user_data()
+    set_song_quality(quality, web_sound_quality)
 
 
 class Deezer404Exception(Exception):
@@ -321,14 +345,14 @@ def writeid3v2(fo, song):
 
 def get_song_url(track_token: str, quality: int = 3) -> str:
     try:
-        track_format = "MP3_320" if quality == 3 else "MP3_256" if quality == 5 else "MP3_128"
         response = requests.post(
             "https://media.deezer.com/v1/get_url",
             json={
                 'license_token': license_token,
                 'media': [{
                     'type': "FULL",
-                    'formats': [{'cipher': "BF_CBC_STRIPE", 'format': track_format}]
+                    "formats": [
+                        {"cipher": "BF_CBC_STRIPE", "format": sound_format}]
                 }],
                 'track_tokens': [track_token,]
             },
@@ -353,17 +377,15 @@ def download_song(song: dict, output_file: str) -> None:
     assert type(song) is dict, "song must be a dict"
     assert type(output_file) is str, "output_file must be a str"
 
-    song_quality = 3 if song.get("FILESIZE_MP3_320") and song.get("FILESIZE_MP3_320") != '0' else \
-        5 if song.get("FILESIZE_MP3_256") and song.get("FILESIZE_MP3_256") != '0' else 1
     try:
-        url = get_song_url(song["TRACK_TOKEN"], song_quality)
+        url = get_song_url(song["TRACK_TOKEN"])
     except Exception as e:
         print(f"Could not download song (https://www.deezer.com/us/track/{song['SNG_ID']}). Maybe it's not available anymore or at least not in your country. {e}")
         if "FALLBACK" in song:
             song = song["FALLBACK"]
             print(f"Trying fallback song https://www.deezer.com/us/track/{song['SNG_ID']}")
             try:
-                url = get_song_url(song["TRACK_TOKEN"], song_quality)
+                url = get_song_url(song["TRACK_TOKEN"])
             except Exception:
                 pass
             else:

@@ -21,7 +21,8 @@ giphy = giphypop.Giphy()
 
 def init():
     sched.run_workers(config.getint('threadpool', 'workers'))
-    init_deezer_session(config['proxy']['server'])
+    init_deezer_session(config['proxy']['server'],
+                        config['deezer']['quality'])
 
     @atexit.register
     def stop_workers():

@@ -48,6 +48,8 @@ workers = 4
 ; valid arl cookie value
 ; login manually using your web browser and take the arl cookie
 cookie_arl = [a-f0-9]{192}
+; mp3 or flac - flac needs premium subscription
+quality = mp3
 
 [youtubedl]
 ; you are responsible for keeping yt-dlp up-to-date (https://github.com/yt-dlp/yt-dlp)

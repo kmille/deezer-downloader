@@ -40,3 +40,11 @@ def load_config(config_abs):
     if len(config["deezer"]["cookie_arl"].strip()) == 0:
         print("ERROR: cookie_arl must not be empty")
         sys.exit(1)
+
+    if "quality" in config['deezer']:
+        if config['deezer']["quality"] not in ("mp3", "flac"):
+            print("ERROR: quality must be mp3 or flac in config file")
+            sys.exit(1)
+    else:
+        print("Warning: quality not set in config file. Using mp3")
+        config["deezer"]["quality"] = "mp3"

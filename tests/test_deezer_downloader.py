@@ -24,7 +24,8 @@ known_song_keys = ["SNG_ID", "DURATION", "MD5_ORIGIN", "SNG_TITLE", "TRACK_NUMBE
                    "ALB_PICTURE", "MEDIA_VERSION", "ART_NAME", "ALB_TITLE"]
 test_song = "/tmp/song-548935.mp3"
 
-init_deezer_session(config['proxy']['server'])
+init_deezer_session(config['proxy']['server'],
+                    config["deezer"]["quality"])
 
 
 class TestDeezerMethods(unittest.TestCase):

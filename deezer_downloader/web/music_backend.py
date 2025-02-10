@@ -10,6 +10,7 @@ from deezer_downloader.youtubedl import youtubedl_download
 from deezer_downloader.spotify import get_songs_from_spotify_website
 from deezer_downloader.deezer import TYPE_TRACK, TYPE_ALBUM, TYPE_PLAYLIST, get_song_infos_from_deezer_website, download_song, parse_deezer_playlist, deezer_search, get_deezer_favorites
 from deezer_downloader.deezer import Deezer403Exception, Deezer404Exception
+from deezer_downloader.deezer import get_file_extension
 
 from deezer_downloader.threadpool_queue import ThreadpoolScheduler, report_progress
 sched = ThreadpoolScheduler()
@@ -77,13 +78,17 @@ def clean_filename(path):
 
 
 def download_song_and_get_absolute_filename(search_type, song, playlist_name=None):
+
+    file_extension = get_file_extension()
     if search_type == TYPE_ALBUM:
-        song_filename = "{:02d} - {} {}.mp3".format(int(song['TRACK_NUMBER']),
-                                                    song['ART_NAME'],
-                                                    song['SNG_TITLE'])
+        song_filename = "{:02d} - {} {}.{}".format(int(song['TRACK_NUMBER']),
+                                                   song['ART_NAME'],
+                                                   song['SNG_TITLE'],
+                                                   file_extension)
     else:
-        song_filename = "{} - {}.mp3".format(song['ART_NAME'],
-                                             song['SNG_TITLE'])
+        song_filename = "{} - {}.{}".format(song['ART_NAME'],
+                                            song['SNG_TITLE'],
+                                            file_extension)
     song_filename = clean_filename(song_filename)
 
     if search_type == TYPE_TRACK:
