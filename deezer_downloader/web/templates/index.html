@@ -74,20 +74,29 @@
          <h3>Download songs and albums</h3>
 
         <div class="input-group">
-            <div class="col-md-6 col-lg-5 col-xs-12">
+            <div class="col-md-6 col-lg-5 col-xs-12 p-0">
                 <input type="text" class="form-control" id="songs-albums-query" placeholder="Search for ..." >
+                <button type="button" class="btn btn-info" style="position: absolute; right: 0;top: 0; bottom: 0; text-decoration: none;border: none;background: none;padding: 0px 10px; color: black" onclick="$('#songs-albums-query').val('')" >
+                   <i class="fa fa-times"></i> 
+                </button>
             </div>
-            <div class="col-md-6 col-xs-12">
                 <span class="input-group-btn">
-                    <button type="button" class="btn btn-info" id="search_track">Search Track</button>
-                    <button type="button" class="btn btn-info" id="search_album">Search Album</button>
-
-                    <button type="button" class="btn btn-info" onclick="$('#songs-albums-query').val('')" id="clear_search">Clear</button>
+                    <button type="button" class="btn btn-info" id="search_deezer">Search</button>
                 </span>
-            </div>
+            <!-- <div class="col-md-6 col-xs-12"> -->
+            <!-- </div> -->
         </div>
+
+        <ul class="nav nav-pills pt-3">
+            <li class="nav-item">
+              <a id="deezer-search-song" class="nav-link active" href="#">Song</a>
+            </li>
+            <li class="nav-item">
+              <a id="deezer-search-album" class="nav-link" href="#">Albums</a>
+            </li>
+        </ul>
         
-         </br>
+        </br>
     
          <table id="results" class="table">
             <thead>

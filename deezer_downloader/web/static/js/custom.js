@@ -167,13 +167,27 @@ $(document).ready(function() {
         });
     }
 
-    $("#search_track").click(function() {
-        search("track");
+    let search_type = "track";
+    $("#search_deezer").click(function() {
+        search(search_type);
     });
 
-    $("#search_album").click(function() {
-        search("album");
+    $("#deezer-search-song").click(function() {
+        if (search_type == "track") return;
+        search_type = "track";
+        $("#deezer-search-song").addClass("active");
+        $("#deezer-search-album").removeClass("active");
+        search(search_type);
     });
+
+    $("#deezer-search-album").click(function() {
+        if (search_type == "album") return;
+        search_type = "album";
+        $("#deezer-search-album").addClass("active");
+        $("#deezer-search-song").removeClass("active");
+        search(search_type);
+    });
+
     
     $("#yt_download").click(function() {
         youtubedl_download(false);
@@ -251,12 +265,9 @@ $(document).ready(function() {
     var bbody = document.getElementById('body');
     bbody.onkeydown = function (event) {
         if (event.key !== undefined) {
-           if (event.key === 'Enter' && event.altKey) {
-               console.log("pressed Enter + ALT");
-               search("album");
-           }  else if (event.key === 'Enter' ) {
+           if (event.key === 'Enter' ) {
                console.log("pressed Enter");
-               search("track");
+               search(search_type);
            } else if (event.key === 'm' && event.ctrlKey) {
               console.log("pressed ctrl m");
               $("#songs-albums-query")[0].value = "";
