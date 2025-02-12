@@ -8,7 +8,6 @@ local_obj = threading.local()
 class ThreadpoolScheduler:
 
     def __init__(self):
-        print("Starting Threadpool")
         self.task_queue = Queue() # threadsafe queue where we put/get QueuedTask objects
         self.worker_threads = [] # list of WorkerThread objects
 
@@ -42,7 +41,7 @@ class ThreadpoolScheduler:
             self.task_queue.put(False)
         for worker in self.worker_threads:
             worker.join()
-        print("All workers stopped")
+        # print("All workers stopped")
 
 
 class WorkerThread(threading.Thread):
@@ -54,26 +53,25 @@ class WorkerThread(threading.Thread):
 
     def run(self):
         while True:
-            print(f"Worker {self.index} is waiting for a task")
+            # print(f"Worker {self.index} is waiting for a task")
             task = self.task_queue.get(block=True)
             if not task:
-                print(f"Worker {self.index} is exiting")
+                # print(f"Worker {self.index} is exiting")
                 return
-            print(f"Worker {self.index} is now working on task: {task.kwargs}")
+            # print(f"Worker {self.index} is now working on task: {task.kwargs}")
             task.state = "active"
             self.ts_started = time.time()
             task.worker_index = self.index
             local_obj.current_task = task
             try:
                 task.result = task.exec()
-                print("Setting state to mission accomplished to worker", self.index)
                 task.state = "mission accomplished"
             except Exception as ex:
                 print(f"Task {task.fn_name} failed with parameters '{task.kwargs}'\nReason: {ex}")
                 task.state = "failed"
                 task.exception = ex
             self.ts_finished = time.time()
-            print(f"worker {self.index} is done with task: {task.kwargs} (state={task.state})")
+            # print(f"worker {self.index} is done with task: {task.kwargs} (state={task.state})")
 
 
 class QueuedTask:
