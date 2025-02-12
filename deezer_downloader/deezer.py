@@ -459,9 +459,15 @@ def deezer_search(search, search_type):
     if search_type == TYPE_ALBUM_TRACK:
         resp = get_song_infos_from_deezer_website(TYPE_ALBUM, search)
     else:
-        resp = session.get("https://api.deezer.com/search/{}?q={}".format(search_type, search)).json()['data']
+        try:
+            resp = session.get("https://api.deezer.com/search/{}?q={}".format(search_type, search))
+            resp.raise_for_status()
+            data = resp.json()
+            data = data['data']
+        except (requests.exceptions.RequestException, KeyError) as e:
+            raise DeezerApiException(f"Could not search for track '{search}': {e}") from e
     return_nice = []
-    for item in resp:
+    for item in data:
         i = {}
         if search_type == TYPE_ALBUM:
             i['id'] = str(item['id'])

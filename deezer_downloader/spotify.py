@@ -55,7 +55,7 @@ def parse_uri(uri):
     raise SpotifyInvalidUrlException("ERROR: unable to determine Spotify URL type or type is unsupported.")
 
 
-def get_songs_from_spotify_website(playlist, proxy):
+def get_songs_from_spotify_website(playlist, proxy=None):
     # parses Spotify Playlist from Spotify website
     # playlist: playlist url or playlist id as string
     # proxy: https/socks5 proxy (e. g. socks5://user:pass@127.0.0.1:1080/)
@@ -128,6 +128,7 @@ def get_json_from_api(api_url, access_token, proxy):
 if __name__ == '__main__':
     # playlist = "21wZXvtrERELL0bVtKtuUh"
     playlist = "0wl9Q3oedquNlBAJ4MGZtS"
-    album = "spotify:album:7zCODUHkfuRxsUjtuzNqbd"
-    song = "https://open.spotify.com/track/6piFKF6WvM6ZZLmi2Vz8Vt"
+    playlist = "76bsnIYWIZOCjCpSJB876p"
+    #album = "spotify:album:7zCODUHkfuRxsUjtuzNqbd"
+    #song = "https://open.spotify.com/track/6piFKF6WvM6ZZLmi2Vz8Vt"
     print(get_songs_from_spotify_website(playlist))
