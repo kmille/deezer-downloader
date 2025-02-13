@@ -18,6 +18,7 @@
   <script src="{{ static_root }}/js/jquery.jgrowl.min.js"></script>
   <link rel="stylesheet" href="{{ static_root }}/css/font-awesome.min.css">
   <link rel="stylesheet" type="text/css" href="{{ static_root }}/css/jquery.jgrowl.min.css" />
+  <link rel="stylesheet" type="text/css" href="{{ static_root }}/css/custom.css" />
 
 <style>
     .footer {
@@ -74,31 +75,23 @@
          <h3>Download songs and albums</h3>
 
         <div class="input-group">
-            <div class="col-md-6 col-lg-5 col-xs-12 p-0">
-                <input type="text" class="form-control" id="songs-albums-query" placeholder="Search for ..." >
-                <button type="button" class="btn btn-info" style="position: absolute; right: 0;top: 0; bottom: 0; text-decoration: none;border: none;background: none;padding: 0px 10px; color: black" onclick="$('#songs-albums-query').val('')" >
-                   <i class="fa fa-times"></i> 
+            <div class="search-container col-md-6 col-lg-5 col-xs-12">
+                <input type="text" class="search" id="songs-albums-query" placeholder="Search for ..." >
+                <button type="button" class="search" onclick="$('#songs-albums-query').val('')" class="search">
+                    <i class="fa fa-times"></i>
+                </button>
+                <button type="button" class="search" id="search_deezer">
+                    <i class="fa fa-search"></i>
                 </button>
             </div>
-            <span class="input-group-btn">
-                <button type="button" class="btn btn-info" id="search_deezer">Search</button>
-            </span>
         </div>
 
-        <ul class="nav nav-pills pt-3">
-            <li class="nav-item">
-              <a id="deezer-search-song" class="nav-link active" href="#">Songs</a>
-            </li>
-            <li class="nav-item">
-              <a id="deezer-search-album" class="nav-link" href="#">Albums</a>
-            </li>
-            <li class="nav-item">
-              <a id="deezer-search-artist" class="nav-link" href="#">Artist</a>
-            </li>
-        </ul>
+        <div class="tabs-category">
+            <button id="deezer-search-song" class="btn-category active" href="#">Songs</button>
+            <button id="deezer-search-album" class="btn-category" href="#">Albums</button>
+            <button id="deezer-search-artist" class="btn-category" href="#">Artist</button>
+        </div>
         
-        </br>
-    
          <table id="results" class="table">
             <thead>
                 <tr>
