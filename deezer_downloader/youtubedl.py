@@ -43,9 +43,6 @@ def youtubedl_download(url, destination_dir, proxy=None):
 
     video_url = quote(url)
     if proxy:
-        if proxy.startswith("socks5h://"):
-            # https://github.com/yt-dlp/yt-dlp/issues/6325
-            proxy = proxy.replace("socks5h://", "socks5://")
         youtube_dl_cmd = config["youtubedl"]["command"] + f" --proxy {proxy} -x --audio-format mp3 --audio-quality 0 {video_url} -o '{destination_dir}/%(title)s.%(ext)s'"
     else:
         youtube_dl_cmd = config["youtubedl"]["command"] + " -x --audio-format mp3 --audio-quality 0 {video_url} -o '{destination_dir}/%(title)s.%(ext)s'"
