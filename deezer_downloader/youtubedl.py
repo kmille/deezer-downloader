@@ -41,13 +41,17 @@ def youtubedl_download(url, destination_dir, proxy=None):
     # YoutubeDLFailedException if youtube-dl exits with non-zero
     # DownloadedFileNotFoundException if we cannot get the converted output file from youtube-dl with a regex
 
-    video_url = quote(url)
-    if proxy:
-        youtube_dl_cmd = config["youtubedl"]["command"] + f" --proxy {proxy} -x --audio-format mp3 --audio-quality 0 {video_url} -o '{destination_dir}/%(title)s.%(ext)s'"
-    else:
-        youtube_dl_cmd = config["youtubedl"]["command"] + " -x --audio-format mp3 --audio-quality 0 {video_url} -o '{destination_dir}/%(title)s.%(ext)s'"
-    cmd = youtube_dl_cmd.format(video_url=video_url, destination_dir=destination_dir)
-    filename_absolute = execute(cmd)
+    proxy_command = f" --proxy {proxy}" if proxy else ""
+    youtube_dl_cmd = config["youtubedl"]["command"] + \
+        proxy_command + \
+        " -x --audio-format mp3 " + \
+        "--audio-quality 0 " + \
+        f"-o '{destination_dir}/%(title)s.%(ext)s' " + \
+        "--embed-metadata " + \
+        "--no-embed-chapters " + \
+        quote(url)
+
+    filename_absolute = execute(youtube_dl_cmd)
     return filename_absolute
 
 
