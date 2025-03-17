@@ -1,11 +1,43 @@
 import re
+import time
+import hmac
+import hashlib
 from time import sleep
 from urllib.parse import urlparse, parse_qs
+from typing import Tuple, Callable
 
 import requests
 
-token_url = 'https://open.spotify.com/get_access_token?reason=transport&productType=web_player'
-playlist_base_url = 'https://api.spotify.com/v1/playlists/{}/tracks?limit=100&additional_types=track&market=GB'  # todo figure out market
+_TOTP_SECRET = bytearray([53, 53, 48, 55, 49, 52, 53, 56, 53, 51, 52, 56, 55,
+                          52, 57, 57, 53, 57, 50, 50, 52, 56, 54, 51, 48, 51, 50, 57, 51, 52, 55])
+
+
+def generate_totp(
+    secret: bytes = _TOTP_SECRET,
+    algorithm: Callable[[], object] = hashlib.sha1,
+    digits: int = 6,
+    counter_factory: Callable[[], int] = lambda: int(time.time()) // 30,
+) -> Tuple[str, int]:
+    counter = counter_factory()
+    hmac_result = hmac.new(
+        secret, counter.to_bytes(8, byteorder="big"), algorithm
+    ).digest()
+
+    offset = hmac_result[-1] & 15
+    truncated_value = (
+        (hmac_result[offset] & 127) << 24
+        | (hmac_result[offset + 1] & 255) << 16
+        | (hmac_result[offset + 2] & 255) << 8
+        | (hmac_result[offset + 3] & 255)
+    )
+    return (
+        str(truncated_value % (10**digits)).zfill(digits),
+        counter * 30_000,
+    )
+
+
+token_url = 'https://open.spotify.com/get_access_token'
+playlist_base_url = 'https://api.spotify.com/v1/playlists/{}/tracks?limit=100&additional_types=track&market=GB' # todo figure out market
 track_base_url = 'https://api.spotify.com/v1/tracks/{}'
 album_base_url = 'https://api.spotify.com/v1/albums/{}/tracks'
 headers = {
@@ -68,7 +100,17 @@ def get_songs_from_spotify_website(playlist, proxy=None):
     return_data = []
     url_info = parse_uri(playlist)
 
-    req = requests.get(token_url, headers=headers, proxies={"https": proxy})
+    totp, timestamp = generate_totp()
+
+    params = {
+        "reason": "transport",
+        "productType": "web_player",
+        "totp": totp,
+        "totpVer": 5,
+        "ts": timestamp,
+    }
+
+    req = requests.get(token_url, headers=headers, params=params, proxies={"https": proxy})
     if req.status_code != 200:
         raise SpotifyWebsiteParserException(
             "ERROR: {} gave us not a 200. Instead: {}".format(token_url, req.status_code))
@@ -78,6 +120,11 @@ def get_songs_from_spotify_website(playlist, proxy=None):
         url = playlist_base_url.format(url_info["id"])
         while True:
             resp = get_json_from_api(url, token["accessToken"], proxy)
+            if resp is None:  # try again in case of rate limit
+                resp = get_json_from_api(url, token["accessToken"], proxy)
+                if resp is None:
+                    break
+
             for track in resp['items']:
                 return_data.append(parse_track(track["track"]))
 
@@ -112,10 +159,10 @@ def parse_track(track):
 
 def get_json_from_api(api_url, access_token, proxy):
     headers.update({'Authorization': 'Bearer {}'.format(access_token)})
-    req = requests.get(api_url, headers=headers, proxies={"https": proxy})
+    req = requests.get(api_url, headers=headers, proxies={"https": proxy}, timeout=10)
 
     if req.status_code == 429:
-        seconds = int(req.headers.get("Retry-After")) + 1
+        seconds = int(req.headers.get("Retry-After", "5")) + 1
         print("INFO: rate limited! Sleeping for {} seconds".format(seconds))
         sleep(seconds)
         return None
