@@ -405,7 +405,7 @@ def download_song(song: dict, output_file: str) -> None:
     except Exception as e:
         raise DeezerApiException(f"Could not write song to disk: {e}") from e
     else:
-        print("Dowload finished: {}".format(output_file))
+        print("Download finished: {}".format(output_file))
 
 
 def get_song_infos_from_deezer_website(search_type, id):
