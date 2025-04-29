@@ -23,10 +23,10 @@ waitress = "^3.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
-pdbpp = "^0.10.3"
 pytest = "^8.3.2"
 python-magic = "^0.4.27"
 flake8 = "^7.1.1"
+pdbpp = "^0.11.6"
 
 [build-system]
 requires = ["poetry-core"]
