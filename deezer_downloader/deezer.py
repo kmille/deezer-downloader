@@ -174,7 +174,6 @@ def writeid3v1_1(fo, song):
             return b""
 
     def album_get(key):
-        global album_Data
         try:
             return album_Data.get(key).encode('utf-8')
         except:
@@ -218,7 +217,6 @@ def writeid3v2(fo, song):
         return struct.pack(">4sLH", tag.encode("ascii"), len(content), 0) + content
 
     def album_get(key):
-        global album_Data
         try:
             return album_Data.get(key)
         except:
