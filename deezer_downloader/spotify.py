@@ -37,11 +37,21 @@ def generate_totp(
 
 
 token_url = 'https://open.spotify.com/get_access_token'
-playlist_base_url = 'https://api.spotify.com/v1/playlists/{}/tracks?limit=100&additional_types=track&market=GB' # todo figure out market
+playlist_base_url = 'https://api.spotify.com/v1/playlists/{}/tracks?limit=100&additional_types=track' # todo figure out market
 track_base_url = 'https://api.spotify.com/v1/tracks/{}'
 album_base_url = 'https://api.spotify.com/v1/albums/{}/tracks'
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36'}
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Accept': 'application/json',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'sec-ch-ua-platform': '"Windows"',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-origin',
+    'Referer': 'https://open.spotify.com/',
+    'Origin': 'https://open.spotify.com'
+}
 
 
 class SpotifyInvalidUrlException(Exception):
@@ -103,8 +113,8 @@ def get_songs_from_spotify_website(playlist, proxy=None):
     totp, timestamp = generate_totp()
 
     params = {
-        "reason": "transport",
-        "productType": "web_player",
+        "reason": "init",
+        "productType": "web-player",
         "totp": totp,
         "totpVer": 5,
         "ts": timestamp,
