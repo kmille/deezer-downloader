@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 from subprocess import Popen, PIPE
 from functools import wraps
 import requests
@@ -92,7 +93,13 @@ def index():
 
 @app.route("/debug")
 def show_debug():
-    p = Popen(config["debug"]["command"], shell=True, stdout=PIPE)
+    if "LOG_FILE" in os.environ:
+        # check env LOG_FILE in Dockerfile
+        # overwriting config value when using Docker
+        cmd = f"tail -n 100 {os.environ['LOG_FILE']}"
+    else:
+        cmd = config["debug"]["command"]
+    p = Popen(cmd, shell=True, stdout=PIPE)
     p.wait()
     stdout, __ = p.communicate()
     return jsonify({'debug_msg': stdout.decode()})
