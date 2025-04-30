@@ -1,12 +1,14 @@
 ---
-version: '2'
-
 services:
   deezer-downloader:
-    build: .
+    build: ../../
     environment:
       - DEEZER_COOKIE_ARL=changeme
     volumes:
       - ./downloads:/mnt/deezer-downloader
     ports:
       - "5000:5000"
+    security_opt:
+      - no-new-privileges
+    cap_drop:
+      - ALL
