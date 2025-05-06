@@ -1,8 +1,9 @@
 import os
 import unittest
-import magic
 import pytest
 from pathlib import Path
+from mutagen.mp3 import MP3
+from mutagen import MutagenError
 
 from deezer_downloader.configuration import load_config
 
@@ -208,6 +209,19 @@ class TestDeezerMethods(unittest.TestCase):
             self.assertIsInstance(song, int)
     # END: get_deezer_favorites
 
+    def _test_mp3_metadata_deezer_song(self, test_file):
+        try:
+            audio = MP3(test_file)
+        except MutagenError as e:
+            pytest.fail(f"File is not in mp3 format: {e}")
+        self.assertEqual(audio['TPE1'].text[0], 'Faber')
+        self.assertEqual(audio['TALB'].text[0], 'Alles Gute')
+        self.assertEqual(audio['TIT2'].text[0], 'Tausendfrankenlang')
+        self.assertEqual(audio['TRCK'].text[0], '4')
+        self.assertEqual(audio['TDRC'].text[0].year, 2015)
+        self.assertEqual(audio['TPOS'].text[0], '1')
+        self.assertTrue('APIC:Cover' in audio)
+
     # BEGIN: test_download_song_validownload_song
     def test_download_song_valid_mp3(self):
         song_infos = deezer_search("faber tausendfrankenlang", TYPE_TRACK)[0]
@@ -220,9 +234,7 @@ class TestDeezerMethods(unittest.TestCase):
         download_song(song, test_song)
         file_exists = os.path.exists(test_song)
         self.assertEqual(file_exists, True)
-        file_type = magic.from_file(test_song)
-        print(file_type)
-        self.assertIn("Audio file with ID3 version", file_type)
+        self._test_mp3_metadata_deezer_song(test_song)
         os.remove(test_song)
 
     def test_download_song_invalid_song_type(self):
@@ -292,15 +304,19 @@ class TestYoutubeMethods(unittest.TestCase):
 
     @pytest.mark.xfail(is_github_ci, reason="Fails with 'Sign in to confirm you’re not a bot. This helps protect our community. Learn more'", raises=YoutubeDLFailedException)
     def test_youtube_dl_valid_url(self):
-        Path("/tmp/Pharrell Williams - Happy (Video).mp3").unlink(missing_ok=True)
+        out_file = Path("/tmp/Pharrell Williams - Happy (Video).mp3")
+        out_file.unlink(missing_ok=True)
         url = "https://www.youtube.com/watch?v=ZbZSe6N_BXs"
         destination_file = youtubedl_download(url, "/tmp")
-        file_exists = os.path.exists(destination_file)
-        self.assertEqual(file_exists, True)
-        file_type = magic.from_file(destination_file)
-        os.remove(destination_file)
-        # I test this in two seperate lines because on Ubuntu 18.04, there is an additional space in it (I don't know why. Different ffmpeg package?)
-        self.assertIn("Audio file with ID3 version 2.4.0", file_type)
+        self.assertEqual(out_file.as_posix(), destination_file)
+        self.assertTrue(out_file.exists())
+        try:
+            audio = MP3(out_file)
+            self.assertEqual(audio['TPE1'].text[0], 'Pharrell Williams')
+            self.assertEqual(audio['TIT2'].text[0], 'Pharrell Williams - Happy (Video)')
+        except MutagenError as e:
+            pytest.fail(f"File is not in mp3 format: {e}")
+        out_file.unlink()
 
     def test_youtube_dl_invalid_url(self):
         url = "https://www.heise.de"
