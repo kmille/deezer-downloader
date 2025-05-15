@@ -176,7 +176,6 @@ def writeid3v1_1(fo, song):
             return b""
 
     def album_get(key):
-        global album_Data
         try:
             return album_Data.get(key).encode('utf-8')
         except:
@@ -220,7 +219,6 @@ def writeid3v2(fo, song):
         return struct.pack(">4sLH", tag.encode("ascii"), len(content), 0) + content
 
     def album_get(key):
-        global album_Data
         try:
             return album_Data.get(key)
         except:
@@ -407,7 +405,7 @@ def download_song(song: dict, output_file: str) -> None:
     except Exception as e:
         raise DeezerApiException(f"Could not write song to disk: {e}") from e
     else:
-        print("Dowload finished: {}".format(output_file))
+        print("Download finished: {}".format(output_file))
 
 
 def get_song_infos_from_deezer_website(search_type, id):
@@ -458,15 +456,21 @@ def deezer_search(search, search_type):
         print("ERROR: search_type is wrong: {}".format(search_type))
         return []
     search = urllib.parse.quote_plus(search)
-    if search_type == TYPE_ALBUM_TRACK:
-        resp = get_song_infos_from_deezer_website(TYPE_ALBUM, search)
-    elif search_type == TYPE_ARTIST_ALBUM:
-        print('https://api.deezer.com/artist/{}/albums'.format(search))
-        resp = session.get("https://api.deezer.com/artist/{}/albums".format(search)).json()['data']
-    else:
-        resp = session.get("https://api.deezer.com/search/{}?q={}".format(search_type, search)).json()['data']
+    try:
+        if search_type == TYPE_ALBUM_TRACK:
+            resp = get_song_infos_from_deezer_website(TYPE_ALBUM, search)
+        elif search_type == TYPE_ARTIST_ALBUM:
+            print('https://api.deezer.com/artist/{}/albums'.format(search))
+            resp = session.get("https://api.deezer.com/artist/{}/albums".format(search)).json()['data']
+        else:
+            resp = session.get("https://api.deezer.com/search/{}?q={}".format(search_type, search))
+            resp.raise_for_status()
+            data = resp.json()
+            data = data['data']
+    except (requests.exceptions.RequestException, KeyError) as e:
+        raise DeezerApiException(f"Could not search for track '{search}': {e}") from e
     return_nice = []
-    for item in resp:
+    for item in data:
         i = {}
         if search_type == TYPE_ALBUM:
             i['id'] = str(item['id'])

@@ -21,6 +21,8 @@ RUN pip install deezer_downloader*.whl && \
     sed -i 's,/tmp/deezer-downloader,/mnt/deezer-downloader,' /etc/deezer-downloader.ini && \
     rm deezer_downloader*.whl
 
+ENV LOG_FILE=/tmp/deezer-downloader.log
+
 USER deezer
 EXPOSE 5000
-ENTRYPOINT ["/usr/local/bin/deezer-downloader", "--config", "/etc/deezer-downloader.ini"]
+CMD /bin/sh -c "/usr/local/bin/deezer-downloader --config /etc/deezer-downloader.ini | tee $LOG_FILE"

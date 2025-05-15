@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 from subprocess import Popen, PIPE
 from functools import wraps
 import requests
@@ -6,6 +7,7 @@ import atexit
 from flask import Flask, render_template, request, jsonify
 from markupsafe import escape
 from flask_autoindex import AutoIndex
+import warnings
 import giphypop
 
 from deezer_downloader.configuration import config
@@ -16,6 +18,7 @@ app = Flask(__name__)
 auto_index = AutoIndex(app, config["download_dirs"]["base"], add_url_rules=False)
 auto_index.add_icon_rule('music.png', ext='m3u8')
 
+warnings.filterwarnings("ignore", message="You are using the giphy public api key")
 giphy = giphypop.Giphy()
 
 
@@ -90,7 +93,13 @@ def index():
 
 @app.route("/debug")
 def show_debug():
-    p = Popen(config["debug"]["command"], shell=True, stdout=PIPE)
+    if "LOG_FILE" in os.environ:
+        # check env LOG_FILE in Dockerfile
+        # overwriting config value when using Docker
+        cmd = f"tail -n 100 {os.environ['LOG_FILE']}"
+    else:
+        cmd = config["debug"]["command"]
+    p = Popen(cmd, shell=True, stdout=PIPE)
     p.wait()
     stdout, __ = p.communicate()
     return jsonify({'debug_msg': stdout.decode()})

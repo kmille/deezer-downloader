@@ -138,7 +138,7 @@ def create_m3u8_file(songs_absolute_location):
     m3u8_filename = "00 {}.m3u8".format(os.path.basename(playlist_directory))
     print("Creating m3u8 file: '{}'".format(m3u8_filename))
     m3u8_file_abs = os.path.join(playlist_directory, m3u8_filename)
-    with open(m3u8_file_abs, "w") as f:
+    with open(m3u8_file_abs, "w", encoding="utf-8") as f:
         for song in songs_absolute_location:
             if os.path.exists(song):
                 f.write(basename(song) + "\n")
@@ -203,15 +203,10 @@ def download_spotify_playlist_and_queue_and_zip(playlist_name, playlist_id, add_
         try:
             track_id = deezer_search(song_of_playlist, TYPE_TRACK)[0]['id'] #[0] can throw IndexError
             song = get_song_infos_from_deezer_website(TYPE_TRACK, track_id)
-            try:
-                absolute_filename = download_song_and_get_absolute_filename(TYPE_PLAYLIST, song, playlist_name)
-                songs_absolute_location.append(absolute_filename)
-            except Exception as e:
-                print(f"Warning: {e}. Continuing with Spotify playlist...")
-        except (IndexError, Deezer403Exception, Deezer404Exception) as msg:
-            print(msg)
-            print(f"Could not find Spotify song ({song_of_playlist}) on Deezer?")
-            # return
+            absolute_filename = download_song_and_get_absolute_filename(TYPE_PLAYLIST, song, playlist_name)
+            songs_absolute_location.append(absolute_filename)
+        except Exception as e:
+            print(f"Warning: Could not download Spotify song ({song_of_playlist}) on Deezer: {e}")
     update_mpd_db(songs_absolute_location, add_to_playlist)
     songs_with_m3u8_file = create_m3u8_file(songs_absolute_location)
     if create_zip:
