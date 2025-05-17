@@ -456,11 +456,15 @@ def deezer_search(search, search_type):
         print("ERROR: search_type is wrong: {}".format(search_type))
         return []
     search = urllib.parse.quote_plus(search)
+    data = []
     try:
         if search_type == TYPE_ALBUM_TRACK:
-            resp = get_song_infos_from_deezer_website(TYPE_ALBUM, search)
+            data = get_song_infos_from_deezer_website(TYPE_ALBUM, search)
         elif search_type == TYPE_ARTIST_ALBUM:
-            resp = session.get("https://api.deezer.com/artist/{}/albums".format(search)).json()['data']
+            resp = session.get("https://api.deezer.com/artist/{}/albums".format(search))
+            resp.raise_for_status()
+            data = resp.json()
+            data = data['data']
         else:
             resp = session.get("https://api.deezer.com/search/{}?q={}".format(search_type, search))
             resp.raise_for_status()

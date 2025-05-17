@@ -88,7 +88,9 @@ $(document).ready(function() {
 
 
     function search(type) {
-        deezer_load_list(type, $('#songs-albums-query').val());
+        const query = $('#songs-albums-query').val();
+        if (!query.length) return ;
+        deezer_load_list(type, query);
     }
 
     function deezer_load_list(type, query) {
@@ -195,10 +197,10 @@ $(document).ready(function() {
         search(search_type);
     });
 
-    $("#deezer-search-song").click(function() {
+    $("#deezer-search-track").click(function() {
         if (search_type == "track") return;
         search_type = "track";
-        $("#deezer-search-song").addClass("active");
+        $("#deezer-search-track").addClass("active");
         $("#deezer-search-album").removeClass("active");
         $("#deezer-search-artist").removeClass("active");
         search(search_type);
@@ -208,7 +210,7 @@ $(document).ready(function() {
         if (search_type == "album") return;
         search_type = "album";
         $("#deezer-search-album").addClass("active");
-        $("#deezer-search-song").removeClass("active");
+        $("#deezer-search-track").removeClass("active");
         $("#deezer-search-artist").removeClass("active");
         search(search_type);
     });
@@ -217,7 +219,7 @@ $(document).ready(function() {
         if (search_type == "artist") return;
         search_type = "artist";
         $("#deezer-search-artist").addClass("active");
-        $("#deezer-search-song").removeClass("active");
+        $("#deezer-search-track").removeClass("active");
         $("#deezer-search-album").removeClass("active");
         search(search_type);
     });
