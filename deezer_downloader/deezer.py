@@ -21,7 +21,7 @@ TYPE_ARTIST = "artist"
 TYPE_PLAYLIST = "playlist"
 TYPE_ALBUM_TRACK = "album_track" # used for listing songs of an album
 TYPE_ARTIST_ALBUM = "artist_album" # used for listing albums of an artist
-TYPE_ARTIST_TOP = "artist_top" # used for listing albums of an artist
+TYPE_ARTIST_TOP = "artist_top" # used for listing top tracks of an artist
 # END TYPES
 
 session = None
