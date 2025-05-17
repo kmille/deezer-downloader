@@ -113,8 +113,13 @@ $(document).ready(function() {
             $("#col-title").show();
             $("#col-album").show();
             $("#col-artist").show();
-            row.append($("<td><img src='"+rowData.img_url+"' style='cursor: pointer; border-radius: 3px'></td>")
-                .click(() => play_preview(rowData.preview_url)));
+            if (mtype !== "album_track") {
+                $("#col-cover").show();
+                row.append($("<td><img src='"+rowData.img_url+"' style='cursor: pointer; border-radius: 3px'></td>")
+                    .click(() => play_preview(rowData.preview_url)));
+            } else {
+                $("#col-cover").hide();
+            }
             row.append($("<td>" + rowData.artist + "</td>"));
             row.append($("<td>" + rowData.title + "</td>"));
             row.append($("<td>" + rowData.album + "</td>"));
@@ -123,6 +128,7 @@ $(document).ready(function() {
                     .click(() => play_preview(rowData.preview_url)));
             }
         } else if (mtype === "album" || mtype === "artist_album") {
+            $("#col-cover").show();
             $("#col-title").hide();
             $("#col-album").show();
             $("#col-artist").show();
@@ -133,6 +139,7 @@ $(document).ready(function() {
             button_col.append($('<button class="btn btn-default"> <i class="fa fa-list fa-lg" title="list album songs" ></i> </button>')
                 .click(() => deezer_load_list("album_track", rowData.album_id)));
         } else if (mtype === "artist") {
+            $("#col-cover").show();
             $("#col-artist").show();
             $("#col-album").hide();
             $("#col-title").hide();
