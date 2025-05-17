@@ -21,6 +21,7 @@ TYPE_ARTIST = "artist"
 TYPE_PLAYLIST = "playlist"
 TYPE_ALBUM_TRACK = "album_track" # used for listing songs of an album
 TYPE_ARTIST_ALBUM = "artist_album" # used for listing albums of an artist
+TYPE_ARTIST_TOP = "artist_top" # used for listing albums of an artist
 # END TYPES
 
 session = None
@@ -452,14 +453,18 @@ def deezer_search(search, search_type):
     # search_type: either one of the constants: TYPE_TRACK|TYPE_ALBUM|TYPE_ALBUM_TRACK (TYPE_PLAYLIST is not supported)
     # return: list of dicts (keys depend on search_type)
 
-    if search_type not in [TYPE_TRACK, TYPE_ALBUM, TYPE_ARTIST, TYPE_ALBUM_TRACK, TYPE_ARTIST_ALBUM]:
+    if search_type not in [TYPE_TRACK, TYPE_ALBUM, TYPE_ARTIST, TYPE_ALBUM_TRACK, TYPE_ARTIST_ALBUM, TYPE_ARTIST_TOP]:
         print("ERROR: search_type is wrong: {}".format(search_type))
         return []
     search = urllib.parse.quote_plus(search)
-    data = []
     try:
         if search_type == TYPE_ALBUM_TRACK:
             data = get_song_infos_from_deezer_website(TYPE_ALBUM, search)
+        elif search_type == TYPE_ARTIST_TOP:
+            resp = session.get("https://api.deezer.com/artist/{}/top?limit=20".format(search))
+            resp.raise_for_status()
+            data = resp.json()
+            data = data['data']
         elif search_type == TYPE_ARTIST_ALBUM:
             resp = session.get("https://api.deezer.com/artist/{}/albums".format(search))
             resp.raise_for_status()
@@ -485,7 +490,7 @@ def deezer_search(search, search_type):
             i['title'] = ''
             i['preview_url'] = ''
 
-        if search_type == TYPE_TRACK:
+        if search_type == TYPE_TRACK or search_type == TYPE_ARTIST_TOP:
             i['id'] = str(item['id'])
             i['id_type'] = TYPE_TRACK
             i['title'] = item['title']

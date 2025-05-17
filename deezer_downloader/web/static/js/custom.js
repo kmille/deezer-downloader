@@ -109,7 +109,7 @@ $(document).ready(function() {
         $("#results").append(row); 
         var button_col = $("<td style='text-align: end'>");
 
-        if (mtype === "track" || mtype === "album_track") {
+        if (mtype === "track" || mtype === "album_track" || mtype === "artist_top") {
             $("#col-title").show();
             $("#col-album").show();
             $("#col-artist").show();
@@ -139,6 +139,8 @@ $(document).ready(function() {
             row.append($("<td><img src='"+rowData.img_url+"' style='cursor: pointer; border-radius: 29px'></td>")
                 .click(() => deezer_load_list("artist_album", rowData.artist_id)));
             row.append($("<td>" + rowData.artist + "</td>"));
+            button_col.append($('<button class="btn btn-default"> <i class="fa fa-arrow-up fa-lg" title="list artist top" ></i> </button>')
+                .click(() => deezer_load_list("artist_top", rowData.artist_id)));
             button_col.append($('<button class="btn btn-default"> <i class="fa fa-list fa-lg" title="list artist albums" ></i> </button>')
                 .click(() => deezer_load_list("artist_album", rowData.artist_id)));
         }
