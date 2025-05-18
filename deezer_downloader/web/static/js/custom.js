@@ -88,12 +88,14 @@ $(document).ready(function() {
 
 
     function search(type) {
-        deezer_load_list(type, $('#songs-albums-query').val());
+        const query = $('#songs-albums-query').val();
+        if (!query.length) return ;
+        deezer_load_list(type, query);
     }
 
     function deezer_load_list(type, query) {
         $.post(deezer_downloader_api_root + '/search',
-            JSON.stringify({ type: type, query: query }),
+            JSON.stringify({ type: type, query: query.toString() }),
             function(data) {
                 $("#results > tbody").html("");
                 for (var i = 0; i < data.length; i++) {
@@ -105,34 +107,66 @@ $(document).ready(function() {
     function drawTableEntry(rowData, mtype) {
         var row = $("<tr>");
         $("#results").append(row); 
-        row.append($("<td>" + rowData.artist + "</td>"));
-        row.append($("<td>" + rowData.title + "</td>"));
-        
-        row.append("<td><img src='"+rowData.img_url+"'> " + rowData.album + "</a></td>");
-        
-        if (rowData.preview_url) {
-            row.append($('<td> <button class="btn btn-default" onclick="play_preview(\'' + rowData.preview_url + '\');" > <i class="fa fa-headphones fa-lg" title="listen preview in browser" ></i> </button> </td>'));
-        }
-        
-        if (mtype == "album") {
-            row.append($('<td> <button class="btn btn-default"> <i class="fa fa-list fa-lg" title="list album songs" ></i> </button> </td>').click(function() {deezer_load_list("album_track", ""+rowData.album_id + "")}));
-        }
-        
-        if(show_mpd_features) {
-        row.append($('<td> <button class="btn btn-default" onclick="deezer_download(\'' +
-                     rowData.id  + '\', \''+ rowData.id_type +
-                     '\', true, false);" > <i class="fa fa-play-circle fa-lg" title="download and queue to mpd" ></i> </button> </td>'));
-        }
+        var button_col = $("<td style='text-align: end'>");
 
-        row.append($('<td> <button class="btn btn-default" onclick="deezer_download(\'' +
-                   rowData.id  + '\', \''+ rowData.id_type + 
-                   '\', false, false);" > <i class="fa fa-download fa-lg" title="download" ></i> </button> </td>'));
+        if (mtype === "track" || mtype === "album_track" || mtype === "artist_top") {
+            $("#col-title").show();
+            $("#col-album").show();
+            $("#col-artist").show();
+            if (mtype !== "album_track") {
+                $("#col-cover").show();
+                row.append($("<td><img src='"+rowData.img_url+"' style='cursor: pointer; border-radius: 3px'></td>")
+                    .click(() => play_preview(rowData.preview_url)));
+            } else {
+                $("#col-cover").hide();
+            }
+            row.append($("<td>" + rowData.artist + "</td>"));
+            row.append($("<td>" + rowData.title + "</td>"));
+            row.append($("<td>" + rowData.album + "</td>"));
+            if (rowData.preview_url) {
+                button_col.append($('<button class="btn btn-default"> <i class="fa fa-headphones fa-lg" title="listen preview in browser" ></i> </button>')
+                    .click(() => play_preview(rowData.preview_url)));
+            }
+        } else if (mtype === "album" || mtype === "artist_album") {
+            $("#col-cover").show();
+            $("#col-title").hide();
+            $("#col-album").show();
+            $("#col-artist").show();
+            row.append($("<td><img src='"+rowData.img_url+"' style='cursor: pointer; border-radius: 3px'></td>")
+                .click(() => deezer_load_list("album_track", rowData.album_id)));
+            row.append($("<td>" + rowData.artist + "</td>"));
+            row.append($("<td>" + rowData.album + "</td>"));
+            button_col.append($('<button class="btn btn-default"> <i class="fa fa-list fa-lg" title="list album songs" ></i> </button>')
+                .click(() => deezer_load_list("album_track", rowData.album_id)));
+        } else if (mtype === "artist") {
+            $("#col-cover").show();
+            $("#col-artist").show();
+            $("#col-album").hide();
+            $("#col-title").hide();
+            row.append($("<td><img src='"+rowData.img_url+"' style='cursor: pointer; border-radius: 29px'></td>")
+                .click(() => deezer_load_list("artist_album", rowData.artist_id)));
+            row.append($("<td>" + rowData.artist + "</td>"));
+            button_col.append($('<button class="btn btn-default"> <i class="fa fa-arrow-up fa-lg" title="list artist top songs" ></i> </button>')
+                .click(() => deezer_load_list("artist_top", rowData.artist_id)));
+            button_col.append($('<button class="btn btn-default"> <i class="fa fa-list fa-lg" title="list artist albums" ></i> </button>')
+                .click(() => deezer_load_list("artist_album", rowData.artist_id)));
+        }
+        
+
+        if (mtype !== "artist") {
+            if (show_mpd_features) {
+                button_col.append($('<button class="btn btn-default"> <i class="fa fa-play-circle fa-lg" title="download and queue to mpd" ></i> </button>')
+                    .click(() => deezer_download(rowData.id, rowData.id_type, true, false)));
+            }
+            button_col.append($('<button class="btn btn-default" > <i class="fa fa-download fa-lg" title="download" ></i> </button>')
+                .click(() => deezer_download(rowData.id, rowData.id_type, false, false)));
+        }
 
         if(rowData.id_type == "album") {
-            row.append($('<td> <button class="btn btn-default" onclick="deezer_download(\'' +
-                       rowData.id  + '\', \''+ rowData.id_type + 
-                       '\', false, true);" > <i class="fa fa-file-archive-o fa-lg" title="download as zip file" ></i> </button> </td>'));
+            button_col.append($('<button class="btn btn-default"> <i class="fa fa-file-archive-o fa-lg" title="download as zip file" ></i> </button>')
+            .click(() => deezer_download(rowData.id, rowData.id_type, false, true)));
         }
+        row.append(button_col);
     }
 
     function show_debug_log() {
@@ -167,13 +201,38 @@ $(document).ready(function() {
         });
     }
 
-    $("#search_track").click(function() {
-        search("track");
+    let search_type = "track";
+    $("#search_deezer").click(function() {
+        search(search_type);
     });
 
-    $("#search_album").click(function() {
-        search("album");
+    $("#deezer-search-track").click(function() {
+        if (search_type == "track") return;
+        search_type = "track";
+        $("#deezer-search-track").addClass("active");
+        $("#deezer-search-album").removeClass("active");
+        $("#deezer-search-artist").removeClass("active");
+        search(search_type);
     });
+
+    $("#deezer-search-album").click(function() {
+        if (search_type == "album") return;
+        search_type = "album";
+        $("#deezer-search-album").addClass("active");
+        $("#deezer-search-track").removeClass("active");
+        $("#deezer-search-artist").removeClass("active");
+        search(search_type);
+    });
+
+    $("#deezer-search-artist").click(function() {
+        if (search_type == "artist") return;
+        search_type = "artist";
+        $("#deezer-search-artist").addClass("active");
+        $("#deezer-search-track").removeClass("active");
+        $("#deezer-search-album").removeClass("active");
+        search(search_type);
+    });
+
     
     $("#yt_download").click(function() {
         youtubedl_download(false);
@@ -251,14 +310,9 @@ $(document).ready(function() {
     var bbody = document.getElementById('body');
     bbody.onkeydown = function (event) {
         if (event.key !== undefined) {
-           if (event.key === 'Enter' && event.altKey) {
-               console.log("pressed Enter + ALT");
-               search("album");
-           }  else if (event.key === 'Enter' ) {
-               console.log("pressed Enter");
-               search("track");
+           if (event.key === 'Enter' ) {
+               search(search_type);
            } else if (event.key === 'm' && event.ctrlKey) {
-              console.log("pressed ctrl m");
               $("#songs-albums-query")[0].value = "";
               $("#songs-albums-query")[0].focus();
            }

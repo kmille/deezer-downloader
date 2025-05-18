@@ -18,7 +18,10 @@ from binascii import a2b_hex, b2a_hex
 TYPE_TRACK = "track"
 TYPE_ALBUM = "album"
 TYPE_PLAYLIST = "playlist"
+TYPE_ARTIST = "artist"
 TYPE_ALBUM_TRACK = "album_track" # used for listing songs of an album
+TYPE_ARTIST_ALBUM = "artist_album" # used for listing albums of an artist
+TYPE_ARTIST_TOP = "artist_top" # used for listing top tracks of an artist
 # END TYPES
 
 session = None
@@ -450,35 +453,47 @@ def deezer_search(search, search_type):
     # search_type: either one of the constants: TYPE_TRACK|TYPE_ALBUM|TYPE_ALBUM_TRACK (TYPE_PLAYLIST is not supported)
     # return: list of dicts (keys depend on search_type)
 
-    if search_type not in [TYPE_TRACK, TYPE_ALBUM, TYPE_ALBUM_TRACK]:
+    if search_type not in [TYPE_TRACK, TYPE_ALBUM, TYPE_ARTIST, TYPE_ALBUM_TRACK, TYPE_ARTIST_ALBUM, TYPE_ARTIST_TOP]:
         print("ERROR: search_type is wrong: {}".format(search_type))
         return []
     search = urllib.parse.quote_plus(search)
+    if search_type == TYPE_ALBUM_TRACK:
+        url = f"https://api.deezer.com//album/{search}"
+    elif search_type == TYPE_ARTIST_TOP:
+        url = f"https://api.deezer.com/artist/{search}/top?limit=20"
+    elif search_type == TYPE_ARTIST_ALBUM:
+        url = f"https://api.deezer.com/artist/{search}/albums"
+    else:
+        url = f"https://api.deezer.com/search/{search_type}?q={search}"
+
     try:
+        resp = session.get(url)
+        resp.raise_for_status()
+        data = resp.json()
         if search_type == TYPE_ALBUM_TRACK:
-            data = get_song_infos_from_deezer_website(TYPE_ALBUM, search)
+            data = data["tracks"]['data']
         else:
-            resp = session.get("https://api.deezer.com/search/{}?q={}".format(search_type, search))
-            resp.raise_for_status()
-            data = resp.json()
             data = data['data']
     except (requests.exceptions.RequestException, KeyError) as e:
-        raise DeezerApiException(f"Could not search for track '{search}': {e}") from e
+        print(f"ERROR: Could not search for music: {e}")
+        return []
+
     return_nice = []
     for item in data:
         i = {}
-        if search_type == TYPE_ALBUM:
-            i['id'] = str(item['id'])
+        i['id'] = str(item['id'])
+        if search_type in (TYPE_ALBUM, TYPE_ARTIST_ALBUM):
             i['id_type'] = TYPE_ALBUM
             i['album'] = item['title']
             i['album_id'] = item['id']
             i['img_url'] = item['cover_small']
-            i['artist'] = item['artist']['name']
             i['title'] = ''
             i['preview_url'] = ''
-
-        if search_type == TYPE_TRACK:
-            i['id'] = str(item['id'])
+            i['artist'] = ''
+            if search_type == TYPE_ALBUM:
+                # strange API design? artist is not there when asking for ARTIST_ALBUMs
+                i['artist'] = item['artist']['name']
+        elif search_type in (TYPE_TRACK, TYPE_ARTIST_TOP, TYPE_ALBUM_TRACK):
             i['id_type'] = TYPE_TRACK
             i['title'] = item['title']
             i['img_url'] = item['album']['cover_small']
@@ -486,17 +501,15 @@ def deezer_search(search, search_type):
             i['album_id'] = item['album']['id']
             i['artist'] = item['artist']['name']
             i['preview_url'] = item['preview']
-
-        if search_type == TYPE_ALBUM_TRACK:
-            i['id'] = str(item['SNG_ID'])
-            i['id_type'] = TYPE_TRACK
-            i['title'] = item['SNG_TITLE']
-            i['img_url'] = '' # item['album']['cover_small']
-            i['album'] = item['ALB_TITLE']
-            i['album_id'] = item['ALB_ID']
-            i['artist'] = item['ART_NAME']
-            i['preview_url'] = next(media['HREF'] for media in item['MEDIA'] if media['TYPE'] == 'preview')
-
+        elif search_type == TYPE_ARTIST:
+            i['id_type'] = TYPE_ARTIST
+            i['title'] = ''
+            i['img_url'] = item['picture_small']
+            i['album'] = ''
+            i['album_id'] = ''
+            i['artist'] = item['name']
+            i['artist_id'] = item['id']
+            i['preview_url'] = ''
         return_nice.append(i)
     return return_nice
 
