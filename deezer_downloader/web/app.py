@@ -46,8 +46,8 @@ def validate_schema(*parameters_to_check):
             if set(j.keys()) != set(parameters_to_check):
                 return jsonify({"error": 'parameters missing, required fields: {}'.format(parameters_to_check)}), 400
             if "type" in j.keys():
-                if j['type'] not in ["album", "track", "album_track"]:
-                    return jsonify({"error": "type must be album, track or album_track"}), 400
+                if j['type'] not in ["album", "track", "artist", "album_track", "artist_album", "artist_top"]:
+                    return jsonify({"error": "type must be album, track, artist, album_track, artist_album or artist_top"}), 400
             if "music_id" in j.keys():
                 if type(j['music_id']) is not int:
                     return jsonify({"error": "music_id must be a integer"}), 400
