@@ -18,6 +18,7 @@
   <script src="{{ static_root }}/js/jquery.jgrowl.min.js"></script>
   <link rel="stylesheet" href="{{ static_root }}/css/font-awesome.min.css">
   <link rel="stylesheet" type="text/css" href="{{ static_root }}/css/jquery.jgrowl.min.css" />
+  <link rel="stylesheet" type="text/css" href="{{ static_root }}/css/custom.css" />
 
 <style>
     .footer {
@@ -74,27 +75,30 @@
          <h3>Download songs and albums</h3>
 
         <div class="input-group">
-            <div class="col-md-6 col-lg-5 col-xs-12">
-                <input type="text" class="form-control" id="songs-albums-query" placeholder="Search for ..." >
-            </div>
-            <div class="col-md-6 col-xs-12">
-                <span class="input-group-btn">
-                    <button type="button" class="btn btn-info" id="search_track">Search Track</button>
-                    <button type="button" class="btn btn-info" id="search_album">Search Album</button>
-
-                    <button type="button" class="btn btn-info" onclick="$('#songs-albums-query').val('')" id="clear_search">Clear</button>
-                </span>
+            <div class="search-container col-md-6 col-lg-5 col-xs-12">
+                <input type="text" class="search" id="songs-albums-query" placeholder="Search for ..." >
+                <button type="button" class="search" onclick="$('#songs-albums-query').val('')" class="search">
+                    <i class="fa fa-times"></i>
+                </button>
+                <button type="button" class="search" id="search_deezer">
+                    <i class="fa fa-search"></i>
+                </button>
             </div>
         </div>
+
+        <div class="tabs-category">
+            <button id="deezer-search-track" class="btn-category active" href="#">Tracks</button>
+            <button id="deezer-search-album" class="btn-category" href="#">Albums</button>
+            <button id="deezer-search-artist" class="btn-category" href="#">Artists</button>
+        </div>
         
-         </br>
-    
          <table id="results" class="table">
             <thead>
                 <tr>
-                    <th>Artist</th>
-                    <th>Title</th>
-                    <th>Album</th>
+                    <th id="col-cover" style="width: 56px"></th>
+                    <th id="col-artist">Artist</th>
+                    <th id="col-title">Title</th>
+                    <th id="col-album">Album</th>
                     <th></th>
                 </tr>
             </thead>
@@ -209,7 +213,6 @@
         <span class="text-muted">
 			ctrl+m: focus search bar |
 			Enter: search songs |
-			Alt+Enter: search albums | 
 			Ctrl+Shift+[1-7]: navigation | 
         </span>
         <a id="werbung" href="https://www.effektiv-spenden.org/spenden-tipps/warum-und-wie-ich-spende-gastbeitrag-christoph-hartmann/"><i class="fa fas fa-heart" title="ja, klick drauf." ></i> </a>
