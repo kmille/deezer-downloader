@@ -190,17 +190,17 @@ https://github.com/kmille/music-ansible (not maintained anymore)
 
 ## Screenshots
 
-Search for songs. You can listen to a 30 second preview in the browser.  
+Search for tracks. You can listen to a 30 second preview in the browser or download the song.
 
-![](/docs/screenshots/2020-05-13-211356_screenshot.png)  
+![](/docs/screenshots/2025-06-04-114639_screenshot.png)  
 
-Search for albums. You can download them as zip file.  
+Search for albums. You can list the songs of the album or download them (optionally as zip file).
 
-![](/docs/screenshots/2020-05-13-213544_screenshot.png)
+![](/docs/screenshots/2025-06-04-114645_screenshot.png)
 
-List songs of an album.
+Search for artists. You can then show the top songs of the artist or show the albums of the artist.
 
-![](/docs/screenshots/2020-05-13-211528_screenshot.png)
+![](/docs/screenshots/2025-06-04-114650_screenshot.png)
 
 Download songs with youtube-dl  
 
