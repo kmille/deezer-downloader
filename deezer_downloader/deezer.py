@@ -1,6 +1,7 @@
 import sys
 import re
 import json
+import os
 from typing import Optional, Sequence
 
 from deezer_downloader.configuration import config
@@ -12,6 +13,8 @@ import urllib.parse
 import html.parser
 import requests
 from binascii import a2b_hex, b2a_hex
+from mutagen.flac import FLAC, Picture
+from mutagen.id3 import ID3, APIC
 
 
 # BEGIN TYPES
@@ -395,18 +398,97 @@ def download_song(song: dict, output_file: str) -> None:
             raise
 
     key = calcbfkey(song["SNG_ID"])
+    is_flac = get_file_extension() == "flac"
+
     try:
         with session.get(url, stream=True) as response:
             response.raise_for_status()
             with open(output_file, "w+b") as fo:
-                # Add song cover and first 30 seconds of unencrypted data
-                writeid3v2(fo, song)
-                decryptfile(response, key, fo)
-                writeid3v1_1(fo, song)
+                if is_flac:
+                    # For FLAC files, we'll add metadata after downloading
+                    decryptfile(response, key, fo)
+                else:
+                    # For MP3 files, add ID3 tags as before
+                    writeid3v2(fo, song)
+                    decryptfile(response, key, fo)
+                    writeid3v1_1(fo, song)
+
+        # Add metadata to FLAC files using mutagen
+        if is_flac:
+            add_flac_metadata(output_file, song)
     except Exception as e:
         raise DeezerApiException(f"Could not write song to disk: {e}") from e
     else:
         print("Download finished: {}".format(output_file))
+
+
+def add_flac_metadata(output_file: str, song: dict) -> None:
+    """Add metadata to FLAC files using mutagen."""
+    try:
+        audio = FLAC(output_file)
+
+        # Add basic metadata
+        if "SNG_TITLE" in song:
+            audio["TITLE"] = song["SNG_TITLE"]
+        if "ART_NAME" in song:
+            audio["ARTIST"] = song["ART_NAME"]
+        if "ALB_TITLE" in song:
+            audio["ALBUM"] = song["ALB_TITLE"]
+        if "TRACK_NUMBER" in song:
+            audio["TRACKNUMBER"] = str(song["TRACK_NUMBER"])
+
+        # Add album artist if available
+        if "ALB_ART_NAME" in song:
+            audio["ALBUMARTIST"] = song["ALB_ART_NAME"]
+        elif "ART_NAME" in song:
+            audio["ALBUMARTIST"] = song["ART_NAME"]
+
+        # Add year if available
+        try:
+            if album_Data and "PHYSICAL_RELEASE_DATE" in album_Data:
+                release_date = album_Data["PHYSICAL_RELEASE_DATE"]
+                if release_date and len(release_date) >= 4:
+                    audio["DATE"] = release_date[:4]
+        except (NameError, KeyError, TypeError):
+            pass
+
+        # Add disc number if available
+        if "DISK_NUMBER" in song:
+            audio["DISCNUMBER"] = str(song["DISK_NUMBER"])
+
+        # Add genre if available
+        if "GENRE" in song:
+            audio["GENRE"] = song["GENRE"]
+
+        # Add composer if available
+        if "COMPOSER" in song:
+            audio["COMPOSER"] = song["COMPOSER"]
+
+        # Add total tracks if available
+        try:
+            if album_Data and "TRACKS" in album_Data:
+                audio["TOTALTRACKS"] = str(album_Data["TRACKS"])
+        except (NameError, KeyError, TypeError):
+            pass
+
+        # Add album cover
+        try:
+            if "ALB_PICTURE" in song:
+                picture_data = downloadpicture(song["ALB_PICTURE"])
+                if picture_data:
+                    picture = Picture()
+                    picture.type = 3  # Cover (front)
+                    picture.mime = "image/jpeg"
+                    picture.desc = "Cover"
+                    picture.data = picture_data
+                    audio.add_picture(picture)
+        except Exception as e:
+            print(f"ERROR: Could not add album cover to FLAC file: {e}")
+
+        # Save the metadata
+        audio.save()
+    except Exception as e:
+        print(f"ERROR: Could not add metadata to FLAC file: {e}")
 
 
 def get_song_infos_from_deezer_website(search_type, id):
