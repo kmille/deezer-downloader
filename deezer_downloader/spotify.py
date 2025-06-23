@@ -36,7 +36,7 @@ def generate_totp(
     )
 
 
-token_url = 'https://open.spotify.com/get_access_token'
+token_url = 'https://open.spotify.com/api/token'
 playlist_base_url = 'https://api.spotify.com/v1/playlists/{}/tracks?limit=100&additional_types=track' # todo figure out market
 track_base_url = 'https://api.spotify.com/v1/tracks/{}'
 album_base_url = 'https://api.spotify.com/v1/albums/{}/tracks'
