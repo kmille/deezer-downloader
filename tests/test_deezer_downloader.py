@@ -3,6 +3,7 @@ import unittest
 import pytest
 from pathlib import Path
 from mutagen.mp3 import MP3
+from mutagen.flac import FLAC
 from mutagen import MutagenError
 
 from deezer_downloader.configuration import load_config
@@ -23,7 +24,6 @@ from deezer_downloader.youtubedl import youtubedl_download, YoutubeDLFailedExcep
 
 known_song_keys = ["SNG_ID", "DURATION", "MD5_ORIGIN", "SNG_TITLE", "TRACK_NUMBER",
                    "ALB_PICTURE", "MEDIA_VERSION", "ART_NAME", "ALB_TITLE"]
-test_song = "/tmp/song-548935.mp3"
 
 init_deezer_session(config['proxy']['server'],
                     config["deezer"]["quality"])
@@ -209,37 +209,60 @@ class TestDeezerMethods(unittest.TestCase):
             self.assertIsInstance(song, int)
     # END: get_deezer_favorites
 
-    def _test_mp3_metadata_deezer_song(self, test_file):
-        try:
-            audio = MP3(test_file)
-        except MutagenError as e:
-            pytest.fail(f"File is not in mp3 format: {e}")
-        self.assertEqual(audio['TPE1'].text[0], 'Faber')
-        self.assertEqual(audio['TALB'].text[0], 'Alles Gute')
-        self.assertEqual(audio['TIT2'].text[0], 'Tausendfrankenlang')
-        self.assertEqual(audio['TRCK'].text[0], '4')
-        self.assertEqual(audio['TDRC'].text[0].year, 2015)
-        self.assertEqual(audio['TPOS'].text[0], '1')
-        self.assertTrue('APIC:Cover' in audio)
-
-    # BEGIN: test_download_song_validownload_song
+    # BEGIN: download_song
+    @pytest.mark.skipif(config["deezer"].get("quality", "mp3") == "flac", reason="skiping deezer mp3 download. Quality set to flac")
     def test_download_song_valid_mp3(self):
+        def check_mp3_metadata_deezer_song(test_file: Path):
+            self.assertTrue(test_song.exists())
+            try:
+                audio = MP3(test_file)
+            except MutagenError as e:
+                pytest.fail(f"File is not in mp3 format: {e}")
+            self.assertEqual(audio['TPE1'].text[0], 'Faber')
+            self.assertEqual(audio['TALB'].text[0], 'Alles Gute')
+            self.assertEqual(audio['TIT2'].text[0], 'Tausendfrankenlang')
+            self.assertEqual(audio['TRCK'].text[0], '4')
+            self.assertEqual(audio['TDRC'].text[0].year, 2015)
+            self.assertEqual(audio['TPOS'].text[0], '1')
+            self.assertTrue('APIC:Cover' in audio)
+
+        test_song = Path("/tmp/song-548935.mp3")
+        test_song.unlink(missing_ok=True)
+
         song_infos = deezer_search("faber tausendfrankenlang", TYPE_TRACK)[0]
         song = get_song_infos_from_deezer_website(TYPE_TRACK, song_infos['id'])
-        try:
-            os.remove(test_song)
-        except FileNotFoundError:
-            # if we remove a file that does not exist
-            pass
-        download_song(song, test_song)
-        file_exists = os.path.exists(test_song)
-        self.assertEqual(file_exists, True)
-        self._test_mp3_metadata_deezer_song(test_song)
-        os.remove(test_song)
+        download_song(song, test_song.as_posix())
+        check_mp3_metadata_deezer_song(test_song)
+        test_song.unlink()
+
+    @pytest.mark.skipif(config["deezer"].get("quality", "mp3") == "mp3", reason="skiping deezer flac download. Quality set to mp3")
+    def test_download_song_valid_flac(self):
+        def check_flac_metadata_deezer_song(test_file: Path):
+            try:
+                audio = FLAC(test_file)
+            except MutagenError as e:
+                pytest.fail(f"File is not in mp3 format: {e}")
+
+            assert audio["artist"] == ["Faber",]
+            assert audio["title"] == ['Tausendfrankenlang',]
+            assert audio["album"] == ['Alles Gute',]
+            assert audio["tracknumber"] == ['4',]
+            assert audio["discnumber"] == ["1",]
+            assert len(audio.pictures) == 1
+            assert audio.pictures[0].data[:5] == b'\xff\xd8\xff\xe0\x00'
+
+        test_song = Path("/tmp/song-548935.flac")
+        test_song.unlink(missing_ok=True)
+
+        song_infos = deezer_search("faber tausendfrankenlang", TYPE_TRACK)[0]
+        song = get_song_infos_from_deezer_website(TYPE_TRACK, song_infos['id'])
+        download_song(song, test_song.as_posix())
+        check_flac_metadata_deezer_song(test_song)
+        test_song.unlink()
 
     def test_download_song_invalid_song_type(self):
         with self.assertRaises(AssertionError):
-            download_song("this sould be a dict", test_song)
+            download_song("this sould be a dict", "/not/relevant/outputfile.mp3")
     # END: download_song
 
 
