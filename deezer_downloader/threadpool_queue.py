@@ -1,6 +1,7 @@
 import threading
 import time
 from queue import Queue
+import traceback
 
 local_obj = threading.local()
 
@@ -67,6 +68,7 @@ class WorkerThread(threading.Thread):
                 task.result = task.exec()
                 task.state = "mission accomplished"
             except Exception as ex:
+                print(traceback.format_exc())
                 print(f"Task {task.fn_name} failed with parameters '{task.kwargs}'\nReason: {ex}")
                 task.state = "failed"
                 task.exception = ex
