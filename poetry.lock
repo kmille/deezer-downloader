@@ -174,26 +174,6 @@ typing-extensions = {version = ">=4.6.0", markers = "python_version < \"3.13\""}
 test = ["pytest (>=6)"]
 
 [[package]]
-name = "fancycompleter"
-version = "0.11.1"
-description = "colorful TAB completion for Python prompt"
-optional = false
-python-versions = ">=3.8"
-groups = ["dev"]
-files = [
-    {file = "fancycompleter-0.11.1-py3-none-any.whl", hash = "sha256:44243d7fab37087208ca5acacf8f74c0aa4d733d04d593857873af7513cdf8a6"},
-    {file = "fancycompleter-0.11.1.tar.gz", hash = "sha256:5b4ad65d76b32b1259251516d0f1cb2d82832b1ff8506697a707284780757f69"},
-]
-
-[package.dependencies]
-pyreadline3 = {version = "*", markers = "platform_system == \"Windows\" and python_version < \"3.13\""}
-pyrepl = {version = ">=0.11.3", markers = "python_version < \"3.13\""}
-
-[package.extras]
-dev = ["fancycompleter[tests]", "mypy", "ruff (==0.11.8)"]
-tests = ["pytest", "pytest-cov"]
-
-[[package]]
 name = "flake8"
 version = "7.3.0"
 description = "the modular source code checker: pep8 pyflakes and co"
@@ -481,25 +461,6 @@ files = [
 ]
 
 [[package]]
-name = "pdbpp"
-version = "0.11.6"
-description = "pdb++, a drop-in replacement for pdb"
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "pdbpp-0.11.6-py3-none-any.whl", hash = "sha256:8e024d36bd2f35a3b19d8732524c696b8b4aef633250d28547198e746cd81ccb"},
-    {file = "pdbpp-0.11.6.tar.gz", hash = "sha256:36a73c5bcf0c3c35034be4cf99e6106e3ee0c8f5e0faafc2cf9be5f1481eb4b7"},
-]
-
-[package.dependencies]
-fancycompleter = ">=0.11.0"
-pygments = "*"
-
-[package.extras]
-testing = ["ipython", "pexpect", "pytest", "pytest-cov"]
-
-[[package]]
 name = "pluggy"
 version = "1.6.0"
 description = "plugin and hook calling mechanisms for python"
@@ -604,39 +565,6 @@ files = [
 
 [package.extras]
 windows-terminal = ["colorama (>=0.4.6)"]
-
-[[package]]
-name = "pyreadline3"
-version = "3.5.4"
-description = "A python implementation of GNU readline."
-optional = false
-python-versions = ">=3.8"
-groups = ["dev"]
-markers = "platform_system == \"Windows\" and python_version < \"3.13\""
-files = [
-    {file = "pyreadline3-3.5.4-py3-none-any.whl", hash = "sha256:eaf8e6cc3c49bcccf145fc6067ba8643d1df34d604a1ec0eccbf7a18e6d3fae6"},
-    {file = "pyreadline3-3.5.4.tar.gz", hash = "sha256:8d57d53039a1c75adba8e50dd3d992b28143480816187ea5efbd5c78e6c885b7"},
-]
-
-[package.extras]
-dev = ["build", "flake8", "mypy", "pytest", "twine"]
-
-[[package]]
-name = "pyrepl"
-version = "0.11.3.post1"
-description = "A library for building flexible command line interfaces"
-optional = false
-python-versions = ">=3.8"
-groups = ["dev"]
-markers = "python_version < \"3.13\""
-files = [
-    {file = "pyrepl-0.11.3.post1-py3-none-any.whl", hash = "sha256:59fcd67588892731dc6e7aff106c380d303d54324ff028827804a2b056223d92"},
-    {file = "pyrepl-0.11.3.post1.tar.gz", hash = "sha256:0ca7568c8be919b69f99644d29d31738a5b1a87750d06dd36564bcfad278d402"},
-]
-
-[package.extras]
-dev = ["pyrepl[tests]", "ruff (==0.9.3)"]
-tests = ["pexpect", "pytest", "pytest-coverage", "pytest-timeout"]
 
 [[package]]
 name = "pysocks"
@@ -867,4 +795,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9.1"
-content-hash = "2c0721ea30d8851f90554d082affa290f697eed80ca6f88448a5a50c17b3d5e4"
+content-hash = "a5bfae270b3e0c598256adb50894202fd96aa392ab5dba8d8eccaf9120705889"
