@@ -11,3 +11,5 @@ ALPINE_VERSION=$(tac Dockerfile | grep -m 1 ^FROM | cut -d - -f 2)
 sudo docker build --no-cache --force-rm . --file Dockerfile --tag kmille2/deezer-downloader
 sudo docker tag kmille2/deezer-downloader "kmille2/deezer-downloader:$DD_VERSION-$ALPINE_VERSION"
 sudo docker tag kmille2/deezer-downloader kmille2/deezer-downloader:latest
+sudo docker tag kmille2/deezer-downloader "ghcr.io/kmille/deezer-downloader:$DD_VERSION-$ALPINE_VERSION"
+sudo docker tag kmille2/deezer-downloader ghcr.io/kmille/deezer-downloader:latest

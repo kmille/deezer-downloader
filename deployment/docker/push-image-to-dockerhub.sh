@@ -10,8 +10,12 @@ echo "Dockerhub login"
 
 sudo docker push "kmille2/deezer-downloader:$DD_VERSION-$ALPINE_VERSION"
 sudo docker push kmille2/deezer-downloader:latest
+sudo docker push "ghcr.io/kmille/deezer-downloader:$DD_VERSION-$ALPINE_VERSION"
+sudo docker push ghcr.io/kmille/deezer-downloader:latest
 # sudo docker logout
 
 echo "Cleaning up"
 sudo docker rmi kmille2/deezer-downloader:latest
 sudo docker rmi "kmille2/deezer-downloader:$DD_VERSION-$ALPINE_VERSION"
+sudo docker rmi ghcr.io/kmille/deezer-downloader:latest
+sudo docker rmi "ghcr.io/kmille/deezer-downloader:$DD_VERSION-$ALPINE_VERSION"
