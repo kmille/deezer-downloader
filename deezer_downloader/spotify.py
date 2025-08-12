@@ -1,42 +1,14 @@
 import re
-import time
-import hmac
-import hashlib
+import base64
+import pyotp
 from time import sleep
 from urllib.parse import urlparse, parse_qs
-from typing import Tuple, Callable
+from typing import Tuple
 
 import requests
 
-_TOTP_SECRET = bytearray([53, 53, 48, 55, 49, 52, 53, 56, 53, 51, 52, 56, 55,
-                          52, 57, 57, 53, 57, 50, 50, 52, 56, 54, 51, 48, 51, 50, 57, 51, 52, 55])
-
-
-def generate_totp(
-    secret: bytes = _TOTP_SECRET,
-    algorithm: Callable[[], object] = hashlib.sha1,
-    digits: int = 6,
-    counter_factory: Callable[[], int] = lambda: int(time.time()) // 30,
-) -> Tuple[str, int]:
-    counter = counter_factory()
-    hmac_result = hmac.new(
-        secret, counter.to_bytes(8, byteorder="big"), algorithm
-    ).digest()
-
-    offset = hmac_result[-1] & 15
-    truncated_value = (
-        (hmac_result[offset] & 127) << 24
-        | (hmac_result[offset + 1] & 255) << 16
-        | (hmac_result[offset + 2] & 255) << 8
-        | (hmac_result[offset + 3] & 255)
-    )
-    return (
-        str(truncated_value % (10**digits)).zfill(digits),
-        counter * 30_000,
-    )
-
-
 token_url = 'https://open.spotify.com/api/token'
+server_time_url = 'https://open.spotify.com/api/server-time'
 playlist_base_url = 'https://api.spotify.com/v1/playlists/{}/tracks?limit=100&additional_types=track' # todo figure out market
 track_base_url = 'https://api.spotify.com/v1/tracks/{}'
 album_base_url = 'https://api.spotify.com/v1/albums/{}/tracks'
@@ -60,6 +32,37 @@ class SpotifyInvalidUrlException(Exception):
 
 class SpotifyWebsiteParserException(Exception):
     pass
+
+
+def get_secrets() -> Tuple[int, str]:
+    response = requests.get("https://github.com/Thereallo1026/spotify-secrets/blob/main/secrets/secretDict.json?raw=true")
+    response.raise_for_status()
+    secrets = response.json()
+
+    # Get latest version
+    latest_secret = secrets[(v := max(secrets, key=int))]
+    return (
+        v,
+        latest_secret,
+    )
+
+
+def generate_totp(
+    timestamp_seconds: int,
+    secret: bytes,
+) -> str:
+
+    transformed = [e ^ ((t % 33) + 9) for t, e in enumerate(secret)]
+    joined = "".join(str(num) for num in transformed)
+    hex_str = joined.encode().hex()
+    secret32 = base64.b32encode(bytes.fromhex(hex_str)).decode().rstrip("=")
+    return pyotp.TOTP(secret32, digits=6, interval=30).at(timestamp_seconds)
+
+
+def get_server_time() -> int:
+    response = requests.get(server_time_url)
+    response.raise_for_status()
+    return response.json()["serverTime"]
 
 
 def parse_uri(uri):
@@ -110,24 +113,26 @@ def get_songs_from_spotify_website(playlist, proxy=None):
     return_data = []
     url_info = parse_uri(playlist)
 
-    totp, timestamp = generate_totp()
+    timestamp = get_server_time()
+    version, secret_string = get_secrets()
 
+    totp = generate_totp(timestamp, secret_string)
     params = {
         "reason": "init",
         "productType": "web-player",
         "totp": totp,
-        "totpVer": 5,
+        "totpVer": version,
         "ts": timestamp,
     }
-
     req = requests.get(token_url, headers=headers, params=params, proxies={"https": proxy})
     if req.status_code != 200:
         raise SpotifyWebsiteParserException(
-            "ERROR: {} gave us not a 200. Instead: {}".format(token_url, req.status_code))
+            "ERROR: {} gave us not a 200 (version {}, totp {}). Instead: {}".format(token_url, version, totp, req.status_code))
     token = req.json()
 
     if url_info['type'] == "playlist":
         url = playlist_base_url.format(url_info["id"])
+
         while True:
             resp = get_json_from_api(url, token["accessToken"], proxy)
             if resp is None:  # try again in case of rate limit
@@ -170,7 +175,6 @@ def parse_track(track):
 def get_json_from_api(api_url, access_token, proxy):
     headers.update({'Authorization': 'Bearer {}'.format(access_token)})
     req = requests.get(api_url, headers=headers, proxies={"https": proxy}, timeout=10)
-
     if req.status_code == 429:
         seconds = int(req.headers.get("Retry-After", "5")) + 1
         print("INFO: rate limited! Sleeping for {} seconds".format(seconds))
@@ -184,8 +188,9 @@ def get_json_from_api(api_url, access_token, proxy):
 
 if __name__ == '__main__':
     # playlist = "21wZXvtrERELL0bVtKtuUh"
-    playlist = "0wl9Q3oedquNlBAJ4MGZtS"
+    #playlist = "0wl9Q3oedquNlBAJ4MGZtS"
     playlist = "76bsnIYWIZOCjCpSJB876p"
     #album = "spotify:album:7zCODUHkfuRxsUjtuzNqbd"
     #song = "https://open.spotify.com/track/6piFKF6WvM6ZZLmi2Vz8Vt"
+    #print(get_songs_from_spotify_website(playlist))
     print(get_songs_from_spotify_website(playlist))
