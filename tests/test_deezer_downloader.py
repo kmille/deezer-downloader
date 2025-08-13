@@ -314,17 +314,14 @@ class TestSpotifyMethods(unittest.TestCase):
         songs = get_songs_from_spotify_website(playlist, None)
         self.assertIn("Cyndi Lauper Time After Time", songs)
 
-    @pytest.mark.skip(reason="spotify download is currently broken")
     def test_spotify_parser_valid_playlist_embed_url(self):
         playlist_url = "https://open.spotify.com/embed/playlist/0wl9Q3oedquNlBAJ4MGZtS"
         self.check_parse_spotify_playlist_website(playlist_url)
 
-    @pytest.mark.skip(reason="spotify download is currently broken")
     def test_spotify_parser_valid_playlist_url(self):
         playlist_url = "https://open.spotify.com/playlist/0wl9Q3oedquNlBAJ4MGZtS"
         self.check_parse_spotify_playlist_website(playlist_url)
 
-    @pytest.mark.skip(reason="spotify download is currently broken")
     def test_spotify_parser_valid_playlist_id(self):
         playlist_id = "0wl9Q3oedquNlBAJ4MGZtS"
         self.check_parse_spotify_playlist_website(playlist_id)
