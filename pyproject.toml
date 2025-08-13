@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deezer-downloader"
-version = "2.9.0"
+version = "2.10.0"
 description = "download music from Deezer with a nice front end"
 authors = ["kmille <github@androidloves.me>"]
 readme = "README.md"
