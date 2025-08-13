@@ -5,11 +5,17 @@ from pathlib import Path
 import waitress
 
 
+def get_version():
+    from importlib.metadata import version
+    v = version("deezer_downloader")
+    return f"v{v}"
+
+
 def run_backend():
     from deezer_downloader.configuration import config
     from deezer_downloader.web.app import app
 
-    print(f"Listening on {config['http']['host']}:{config['http'].getint('port')}")
+    print(f"Listening on {config['http']['host']}:{config['http'].getint('port')} (version {get_version()})")
     if __name__ == '__main__':
         app.run(debug=True,
                 host=config['http']['host'],
@@ -34,9 +40,7 @@ def main():
         sys.exit(1)
 
     if args.version:
-        from importlib.metadata import version
-        v = version("deezer_downloader")
-        print(sys.argv[0], f"v{v}")
+        print(sys.argv[0], get_version())
         sys.exit(0)
 
     if args.show_config_template:
