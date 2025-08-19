@@ -70,16 +70,14 @@ def clean_filename(path):
     path = path.replace("\t", " ")
     if any(platform.win32_ver()):
         path.replace("\"", "'")
-        array_of_special_characters = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
+        array_of_special_characters = ['<', '>', ':', '"', '\\', '|', '?', '*']
     else:
-        array_of_special_characters = ['/', ':', '"', '?']
+        array_of_special_characters = [':', '"', '?']
 
     return ''.join([c for c in path if c not in array_of_special_characters])
 
 
 def download_song_and_get_absolute_filename(search_type, song, playlist_name=None):
-    print('download song')
-
     file_extension = get_file_extension()
     pattern = {
     "n": str(song['TRACK_NUMBER']).zfill(2),
@@ -104,7 +102,7 @@ def download_song_and_get_absolute_filename(search_type, song, playlist_name=Non
         album_name = clean_filename(album_name)
         album_dir = os.path.join(config["download_dirs"]["albums"], album_name)
         if not os.path.exists(album_dir):
-            os.mkdir(album_dir)
+            os.makedirs(album_dir)
         absolute_filename = os.path.join(album_dir, song_filename)
     elif search_type == TYPE_PLAYLIST:
         assert type(playlist_name) is str
