@@ -6,6 +6,11 @@ RUN poetry build --format=wheel
 
 
 FROM python:3.13-alpine3.22
+
+LABEL org.opencontainers.image.source=https://github.com/kmille/deezer-downloader
+LABEL org.opencontainers.image.description="Download music from Deezer with a nice front end"
+LABEL org.opencontainers.image.licenses=MIT
+
 ENV PYTHONUNBUFFERED=TRUE
 
 RUN apk add --no-cache ffmpeg && \

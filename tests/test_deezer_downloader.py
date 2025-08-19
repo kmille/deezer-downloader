@@ -1,8 +1,10 @@
 import os
 import unittest
-import magic
 import pytest
 from pathlib import Path
+from mutagen.mp3 import MP3
+from mutagen.flac import FLAC
+from mutagen import MutagenError
 
 from deezer_downloader.configuration import load_config
 
@@ -22,7 +24,6 @@ from deezer_downloader.youtubedl import youtubedl_download, YoutubeDLFailedExcep
 
 known_song_keys = ["SNG_ID", "DURATION", "MD5_ORIGIN", "SNG_TITLE", "TRACK_NUMBER",
                    "ALB_PICTURE", "MEDIA_VERSION", "ART_NAME", "ALB_TITLE"]
-test_song = "/tmp/song-548935.mp3"
 
 init_deezer_session(config['proxy']['server'],
                     config["deezer"]["quality"])
@@ -208,30 +209,65 @@ class TestDeezerMethods(unittest.TestCase):
             self.assertIsInstance(song, int)
     # END: get_deezer_favorites
 
-    # BEGIN: test_download_song_validownload_song
+    # BEGIN: download_song
+    @pytest.mark.skipif(config["deezer"].get("quality", "mp3") == "flac", reason="skiping deezer mp3 download. Quality set to flac")
     def test_download_song_valid_mp3(self):
+        def check_mp3_metadata_deezer_song(test_file: Path):
+            self.assertTrue(test_song.exists())
+            try:
+                audio = MP3(test_file)
+            except MutagenError as e:
+                pytest.fail(f"File is not in mp3 format: {e}")
+            self.assertEqual(audio['TPE1'].text[0], 'Faber')
+            self.assertEqual(audio['TALB'].text[0], 'Alles Gute')
+            self.assertEqual(audio['TIT2'].text[0], 'Tausendfrankenlang')
+            self.assertEqual(audio['TRCK'].text[0], '4')
+            self.assertEqual(audio['TDRC'].text[0].year, 2015)
+            self.assertEqual(audio['TPOS'].text[0], '1')
+            self.assertTrue('APIC:Cover' in audio)
+
+        test_song = Path("/tmp/song-548935.mp3")
+        test_song.unlink(missing_ok=True)
+
         song_infos = deezer_search("faber tausendfrankenlang", TYPE_TRACK)[0]
         song = get_song_infos_from_deezer_website(TYPE_TRACK, song_infos['id'])
-        try:
-            os.remove(test_song)
-        except FileNotFoundError:
-            # if we remove a file that does not exist
-            pass
-        download_song(song, test_song)
-        file_exists = os.path.exists(test_song)
-        self.assertEqual(file_exists, True)
-        file_type = magic.from_file(test_song)
-        print(file_type)
-        self.assertIn("Audio file with ID3 version", file_type)
-        os.remove(test_song)
+        download_song(song, test_song.as_posix())
+        check_mp3_metadata_deezer_song(test_song)
+        test_song.unlink()
+
+    @pytest.mark.skipif(config["deezer"].get("quality", "mp3") == "mp3", reason="skiping deezer flac download. Quality set to mp3")
+    def test_download_song_valid_flac(self):
+        def check_flac_metadata_deezer_song(test_file: Path):
+            try:
+                audio = FLAC(test_file)
+            except MutagenError as e:
+                pytest.fail(f"File is not in mp3 format: {e}")
+
+            assert audio["artist"] == ["Faber",]
+            assert audio["title"] == ['Tausendfrankenlang',]
+            assert audio["album"] == ['Alles Gute',]
+            assert audio["tracknumber"] == ['4',]
+            assert audio["discnumber"] == ["1",]
+            assert len(audio.pictures) == 1
+            assert audio.pictures[0].data[:5] == b'\xff\xd8\xff\xe0\x00'
+
+        test_song = Path("/tmp/song-548935.flac")
+        test_song.unlink(missing_ok=True)
+
+        song_infos = deezer_search("faber tausendfrankenlang", TYPE_TRACK)[0]
+        song = get_song_infos_from_deezer_website(TYPE_TRACK, song_infos['id'])
+        download_song(song, test_song.as_posix())
+        check_flac_metadata_deezer_song(test_song)
+        test_song.unlink()
 
     def test_download_song_invalid_song_type(self):
         with self.assertRaises(AssertionError):
-            download_song("this sould be a dict", test_song)
+            download_song("this sould be a dict", "/not/relevant/outputfile.mp3")
     # END: download_song
 
 
 class TestSpotifyMethods(unittest.TestCase):
+    # BEGIN parse_uri
     def test_parse_url_spotify(self):
         res = parse_uri("spotify:album:Hksdhfaif23ffushef9823")
         self.assertEqual(res['type'], "album")
@@ -259,23 +295,9 @@ class TestSpotifyMethods(unittest.TestCase):
         res = parse_uri("https://embed.spotify.com/?uri=spotify:track:Hksdhfaif23ffushef9823")
         self.assertEqual(res['type'], "track")
         self.assertEqual(res['id'], "Hksdhfaif23ffushef9823")
+    # END parse_uri
 
-    def _test_parse_spotify_playlist_website(self, playlist):
-        songs = get_songs_from_spotify_website(playlist, None)
-        self.assertIn("Cyndi Lauper Time After Time", songs)
-
-    def test_spotify_parser_valid_playlist_embed_url(self):
-        playlist_url = "https://open.spotify.com/embed/playlist/0wl9Q3oedquNlBAJ4MGZtS"
-        self._test_parse_spotify_playlist_website(playlist_url)
-
-    def test_spotify_parser_valid_playlist_url(self):
-        playlist_url = "https://open.spotify.com/playlist/0wl9Q3oedquNlBAJ4MGZtS"
-        self._test_parse_spotify_playlist_website(playlist_url)
-
-    def test_spotify_parser_valid_playlist_id(self):
-        playlist_id = "0wl9Q3oedquNlBAJ4MGZtS"
-        self._test_parse_spotify_playlist_website(playlist_id)
-
+    # BEGIN test invalid
     def test_spotify_parser_invalid_playlist_id(self):
         playlist_id = "thisdoesnotexist"
         with self.assertRaises(SpotifyWebsiteParserException):
@@ -285,6 +307,25 @@ class TestSpotifyMethods(unittest.TestCase):
         playlist_url = "https://www.heise.de"
         with self.assertRaises(SpotifyInvalidUrlException):
             get_songs_from_spotify_website(playlist_url, None)
+    # END test invalid
+
+    # BEGIN valid stuff
+    def check_parse_spotify_playlist_website(self, playlist):
+        songs = get_songs_from_spotify_website(playlist, None)
+        self.assertIn("Cyndi Lauper Time After Time", songs)
+
+    def test_spotify_parser_valid_playlist_embed_url(self):
+        playlist_url = "https://open.spotify.com/embed/playlist/0wl9Q3oedquNlBAJ4MGZtS"
+        self.check_parse_spotify_playlist_website(playlist_url)
+
+    def test_spotify_parser_valid_playlist_url(self):
+        playlist_url = "https://open.spotify.com/playlist/0wl9Q3oedquNlBAJ4MGZtS"
+        self.check_parse_spotify_playlist_website(playlist_url)
+
+    def test_spotify_parser_valid_playlist_id(self):
+        playlist_id = "0wl9Q3oedquNlBAJ4MGZtS"
+        self.check_parse_spotify_playlist_website(playlist_id)
+    # END valid stuff
 
 
 class TestYoutubeMethods(unittest.TestCase):
@@ -292,15 +333,19 @@ class TestYoutubeMethods(unittest.TestCase):
 
     @pytest.mark.xfail(is_github_ci, reason="Fails with 'Sign in to confirm you’re not a bot. This helps protect our community. Learn more'", raises=YoutubeDLFailedException)
     def test_youtube_dl_valid_url(self):
-        Path("/tmp/Pharrell Williams - Happy (Video).mp3").unlink(missing_ok=True)
+        out_file = Path("/tmp/Pharrell Williams - Happy (Video).mp3")
+        out_file.unlink(missing_ok=True)
         url = "https://www.youtube.com/watch?v=ZbZSe6N_BXs"
         destination_file = youtubedl_download(url, "/tmp")
-        file_exists = os.path.exists(destination_file)
-        self.assertEqual(file_exists, True)
-        file_type = magic.from_file(destination_file)
-        os.remove(destination_file)
-        # I test this in two seperate lines because on Ubuntu 18.04, there is an additional space in it (I don't know why. Different ffmpeg package?)
-        self.assertIn("Audio file with ID3 version 2.4.0", file_type)
+        self.assertEqual(out_file.as_posix(), destination_file)
+        self.assertTrue(out_file.exists())
+        try:
+            audio = MP3(out_file)
+            self.assertEqual(audio['TPE1'].text[0], 'Pharrell Williams')
+            self.assertEqual(audio['TIT2'].text[0], 'Pharrell Williams - Happy (Video)')
+        except MutagenError as e:
+            pytest.fail(f"File is not in mp3 format: {e}")
+        out_file.unlink()
 
     def test_youtube_dl_invalid_url(self):
         url = "https://www.heise.de"
