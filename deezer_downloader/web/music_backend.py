@@ -78,13 +78,19 @@ def clean_filename(path):
 
 
 def download_song_and_get_absolute_filename(search_type, song, playlist_name=None):
+    print('download song')
 
     file_extension = get_file_extension()
+    pattern = {
+    "n": str(song['TRACK_NUMBER']).zfill(2),
+    "b": song['ALB_TITLE'],
+    "a": song['ART_NAME'],
+    "t": song['SNG_TITLE'],
+    "d": song['DISK_NUMBER'],
+    }
+
     if search_type == TYPE_ALBUM:
-        song_filename = "{:02d} - {} {}.{}".format(int(song['TRACK_NUMBER']),
-                                                   song['ART_NAME'],
-                                                   song['SNG_TITLE'],
-                                                   file_extension)
+        song_filename = config['filename']['song_name'].format(**pattern) + f'''.{file_extension}'''
     else:
         song_filename = "{} - {}.{}".format(song['ART_NAME'],
                                             song['SNG_TITLE'],
@@ -94,7 +100,7 @@ def download_song_and_get_absolute_filename(search_type, song, playlist_name=Non
     if search_type == TYPE_TRACK:
         absolute_filename = os.path.join(config["download_dirs"]["songs"], song_filename)
     elif search_type == TYPE_ALBUM:
-        album_name = "{} - {}".format(song['ART_NAME'], song['ALB_TITLE'])
+        album_name = config['filename']['album_name'].format(**pattern)
         album_name = clean_filename(album_name)
         album_dir = os.path.join(config["download_dirs"]["albums"], album_name)
         if not os.path.exists(album_dir):
