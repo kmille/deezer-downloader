@@ -34,17 +34,10 @@ class SpotifyWebsiteParserException(Exception):
     pass
 
 
-def get_secrets() -> Tuple[int, str]:
-    response = requests.get("https://github.com/Thereallo1026/spotify-secrets/blob/main/secrets/secretDict.json?raw=true")
-    response.raise_for_status()
-    secrets = response.json()
-
-    # Get latest version
-    latest_secret = secrets[(v := max(secrets, key=int))]
-    return (
-        v,
-        latest_secret,
-    )
+def get_secrets() -> Tuple[int, list[int]]:
+    # please read https://github.com/librespot-org/librespot/discussions/1562#discussioncomment-14659870
+    # sudo docker run --rm misiektoja/spotify-secrets-grabber --secretbytes
+    return ("61", [44, 55, 47, 42, 70, 40, 34, 114, 76, 74, 50, 111, 120, 97, 75, 76, 94, 102, 43, 69, 49, 120, 118, 80, 64, 78])
 
 
 def generate_totp(
