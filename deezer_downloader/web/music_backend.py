@@ -9,7 +9,7 @@ from deezer_downloader.configuration import config
 from deezer_downloader.youtubedl import youtubedl_download
 from deezer_downloader.spotify import get_songs_from_spotify_website
 from deezer_downloader.deezer import TYPE_TRACK, TYPE_ALBUM, TYPE_PLAYLIST, get_song_infos_from_deezer_website, download_song, parse_deezer_playlist, deezer_search, get_deezer_favorites
-from deezer_downloader.deezer import Deezer403Exception, Deezer404Exception
+from deezer_downloader.deezer import Deezer403Exception, Deezer404Exception, DeezerApiException
 from deezer_downloader.deezer import get_file_extension
 
 from deezer_downloader.threadpool_queue import ThreadpoolScheduler, report_progress
@@ -150,9 +150,13 @@ def create_m3u8_file(songs_absolute_location):
 @sched.register_command()
 def download_deezer_song_and_queue(track_id, add_to_playlist):
     song = get_song_infos_from_deezer_website(TYPE_TRACK, track_id)
-    absolute_filename = download_song_and_get_absolute_filename(TYPE_TRACK, song)
-    update_mpd_db(absolute_filename, add_to_playlist)
-    return make_song_paths_relative_to_mpd_root([absolute_filename])
+    try:
+        absolute_filename = download_song_and_get_absolute_filename(TYPE_TRACK, song)
+        update_mpd_db(absolute_filename, add_to_playlist)
+        return make_song_paths_relative_to_mpd_root([absolute_filename])
+    except DeezerApiException:
+        # warning is printed in download_song_and_get_absolute_filename
+        pass
 
 
 @sched.register_command()

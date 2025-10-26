@@ -196,13 +196,13 @@ def get_song_url(track_token: str, quality: int = 3) -> str:
         response.raise_for_status()
         data = response.json()
     except requests.exceptions.RequestException as e:
-        raise RuntimeError(f"Could not retrieve song URL: {e}")
+        raise DeezerApiException(f"Could not retrieve song URL: {e}")
 
     if not data.get('data') or 'errors' in data['data'][0]:
-        raise RuntimeError(f"Could not get download url from API: {data['data'][0]['errors'][0]['message']}")
+        raise DeezerApiException(f"Could not get download url from API: {data['data'][0]['errors'][0]['message']}")
 
     if len(data["data"][0]["media"]) == 0:
-        raise RuntimeError(f"Could not get download url from API. There was no API error, but also no song information. API response: {data}")
+        raise DeezerApiException(f"Could not get download url from API. There was no API error, but also no song information. API response: {data}")
 
     url = data['data'][0]['media'][0]['sources'][0]['url']
     return url
