@@ -56,4 +56,13 @@ quality = mp3
 ; command = /home/kmille/projects/deezer-downloader/app/venv/bin/yt-dlp
 command = /usr/bin/yt-dlp
 
+[filename]
+; n = Track number on 2 digit
+; b = Album name
+; a = Artist name
+; t = Song title
+; d = Disk number
+song_name = "{n} - {t}"
+album_name = "{a}/{b}"
+
 ; vim: syntax=dosini

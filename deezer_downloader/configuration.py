@@ -16,7 +16,7 @@ def load_config(config_abs):
     config = ConfigParser()
     config.read(config_abs)
 
-    assert list(config.keys()) == ['DEFAULT', 'mpd', 'download_dirs', 'debug', 'http', 'proxy', 'threadpool', 'deezer', 'youtubedl'], f"Validating config file failed. Check {config_abs}"
+    assert list(config.keys()) == ['DEFAULT', 'mpd', 'download_dirs', 'debug', 'http', 'proxy', 'threadpool', 'deezer', 'youtubedl', 'filename'], f"Validating config file failed. Check {config_abs}"
 
     if config['mpd'].getboolean('use_mpd'):
         if not config['mpd']['music_dir_root'].startswith(config['download_dirs']['base']):
@@ -43,7 +43,7 @@ def load_config(config_abs):
 
     if "DEEZER_QUALITY" in os.environ.keys():
         config["deezer"]["quality"] = os.environ["DEEZER_QUALITY"]
-        
+
     if "quality" in config['deezer']:
         if config['deezer']["quality"] not in ("mp3", "flac"):
             print("ERROR: quality must be mp3 or flac in config file")
