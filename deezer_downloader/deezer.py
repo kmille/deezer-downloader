@@ -309,20 +309,22 @@ def get_song_infos_from_deezer_website(search_type, id):
     # 1. open playlist https://www.deezer.com/de/playlist/1180748301 and click on song Honey from Moby in a new tab:
     # 2. Deezer gives you a 404: https://www.deezer.com/de/track/68925038
     # Deezer403Exception if we are not logged in
+    def get_and_parse_data_from_deezer_website(search_type, id):
+        url = "https://www.deezer.com/us/{}/{}".format(search_type, id)
+        resp = session.get(url)
+        if resp.status_code == 404:
+            raise Deezer404Exception("ERROR: Got a 404 for {} from Deezer".format(url))
+        if "MD5_ORIGIN" not in resp.text:
+            raise Deezer403Exception("ERROR: we are not logged in on deezer.com. Please update the cookie")
 
-    url = "https://www.deezer.com/us/{}/{}".format(search_type, id)
-    resp = session.get(url)
-    if resp.status_code == 404:
-        raise Deezer404Exception("ERROR: Got a 404 for {} from Deezer".format(url))
-    if "MD5_ORIGIN" not in resp.text:
-        raise Deezer403Exception("ERROR: we are not logged in on deezer.com. Please update the cookie")
-
-    parser = ScriptExtractor()
-    parser.feed(resp.text)
-    parser.close()
-
+        parser = ScriptExtractor()
+        parser.feed(resp.text)
+        parser.close()
+        return parser
+    
+    search_parser = get_and_parse_data_from_deezer_website(search_type, id)
     songs = []
-    for script in parser.scripts:
+    for script in search_parser.scripts:
         regex = re.search(r'{"DATA":.*', script)
         if regex:
             DZR_APP_STATE = json.loads(regex.group())
@@ -331,10 +333,18 @@ def get_song_infos_from_deezer_website(search_type, id):
             if DZR_APP_STATE['DATA']['__TYPE__'] == 'playlist' or DZR_APP_STATE['DATA']['__TYPE__'] == 'album':
                 # songs if you searched for album/playlist
                 for song in DZR_APP_STATE['SONGS']['data']:
+                    #we append the album name to the song
+                    song['ALB_ART_NAME'] = album_Data.get('ART_NAME','')
                     songs.append(song)
             elif DZR_APP_STATE['DATA']['__TYPE__'] == 'song':
                 # just one song on that page
                 songs.append(DZR_APP_STATE['DATA'])
+                # we get the album name for that song and append it to the song (or copy the artist name if it doesn't exist or is empty)
+                song_parser = get_and_parse_data_from_deezer_website(TYPE_ALBUM, DZR_APP_STATE['DATA']['ALB_ID'])
+                for song_script in song_parser.scripts:
+                    song_regex = re.search(r'{"DATA":.*', song_script)
+                    if song_regex:
+                        songs[0]['ALB_ART_NAME'] = json.loads(song_regex.group()).get("DATA").get('ART_NAME',songs[0]['ART_NAME'])
     return songs[0] if search_type == TYPE_TRACK else songs
 
 
