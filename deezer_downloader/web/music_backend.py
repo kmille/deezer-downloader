@@ -94,7 +94,7 @@ def download_song_and_get_absolute_filename(search_type, song, playlist_name=Non
     if search_type == TYPE_TRACK:
         absolute_filename = os.path.join(config["download_dirs"]["songs"], song_filename)
     elif search_type == TYPE_ALBUM:
-        album_name = "{} - {}".format(song['ART_NAME'], song['ALB_TITLE'])
+        album_name = "{} - {}".format(song.get('ALB_ART_NAME', song.get('ART_NAME', None)), song['ALB_TITLE'])
         album_name = clean_filename(album_name)
         album_dir = os.path.join(config["download_dirs"]["albums"], album_name)
         if not os.path.exists(album_dir):
