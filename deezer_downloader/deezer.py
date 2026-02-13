@@ -321,7 +321,7 @@ def get_song_infos_from_deezer_website(search_type, id):
         parser.feed(resp.text)
         parser.close()
         return parser
-    
+
     search_parser = get_and_parse_data_from_deezer_website(search_type, id)
     songs = []
     for script in search_parser.scripts:
@@ -334,7 +334,7 @@ def get_song_infos_from_deezer_website(search_type, id):
                 # songs if you searched for album/playlist
                 for song in DZR_APP_STATE['SONGS']['data']:
                     #we append the album name to the song
-                    song['ALB_ART_NAME'] = album_Data.get('ART_NAME','')
+                    song['ALB_ART_NAME'] = album_Data.get('ART_NAME', '')
                     songs.append(song)
             elif DZR_APP_STATE['DATA']['__TYPE__'] == 'song':
                 # just one song on that page
@@ -344,7 +344,7 @@ def get_song_infos_from_deezer_website(search_type, id):
                 for song_script in song_parser.scripts:
                     song_regex = re.search(r'{"DATA":.*', song_script)
                     if song_regex:
-                        songs[0]['ALB_ART_NAME'] = json.loads(song_regex.group()).get("DATA").get('ART_NAME',songs[0]['ART_NAME'])
+                        songs[0]['ALB_ART_NAME'] = json.loads(song_regex.group()).get("DATA").get('ART_NAME', songs[0]['ART_NAME'])
     return songs[0] if search_type == TYPE_TRACK else songs
 
 
