@@ -127,6 +127,7 @@
      <div id="spotify-playlists" class="container tab-pane fade">
        <br>
        <h3>Download Spotify playlist</h3>
+       <p style="color:red">Spotify download is currently broken and not supported. See <a href="https://github.com/kmille/deezer-downloader/issues/174#issuecomment-3895518439">here</a>.</p>
        <div class="input-group">
            <input type="text" class="form-control" id="spotify-playlist-name" placeholder="name of spotify playlist" />
            &nbsp;
@@ -136,9 +137,9 @@
        <br>
        <div class="input-group">
                <span class="input-group-btn">
-                   <button type="button" class="btn btn-info" id="spotify_download_play">Download & Play</button>
-                   <button type="button" class="btn btn-info" id="spotify_download">Download</button>
-                   <button type="button" class="btn btn-info" id="spotify_zip">Give me a zip</button>
+                   <button disabled type="button" class="btn btn-info" id="spotify_download_play">Download & Play</button>
+                   <button disabled type="button" class="btn btn-info" id="spotify_download">Download</button>
+                   <button disabled type="button" class="btn btn-info" id="spotify_zip">Give me a zip</button>
                    <button type="button" class="btn btn-info" onclick="$('input[id^=\'spotify\']').val('')" >Clear</button>
                </span>
        </div>

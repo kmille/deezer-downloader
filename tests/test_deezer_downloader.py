@@ -298,6 +298,7 @@ class TestSpotifyMethods(unittest.TestCase):
     # END parse_uri
 
     # BEGIN test invalid
+    @pytest.mark.skip(reason="Spotify API is currently not stable and not supported, see #174#issuecomment-3895518439")
     def test_spotify_parser_invalid_playlist_id(self):
         playlist_id = "thisdoesnotexist"
         with self.assertRaises(SpotifyWebsiteParserException):
@@ -310,18 +311,22 @@ class TestSpotifyMethods(unittest.TestCase):
     # END test invalid
 
     # BEGIN valid stuff
+    @pytest.mark.skip(reason="Spotify API is currently not stable and not supported, see #174#issuecomment-3895518439")
     def check_parse_spotify_playlist_website(self, playlist):
         songs = get_songs_from_spotify_website(playlist, None)
         self.assertIn("Cyndi Lauper Time After Time", songs)
 
+    @pytest.mark.skip(reason="Spotify API is currently not stable and not supported, see #174#issuecomment-3895518439")
     def test_spotify_parser_valid_playlist_embed_url(self):
         playlist_url = "https://open.spotify.com/embed/playlist/0wl9Q3oedquNlBAJ4MGZtS"
         self.check_parse_spotify_playlist_website(playlist_url)
 
+    @pytest.mark.skip(reason="Spotify API is currently not stable and not supported, see #174#issuecomment-3895518439")
     def test_spotify_parser_valid_playlist_url(self):
         playlist_url = "https://open.spotify.com/playlist/0wl9Q3oedquNlBAJ4MGZtS"
         self.check_parse_spotify_playlist_website(playlist_url)
 
+    @pytest.mark.skip(reason="Spotify API is currently not stable and not supported, see #174#issuecomment-3895518439")
     def test_spotify_parser_valid_playlist_id(self):
         playlist_id = "0wl9Q3oedquNlBAJ4MGZtS"
         self.check_parse_spotify_playlist_website(playlist_id)
