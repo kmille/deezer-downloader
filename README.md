@@ -234,7 +234,12 @@ DEEZER_DOWNLOADER_CONFIG_FILE=settings.ini poetry run pytest -v -s
 # If you don't set DEEZER_DOWNLOADER_CONFIG_FILE the default template file will be used. Some tests will fail because there is no valid arl_cookie.
 ```
 
+## Contribution & Maintenance
+Feel free to contribute. But please create an issue before and let's have a short discussion about it. I don't want you to be sad because I don't want to merge your idea/work. For me this project is (almost) feature complete. I don't have the time and motivation to put more energy in it. But I will maintain and update it in the long run.
+
 ## Changelog
+
+... this is not updated anymore. But the project is maintained and works!
 
 ### Version 2.0.0 (27.03.2023)
 
