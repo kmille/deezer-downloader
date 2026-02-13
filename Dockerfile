@@ -1,11 +1,11 @@
-FROM python:3.13-alpine3.22 AS builder
+FROM python:3.14-alpine3.23 AS builder
 RUN pip install poetry
 COPY . /app
 WORKDIR /app
 RUN poetry build --format=wheel
 
 
-FROM python:3.13-alpine3.22
+FROM python:3.14-alpine3.23
 
 LABEL org.opencontainers.image.source=https://github.com/kmille/deezer-downloader
 LABEL org.opencontainers.image.description="Download music from Deezer with a nice front end"
