@@ -338,7 +338,7 @@ class TestYoutubeMethods(unittest.TestCase):
 
     @pytest.mark.xfail(is_github_ci, reason="Fails with 'Sign in to confirm you’re not a bot. This helps protect our community. Learn more'", raises=YoutubeDLFailedException)
     def test_youtube_dl_valid_url(self):
-        out_file = Path("/tmp/Pharrell Williams - Happy (Video).mp3")
+        out_file = Path("/tmp/Pharrell Williams - Happy (Official Video).mp3")
         out_file.unlink(missing_ok=True)
         url = "https://www.youtube.com/watch?v=ZbZSe6N_BXs"
         destination_file = youtubedl_download(url, "/tmp")
@@ -347,7 +347,7 @@ class TestYoutubeMethods(unittest.TestCase):
         try:
             audio = MP3(out_file)
             self.assertEqual(audio['TPE1'].text[0], 'Pharrell Williams')
-            self.assertEqual(audio['TIT2'].text[0], 'Pharrell Williams - Happy (Video)')
+            self.assertEqual(audio['TIT2'].text[0], 'Pharrell Williams - Happy (Official Video)')
         except MutagenError as e:
             pytest.fail(f"File is not in mp3 format: {e}")
         out_file.unlink()
