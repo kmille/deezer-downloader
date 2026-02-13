@@ -6,7 +6,7 @@
 
 ### Features
 - download songs, albums, public playlists from Deezer.com (account is required, free plan is enough)
-- download Spotify playlists (by parsing the Spotify website and download the songs from Deezer)
+- ~~download Spotify playlists (by parsing the Spotify website and download the songs from Deezer)~~ ([currently broken](https://github.com/kmille/deezer-downloader/issues/174#issuecomment-3895518439))
 - download as zip file (including m3u8 playlist file)
 - quality: flac or 320 kbit/s mp3 with premium subscription or 128 kbit/s MP3s with free subscription
 - ID3-Tags and embedded album cover
