@@ -293,7 +293,13 @@ $(document).ready(function() {
     });
     // END DEEZER FAVORITE SONGS
 
+    // BEGIN DEEZER SONG
+        $("#deezer_song_download").click(function() {
+        deezer_download($('#deezer-song-id').val(), "track", false, false);
+    });
 
+
+        // END DEEZER SONG
     function show_tab(id_nav, id_content) {
     // nav 
     $(".nav-link").removeClass("active")
