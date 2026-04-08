@@ -167,7 +167,7 @@
        <br>
        <h3>Download Deezer favorite songs</h3>
        <div class="input-group">
-           <input type="text" class="form-control" id="deezer-favorites-userid" placeholder="user id of Deezer user"songs />
+           <input type="text" class="form-control" id="deezer-favorites-userid" placeholder="user id of Deezer user"/>
            &nbsp;
        </div>
        <br>
@@ -182,7 +182,7 @@
        <br>
        <h3>Download a song</h3>
        <div class="input-group">
-           <input type="text" class="form-control" id="deezer-song-id" placeholder="song id" songs />
+           <input type="text" class="form-control" id="deezer-song-id" placeholder="song id"/>
            &nbsp;
        </div>
        <br>
@@ -190,6 +190,21 @@
                <span class="input-group-btn">
                    <button type="button" class="btn btn-info" id="deezer_song_download">Download Song</button>
                    <button type="button" class="btn btn-info" id="deezer_song_zip">Give me a zip</button>
+                   <button type="button" class="btn btn-info" onclick="$('#deezer-favorites-userid').val('')" >Clear</button>
+               </span>
+       </div>
+
+        <br>
+       <h3>Download an album</h3>
+       <div class="input-group">
+           <input type="text" class="form-control" id="deezer-album-id" placeholder="album id" />
+           &nbsp;
+       </div>
+       <br>
+       <div class="input-group">
+               <span class="input-group-btn">
+                   <button type="button" class="btn btn-info" id="deezer_album_download">Download Album</button>
+                   <button type="button" class="btn btn-info" id="deezer_album_zip">Give me a zip</button>
                    <button type="button" class="btn btn-info" onclick="$('#deezer-favorites-userid').val('')" >Clear</button>
                </span>
        </div>
