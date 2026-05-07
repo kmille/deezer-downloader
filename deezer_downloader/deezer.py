@@ -416,14 +416,27 @@ def deezer_search(search, search_type):
 
 def parse_deezer_playlist(playlist_id):
     # playlist_id: id of the playlist or the url of it
-    # e.g. https://www.deezer.com/de/playlist/6046721604 or 6046721604
+    # accepted forms:
+    #   - <id>
+    #   - https://www.deezer.com/<locale>/playlist/<id>
+    #   - https://link.deezer.com/s/<short>  (resolved via redirect)
     # return (playlist_name, list of songs) (song is a dict with information about the song)
     # raises DeezerApiException if something with the Deezer API is broken
 
+    if "link.deezer.com" in playlist_id:
+        try:
+            resp = requests.head(playlist_id, allow_redirects=True, timeout=10)
+            playlist_id = resp.url
+        except requests.RequestException as e:
+            raise DeezerApiException("ERROR: could not resolve short link '{}': {}".format(playlist_id, e))
+
     try:
-        playlist_id = re.search(r'\d+', playlist_id).group(0)
+        playlist_id = re.search(r'/playlist/(\d+)', playlist_id).group(1)
     except AttributeError:
-        raise DeezerApiException("ERROR: Regex (\\d+) for playlist_id failed. You gave me '{}'".format(playlist_id))
+        try:
+            playlist_id = re.search(r'^\d+$', playlist_id).group(0)
+        except AttributeError:
+            raise DeezerApiException("ERROR: could not extract playlist id from '{}'".format(playlist_id))
 
     url_get_csrf_token = "https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token="
     req = session.post(url_get_csrf_token)
