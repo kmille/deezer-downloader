@@ -19,7 +19,7 @@ def load_config(config_abs):
     assert list(config.keys()) == ['DEFAULT', 'mpd', 'download_dirs', 'debug', 'http', 'proxy', 'threadpool', 'deezer', 'youtubedl'], f"Validating config file failed. Check {config_abs}"
 
     if config['mpd'].getboolean('use_mpd'):
-        if not config['mpd']['music_dir_root'].startswith(config['download_dirs']['base']):
+        if not config['download_dirs']['base'].startswith(config['mpd']['music_dir_root']):
             print("ERROR: base download dir must be a subdirectory of the mpd music_dir_root")
             sys.exit(1)
 
