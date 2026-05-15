@@ -170,6 +170,12 @@ def print_tracks(results: list):
     sep()
     info(f"Use  {c('dl track <id or #N>', YELLOW)}  to download")
 
+def sort_albums(results: list) -> list:
+    return sorted(
+        results,
+        key=lambda x: int(x.get("album_id") or x.get("id") or 0),
+        reverse=True,
+    )
 
 def print_albums(results: list):
     if not results:
@@ -178,14 +184,14 @@ def print_albums(results: list):
     sep()
     print(c(f"  \U0001f4bf  {len(results)} album(s)", BOLD))
     sep()
-    # for i, r in enumerate(results, 1):
-    sorted_results = sorted(
-        results,
-        key=lambda x: int(x.get("album_id") or x.get("id") or 0),
-        reverse=True,
-    )
+    for i, r in enumerate(results, 1):
+    # sorted_results = sorted(
+    #     results,
+    #     key=lambda x: int(x.get("album_id") or x.get("id") or 0),
+    #     reverse=True,
+    # )
 
-    for i, r in enumerate(sorted_results, 1):
+    # for i, r in enumerate(sorted_results, 1):
         idx    = c(f"[{i:>2}]", DIM)
         artist = c(r.get("artist", "?"), MAGENTA)
         album  = c(r.get("album", "?"), WHITE, BOLD)
@@ -373,7 +379,11 @@ class REPL:
         if stype == "track":
             self._last_tracks = results
             print_tracks(results)
+        # elif stype == "album":
+        #     self._last_albums = results
+        #     print_albums(results)
         elif stype == "album":
+            results = sort_albums(results)
             self._last_albums = results
             print_albums(results)
         elif stype == "artist":
@@ -404,7 +414,11 @@ class REPL:
         if stype == "artist_top":
             self._last_tracks = results
             print_tracks(results)
+        # else:
+        #     self._last_albums = results
+        #     print_albums(results)
         else:
+            results = sort_albums(results)
             self._last_albums = results
             print_albums(results)
 

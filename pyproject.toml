@@ -1,17 +1,19 @@
 [tool.poetry]
 name = "deezer-downloader"
-version = "2.12.0"
+version = "1.0.0"
 description = "download music from Deezer with a nice front end"
-authors = ["kmille <github@androidloves.me>"]
+authors = [
+    "kmille <github@androidloves.me>",
+]
 readme = "README.md"
-packages = [{include = "deezer_downloader"}]
+packages = [
+    { include = "deezer_downloader" },
+]
 repository = "https://github.com/kmille/deezer-downloader"
 homepage = "https://github.com/kmille/deezer-downloader"
 
-
 [tool.poetry.dependencies]
 python = "^3.10.1"
-requests = {extras = ["socks"], version = "^2.28.2"}
 flask = "^3.0.3"
 python-mpd2 = "^3.0.5"
 yt-dlp = "*"
@@ -23,17 +25,26 @@ waitress = "^3.0.0"
 mutagen = "^1.47.0"
 pyotp = "^2.9.0"
 
+[tool.poetry.dependencies.requests]
+extras = [
+    "socks",
+]
+version = "^2.28.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.2"
 flake8 = "^7.1.1"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
 [tool.poetry.scripts]
-deezer-downloader = 'deezer_downloader.cli.runner:main'
+deezer-downloader = "deezer_downloader.cli.runner:main"
 
 [tool.setuptools.package-data]
-deezer_downloader = ["cli/settings.ini.template"]
+deezer_downloader = [
+    "cli/settings.ini.template",
+]
+
+[build-system]
+requires = [
+    "poetry-core",
+]
+build-backend = "poetry.core.masonry.api"
