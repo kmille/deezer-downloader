@@ -178,7 +178,14 @@ def print_albums(results: list):
     sep()
     print(c(f"  \U0001f4bf  {len(results)} album(s)", BOLD))
     sep()
-    for i, r in enumerate(results, 1):
+    # for i, r in enumerate(results, 1):
+    sorted_results = sorted(
+        results,
+        key=lambda x: int(x.get("album_id") or x.get("id") or 0),
+        reverse=True,
+    )
+
+    for i, r in enumerate(sorted_results, 1):
         idx    = c(f"[{i:>2}]", DIM)
         artist = c(r.get("artist", "?"), MAGENTA)
         album  = c(r.get("album", "?"), WHITE, BOLD)
@@ -225,8 +232,12 @@ HELP_TEXT = f"""
     {c("search", YELLOW)} <query>            search tracks  (alias: s)
     {c("albums", YELLOW)} <query>            search albums
     {c("artists", YELLOW)} <query>           search artists
+    {c("artist", YELLOW)} <query>            search artists
+    {c("ar", YELLOW)} <query>                search artists
     {c("list", YELLOW)} <album_id|#N>        list tracks in an album
+    {c("l", YELLOW)} <album_id|#N>           list tracks in an album
     {c("albums-of", YELLOW)} <artist_id|#N>  list albums by artist
+    {c("al", YELLOW)} <artist_id|#N>  list albums by artist
     {c("top", YELLOW)} <artist_id|#N>        top tracks by artist
 
   {c("Download", YELLOW, BOLD)}
@@ -240,9 +251,10 @@ HELP_TEXT = f"""
 
   {c("Other", YELLOW, BOLD)}
     {c("queue", YELLOW)}                     show download queue / progress
+    {c("qu", YELLOW)}                        show download queue / progress
     {c("debug", YELLOW)}                     show server debug log
     {c("help", YELLOW)}                      show this help
-    {c("quit", YELLOW)} / {c("exit", YELLOW)}            exit
+    {c("quit/q", YELLOW)} / {c("exit", YELLOW)}            exit
 
   {c("Tip:", DIM)} After a search, use {c('#N', YELLOW)} (e.g. {c('dl track #3', YELLOW)}) to reference results by number.
 """
@@ -278,31 +290,70 @@ class REPL:
             parts = raw.split()
             cmd = parts[0].lower()
 
+
+            known_commands = {
+                "search", "s",
+                "albums",
+                "al",
+                "ar",
+                "artists",
+                "artist",
+                "list",
+                "l",
+                "albums-of",
+                "top",
+                "dl",
+                "queue",
+                "qu",
+                "debug",
+                "help",
+                "quit",
+                "exit",
+                "q",
+            }
+
             try:
-                if cmd in ("quit", "exit", "q"):
-                    break
-                elif cmd == "help":
-                    print(HELP_TEXT)
-                elif cmd in ("search", "s"):
-                    self._cmd_search(parts, "track")
-                elif cmd == "albums":
-                    self._cmd_search(parts, "album")
-                elif cmd == "artists":
-                    self._cmd_search(parts, "artist")
-                elif cmd == "list":
-                    self._cmd_list(parts)
-                elif cmd == "albums-of":
-                    self._cmd_artist_browse(parts, "artist_album")
-                elif cmd == "top":
-                    self._cmd_artist_browse(parts, "artist_top")
-                elif cmd == "dl":
-                    self._cmd_dl(parts)
-                elif cmd == "queue":
-                    self._cmd_queue()
-                elif cmd == "debug":
-                    self._cmd_debug()
+                if cmd and cmd in known_commands:
+                    if cmd in ("quit", "exit", "q"):
+                        break
+                    elif cmd == "help":
+                        print(HELP_TEXT)
+                    elif cmd in ("search", "s"):
+                        self._cmd_search(parts, "track")
+                    elif cmd == "albums":
+                        self._cmd_search(parts, "album")
+                    elif cmd in ("artists", "artist", "ar"):
+                        self._cmd_search(parts, "artist")
+                    elif cmd in ("list", "l"):
+                        self._cmd_list(parts)
+                    elif cmd in ("albums-of", "al"):
+                        self._cmd_artist_browse(parts, "artist_album")
+                    elif cmd == "top":
+                        self._cmd_artist_browse(parts, "artist_top")
+                    elif cmd == "dl":
+                        self._cmd_dl(parts)
+                    elif cmd in ("queue", "qu"):
+                        self._cmd_queue()
+                    elif cmd == "debug":
+                        self._cmd_debug()
+                    else:
+                        warn(f"Unknown command '{cmd}'. Type {c('help', YELLOW)} for help.")
+                        
                 else:
-                    warn(f"Unknown command '{cmd}'. Type {c('help', YELLOW)} for help.")
+                    if cmd:
+                        warn(f"Unknown command '{cmd}'. Type {c('help', YELLOW)} for help.")
+                        # fallback → treat unknown input as artist search
+                        query = raw.strip()
+
+                        info(f"Searching artists for {c(repr(query), WHITE)}...")
+
+                        results = self.client.search(query, "artist")
+
+                        self._last_artists = results
+                        print_artists(results)
+                    else:
+                        warn(f"Type {c('help', YELLOW)} for help.")
+                    
             except RuntimeError as e:
                 err(str(e))
             except Exception as e:
