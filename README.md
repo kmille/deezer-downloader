@@ -45,7 +45,7 @@
 pip install --user deezer-downloader
 ```
 
-If you want to use the Docker image, [scroll](#run-with-docker) down a bit.
+The `deezer-downloader` executable can be found in `~/.local/bin` on Linux and C:\Users\\\<YOUR-USERNAME> \AppData\Roaming\Python\Python3<CURRENT-PYTHON-VERSION\>\Scripts\deezer-downloader.exe` on Windows. If you want to use the Docker image, [scroll](#run-with-docker) down a bit.
 
 ### 3. Retrieve your `arl` cookie
 
