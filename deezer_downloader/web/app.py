@@ -246,9 +246,9 @@ def spotify_playlist_download():
 @validate_schema("user_id", "add_to_playlist", "create_zip")
 def deezer_favorites_download():
     """
-    downloads favorite songs of a Deezer user (looks like this in the brwoser:
+    downloads favorite songs of a Deezer user (looks like this in the browser:
        https://www.deezer.com/us/profile/%%user_id%%/loved)
-    a subdirecotry with the name of the user_id will be created.
+    a subdirectory with the name of the user_id will be created.
     para:
         user_id: deezer user_id
         add_to_playlist: True|False (add to mpd playlist)
