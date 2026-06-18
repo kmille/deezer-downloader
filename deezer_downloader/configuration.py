@@ -41,6 +41,13 @@ def load_config(config_abs):
         print("ERROR: cookie_arl must not be empty")
         sys.exit(1)
 
+    if "DEEZER_DOWNLOADER_WORKERS" in os.environ.keys():
+        workers = os.environ["DEEZER_DOWNLOADER_WORKERS"].strip()
+        if not workers.isdigit() or int(workers) < 1:
+            print("ERROR: DEEZER_DOWNLOADER_WORKERS must be a positive integer")
+            sys.exit(1)
+        config["threadpool"]["workers"] = workers
+
     if "DEEZER_QUALITY" in os.environ.keys():
         config["deezer"]["quality"] = os.environ["DEEZER_QUALITY"]
         

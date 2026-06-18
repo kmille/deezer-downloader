@@ -127,6 +127,14 @@ sudo docker run -p 5000:5000 --volume $(pwd)/downloads/:/mnt/deezer-downloader -
 xdg-open http://localhost:5000
 ```
 
+The following config settings can be overridden via environment variables (useful for Docker, no need to edit the `.ini` file):
+
+| Environment variable        | Config setting           | Description                                  |
+|-----------------------------|--------------------------|----------------------------------------------|
+| `DEEZER_COOKIE_ARL`         | `[deezer] cookie_arl`    | ARL cookie of your Deezer account (required) |
+| `DEEZER_QUALITY`            | `[deezer] quality`       | Download quality (`mp3` or `flac`)           |
+| `DEEZER_DOWNLOADER_WORKERS` | `[threadpool] workers`   | Number of download workers (positive integer)|
+
 ### Run with Vagrant
 
 ```bash	
