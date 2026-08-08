@@ -296,8 +296,10 @@ def write_song_metadata(output_file: str, song: dict, is_flac: bool) -> None:
 
     set_metadata(audio, "picture", downloadpicture(song["ALB_PICTURE"]))
     set_metadata(audio, "albumartist", song.get('ALB_ART_NAME', song.get('ART_NAME', None)))
-    audio.save(v2_version=3)
 
+
+    audio.save()   #adding v2_version=3 to audio.save() means saving .flac files throw an error and lose all metadata / tags
+    #audio.save(v2_version=3)
 
 def get_song_infos_from_deezer_website(search_type, id):
     # search_type: either one of the constants: TYPE_TRACK|TYPE_ALBUM|TYPE_PLAYLIST
