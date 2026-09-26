@@ -302,6 +302,7 @@ def write_song_metadata(output_file: str, song: dict, is_flac: bool) -> None:
     else:
         audio.save(v2_version=3)
 
+
 def get_song_infos_from_deezer_website(search_type, id):
     # search_type: either one of the constants: TYPE_TRACK|TYPE_ALBUM|TYPE_PLAYLIST
     # id: deezer_id of the song/album/playlist (like https://www.deezer.com/de/track/823267272)
@@ -438,7 +439,7 @@ def parse_deezer_playlist(playlist_id):
             'tab': 0,
             'header': True,
             'lang': 'de',
-            'nb': 500}
+            'nb': 1000000}
     req = session.post(url_get_playlist_songs, json=data)
     json = req.json()
 
@@ -449,7 +450,6 @@ def parse_deezer_playlist(playlist_id):
     playlist_name = json_data['DATA']['TITLE']
     number_songs = json_data['DATA']['NB_SONG']
     print("Playlist '{}' has {} songs".format(playlist_name, number_songs))
-
     print("Got {} songs from API".format(json_data['SONGS']['count']))
     return playlist_name, json_data['SONGS']['data']
 
