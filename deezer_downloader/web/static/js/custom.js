@@ -293,6 +293,25 @@ $(document).ready(function() {
     });
     // END DEEZER FAVORITE SONGS
 
+    // BEGIN DEEZER SONG
+    $("#deezer_song_download").click(function() {
+        deezer_download($('#deezer-song-id').val(), "track", false, false);
+    });
+
+    $("#deezer_song_zip").click(function() {
+        deezer_download($('#deezer-song-id').val(), "track", false, true);
+    });
+    // END DEEZER SONG
+
+    // BEGIN DEEZER album
+    $("#deezer_album_download").click(function() {
+        deezer_download($('#deezer-album-id').val(), "album", false, false);
+    });
+
+    $("#deezer_album_zip").click(function() {
+        deezer_download($('#deezer-album-id').val(), "album", false, true);
+    });
+    // END DEEZER album
 
     function show_tab(id_nav, id_content) {
     // nav 
