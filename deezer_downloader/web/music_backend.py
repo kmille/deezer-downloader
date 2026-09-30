@@ -177,6 +177,59 @@ def download_deezer_album_and_queue_and_zip(album_id, add_to_playlist, create_zi
     return make_song_paths_relative_to_mpd_root(songs_absolute_location)
 
 
+def _normalized(value):
+    return " ".join((value or "").casefold().split())
+
+
+def _best_csv_search_result(results, row, download_type):
+    """Prefer exact CSV metadata matches while retaining Deezer's first result fallback."""
+    if not results:
+        return None
+    artist = _normalized(row.get("artist"))
+    wanted = _normalized(row.get("title") if download_type == TYPE_TRACK else row.get("album"))
+
+    def score(result):
+        result_name = result.get("title") if download_type == TYPE_TRACK else result.get("album")
+        return (2 if artist and _normalized(result.get("artist")) == artist else 0) + \
+               (1 if wanted and _normalized(result_name) == wanted else 0)
+
+    return max(results, key=score)
+
+
+@sched.register_command()
+def download_csv_import(rows, download_type, add_to_playlist, create_zip):
+    """Resolve CSV metadata against Deezer and download each unique requested item."""
+    unique_rows = []
+    seen = set()
+    for row in rows:
+        key = (_normalized(row.get("artist")),
+               _normalized(row.get("title") if download_type == TYPE_TRACK else row.get("album")))
+        if key not in seen:
+            seen.add(key)
+            unique_rows.append(row)
+
+    results = []
+    for i, row in enumerate(unique_rows):
+        report_progress(i, len(unique_rows))
+        name = row.get("title") if download_type == TYPE_TRACK else row.get("album")
+        query = " ".join(value.strip() for value in (row.get("artist", ""), name) if value.strip())
+        try:
+            match = _best_csv_search_result(deezer_search(query, download_type), row, download_type)
+            if not match:
+                print(f"Warning: no Deezer {download_type} found for CSV row: {query}")
+                continue
+            if download_type == TYPE_TRACK:
+                result = download_deezer_song_and_queue(match["id"], add_to_playlist)
+            else:
+                result = download_deezer_album_and_queue_and_zip(match["id"], add_to_playlist, create_zip)
+            if result:
+                results.extend(result)
+        except Exception as error:
+            print(f"Warning: could not download CSV {download_type} ({query}): {error}")
+    report_progress(len(unique_rows), len(unique_rows))
+    return results
+
+
 @sched.register_command()
 def download_deezer_playlist_and_queue_and_zip(playlist_id, add_to_playlist, create_zip):
     playlist_name, songs = parse_deezer_playlist(playlist_id)

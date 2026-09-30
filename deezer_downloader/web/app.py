@@ -203,6 +203,43 @@ def deezer_download_song_or_album():
     return jsonify({"task_id": id(task), })
 
 
+@app.route('/import/csv', methods=['POST'])
+def csv_import_download():
+    """Queue tracks or albums described by rows imported from a CSV file."""
+    user_input = request.get_json(silent=True)
+    if not isinstance(user_input, dict):
+        return jsonify({"error": "request body must be JSON"}), 400
+
+    required = {"type", "rows", "add_to_playlist", "create_zip"}
+    if set(user_input) != required:
+        return jsonify({"error": "required fields: type, rows, add_to_playlist, create_zip"}), 400
+    if user_input["type"] not in ("track", "album"):
+        return jsonify({"error": "type must be track or album"}), 400
+    if not isinstance(user_input["add_to_playlist"], bool) or not isinstance(user_input["create_zip"], bool):
+        return jsonify({"error": "add_to_playlist and create_zip must be booleans"}), 400
+    rows = user_input["rows"]
+    if not isinstance(rows, list) or not rows or len(rows) > 10000:
+        return jsonify({"error": "rows must contain between 1 and 10000 entries"}), 400
+    for row in rows:
+        if not isinstance(row, dict) or set(row) != {"artist", "title", "album"}:
+            return jsonify({"error": "each row must contain artist, title and album"}), 400
+        if any(not isinstance(value, str) for value in row.values()):
+            return jsonify({"error": "row values must be strings"}), 400
+        needed = "title" if user_input["type"] == "track" else "album"
+        if not row[needed].strip():
+            return jsonify({"error": f"every row must have a {needed}"}), 400
+
+    task = sched.enqueue_task(
+        f"Downloading CSV {user_input['type']} import ({len(rows)} rows)",
+        "download_csv_import",
+        rows=rows,
+        download_type=user_input["type"],
+        add_to_playlist=user_input["add_to_playlist"],
+        create_zip=user_input["create_zip"],
+    )
+    return jsonify({"task_id": id(task), "row_count": len(rows)})
+
+
 @app.route('/youtubedl', methods=['POST'])
 @validate_schema("url", "add_to_playlist")
 def youtubedl_download():

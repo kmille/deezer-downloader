@@ -31,6 +31,132 @@ function play_preview(src) {
 
 $(document).ready(function() {
 
+    var csvHeaders = [];
+    var csvRows = [];
+
+    function parseCsv(text) {
+        var rows = [], row = [], field = "", quoted = false;
+        text = text.replace(/^\uFEFF/, "");
+        for (var i = 0; i < text.length; i++) {
+            var character = text[i];
+            if (quoted) {
+                if (character === '"' && text[i + 1] === '"') { field += '"'; i++; }
+                else if (character === '"') quoted = false;
+                else field += character;
+            } else if (character === '"') quoted = true;
+            else if (character === ',') { row.push(field); field = ""; }
+            else if (character === '\n' || character === '\r') {
+                if (character === '\r' && text[i + 1] === '\n') i++;
+                row.push(field); field = "";
+                if (row.some(function(value) { return value.length; })) rows.push(row);
+                row = [];
+            } else field += character;
+        }
+        row.push(field);
+        if (row.some(function(value) { return value.length; })) rows.push(row);
+        return rows;
+    }
+
+    function guessColumn(words) {
+        for (var i = 0; i < csvHeaders.length; i++) {
+            var header = csvHeaders[i].toLowerCase();
+            if (words.some(function(word) { return header.indexOf(word) !== -1; })) return i.toString();
+        }
+        return "";
+    }
+
+    function populateCsvColumns() {
+        ["#csv-artist-column", "#csv-title-column", "#csv-album-column"].forEach(function(id) {
+            var select = $(id).empty().append($("<option>").val("").text("Not mapped"));
+            csvHeaders.forEach(function(header, index) {
+                select.append($("<option>").val(index).text(header || "Column " + (index + 1)));
+            });
+        });
+        $("#csv-artist-column").val(guessColumn(["artist", "performer", "band"]));
+        $("#csv-title-column").val(guessColumn(["track", "title", "song"]));
+        $("#csv-album-column").val(guessColumn(["album", "release"]));
+    }
+
+    function renderCsvPreview() {
+        var headRow = $("<tr>").append(
+            $("<th>").append($("<input type='checkbox' id='csv-select-all' checked>"))
+        );
+        csvHeaders.forEach(function(header) { headRow.append($("<th>").text(header)); });
+        $("#csv-table thead").empty().append(headRow);
+        var body = $("#csv-table tbody").empty();
+        csvRows.forEach(function(values, index) {
+            var row = $("<tr>");
+            row.append($("<td>").append($("<input type='checkbox' class='csv-row-select' checked>").attr("data-row", index)));
+            csvHeaders.forEach(function(_, column) { row.append($("<td>").text(values[column] || "")); });
+            body.append(row);
+        });
+        $("#csv-summary").text(csvRows.length + " rows loaded");
+        $("#csv-mapping, #csv-controls").show();
+    }
+
+    $("#csv-file").change(function(event) {
+        var file = event.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(loadEvent) {
+            var parsed = parseCsv(loadEvent.target.result);
+            if (parsed.length < 2) {
+                $.jGrowl("The CSV needs a header and at least one data row", { life: 5000 });
+                return;
+            }
+            csvHeaders = parsed[0];
+            csvRows = parsed.slice(1);
+            populateCsvColumns();
+            renderCsvPreview();
+        };
+        reader.onerror = function() { $.jGrowl("Could not read that CSV file", { life: 5000 }); };
+        reader.readAsText(file);
+    });
+
+    $(document).on("change", "#csv-select-all", function() {
+        $(".csv-row-select").prop("checked", this.checked);
+    });
+
+    function csvDownload(type) {
+        var artistColumn = $("#csv-artist-column").val();
+        var titleColumn = $("#csv-title-column").val();
+        var albumColumn = $("#csv-album-column").val();
+        if ((type === "track" && titleColumn === "") || (type === "album" && albumColumn === "")) {
+            $.jGrowl("Map the " + (type === "track" ? "track" : "album") + " column first", { life: 5000 });
+            return;
+        }
+        var rows = [];
+        $(".csv-row-select:checked").each(function() {
+            var source = csvRows[parseInt($(this).attr("data-row"))];
+            rows.push({
+                artist: artistColumn === "" ? "" : (source[parseInt(artistColumn)] || ""),
+                title: titleColumn === "" ? "" : (source[parseInt(titleColumn)] || ""),
+                album: albumColumn === "" ? "" : (source[parseInt(albumColumn)] || "")
+            });
+        });
+        if (!rows.length) { $.jGrowl("Select at least one row", { life: 5000 }); return; }
+        $.ajax({
+            url: deezer_downloader_api_root + "/import/csv",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                type: type, rows: rows,
+                add_to_playlist: $("#csv-add-to-playlist").prop("checked"),
+                create_zip: type === "album" && $("#csv-create-zip").prop("checked")
+            }),
+            success: function() {
+                $.jGrowl("CSV import queued for " + rows.length + " selected rows", { life: 5000 });
+            },
+            error: function(xhr) {
+                var message = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : "Could not queue CSV import";
+                $.jGrowl(message, { life: 5000 });
+            }
+        });
+    }
+
+    $("#csv-download-tracks").click(function() { csvDownload("track"); });
+    $("#csv-download-albums").click(function() { csvDownload("album"); });
+
     if(!show_mpd_features) {
         $("#yt_download_play").hide()
         $("#spotify_download_play").hide()
@@ -310,46 +436,27 @@ $(document).ready(function() {
     var bbody = document.getElementById('body');
     bbody.onkeydown = function (event) {
         if (event.key !== undefined) {
-           if (event.key === 'Enter' ) {
+           if (event.key === 'Enter' && $("#nav-songs-albums").hasClass("active")) {
                search(search_type);
            } else if (event.key === 'm' && event.ctrlKey) {
               $("#songs-albums-query")[0].value = "";
               $("#songs-albums-query")[0].focus();
            }
            if (event.ctrlKey && event.shiftKey) {
-               console.log("pressed ctrl + shift + ..");
-               if(event.key === '!') {
-                   id_nav = "nav-songs-albums";
-                   id_content = "songs_albums";
-               }
-               if(event.key === '"') {
-                   id_nav = "nav-youtubedl";
-                   id_content = "youtubedl";
-               }
-               if(event.key === '§') {
-                   id_nav = "nav-spotify-playlists";
-                   id_content = "spotify-playlists";
-               }
-               if(event.key === '$') {
-                   id_nav = "nav-deezer-playlists";
-                   id_content = "deezer-playlists";
-               }
-               if(event.key === '%') {
-                   id_nav = "nav-songs-albums";
-                   id_content = "songs_albums";
-                   window.open('/downloads/', '_blank');
-               }
-               if(event.key === "&") {
-                   id_nav = "nav-debug-log";
-                   id_content = "debug";
-                   show_debug_log();
-               }
-               if(event.key === '/') {
-                   id_nav = "nav-task-queue";
-                   id_content = "queue";
-               }
-               if(typeof id_nav !== 'undefined') {
-                   show_tab(id_nav, id_content);
+               var tabs = {
+                   Digit1: ["nav-songs-albums", "songs_albums"],
+                   Digit2: ["nav-youtubedl", "youtubedl"],
+                   Digit3: ["nav-spotify-playlists", "spotify-playlists"],
+                   Digit4: ["nav-deezer", "deezer"],
+                   Digit5: ["nav-csv-import", "csv-import"],
+                   Digit7: ["nav-debug-log", "debug"],
+                   Digit8: ["nav-task-queue", "queue"]
+               };
+               if (event.code === "Digit6") window.open('downloads/', '_blank');
+               else if (tabs[event.code]) {
+                   show_tab(tabs[event.code][0], tabs[event.code][1]);
+                   if (event.code === "Digit7") show_debug_log();
+                   if (event.code === "Digit8") show_task_queue();
                }
            }
         }

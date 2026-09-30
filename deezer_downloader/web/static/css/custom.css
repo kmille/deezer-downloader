@@ -45,3 +45,16 @@ button.search {
   border-bottom: 3px solid #242424;
   color: #242424;
 }
+
+.csv-mapping {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.csv-mapping label { min-width: 190px; }
+.csv-actions { margin: 14px 0; }
+.csv-actions .btn { margin-right: 6px; }
+.csv-preview { max-height: 55vh; }
+.csv-preview thead th { position: sticky; top: 0; background: white; z-index: 1; }
