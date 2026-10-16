@@ -368,5 +368,26 @@ class TestYoutubeMethods(unittest.TestCase):
         self.assertEqual(pwn_succeeded, False)
 
 
+def test_reload_arl_if_changed(tmp_path, monkeypatch):
+    import deezer_downloader.deezer as dz
+    calls = []
+    monkeypatch.setattr(dz, "init_deezer_session", lambda *a: calls.append(a))
+    monkeypatch.setitem(config["deezer"], "cookie_arl", "old")
+    arl_file = tmp_path / "arl.txt"
+    monkeypatch.setenv("DEEZER_COOKIE_ARL_FILE", str(arl_file))
+
+    arl_file.write_text("old\n")
+    dz.reload_arl_if_changed()
+    assert calls == []  # unchanged -> no re-login
+
+    arl_file.write_text("new\n")
+    dz.reload_arl_if_changed()
+    assert len(calls) == 1 and config["deezer"]["cookie_arl"] == "new"
+
+    arl_file.unlink()
+    dz.reload_arl_if_changed()  # missing file must not crash
+    assert len(calls) == 1
+
+
 if __name__ == '__main__':
     unittest.main()

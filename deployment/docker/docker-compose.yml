@@ -3,9 +3,11 @@ services:
   deezer-downloader:
     build: ../../
     environment:
-      - DEEZER_COOKIE_ARL=changeme
+      # edit ./config/arl.txt to swap the cookie at runtime, no restart needed
+      - DEEZER_COOKIE_ARL_FILE=/config/arl.txt
     volumes:
       - ./downloads:/mnt/deezer-downloader
+      - ./config:/config:ro
     ports:
       - "5000:5000"
     security_opt:

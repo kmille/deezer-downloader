@@ -127,6 +127,15 @@ sudo docker run -p 5000:5000 --volume $(pwd)/downloads/:/mnt/deezer-downloader -
 xdg-open http://localhost:5000
 ```
 
+To swap an expired ARL cookie without recreating the container, put it into a file and pass `DEEZER_COOKIE_ARL_FILE` instead. The file is re-read on every request, a changed cookie triggers a new Deezer session:
+
+```bash
+mkdir config && echo your_ARL_cookie > config/arl.txt
+sudo docker run -p 5000:5000 --volume $(pwd)/downloads/:/mnt/deezer-downloader --volume $(pwd)/config/:/config:ro --env DEEZER_COOKIE_ARL_FILE=/config/arl.txt kmille2/deezer-downloader:latest
+```
+
+Mount the directory, not the single file: editors that save by replacing the file would otherwise leave the container with the old version.
+
 ### Run with Vagrant
 
 ```bash	

@@ -11,9 +11,10 @@ import giphypop
 
 from deezer_downloader.configuration import config
 from deezer_downloader.web.music_backend import sched
-from deezer_downloader.deezer import deezer_search, init_deezer_session
+from deezer_downloader.deezer import deezer_search, init_deezer_session, reload_arl_if_changed
 
 app = Flask(__name__)
+app.before_request(reload_arl_if_changed)
 
 warnings.filterwarnings("ignore", message="You are using the giphy public api key")
 giphy = giphypop.Giphy()

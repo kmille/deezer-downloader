@@ -1,6 +1,8 @@
+import os
 import sys
 import re
 import json
+from pathlib import Path
 from typing import Optional, Sequence
 
 from deezer_downloader.configuration import config
@@ -90,6 +92,26 @@ def init_deezer_session(proxy_server: str, quality: str) -> None:
         session.proxies.update({"https": proxy_server})
     license_token, web_sound_quality = get_user_data()
     set_song_quality(quality, web_sound_quality)
+
+
+def reload_arl_if_changed() -> None:
+    # re-login if the file in DEEZER_COOKIE_ARL_FILE got a new arl cookie - no container restart needed
+    arl_file = os.environ.get("DEEZER_COOKIE_ARL_FILE")
+    if not arl_file:
+        return
+    try:
+        arl = Path(arl_file).read_text().strip()
+    except OSError as e:
+        print(f"ERROR: could not read {arl_file}: {e}")
+        return
+    if not arl or arl == config['deezer']['cookie_arl']:
+        return
+    print("arl cookie changed, re-initializing Deezer session")
+    config['deezer']['cookie_arl'] = arl
+    try:
+        init_deezer_session(config['proxy']['server'], config['deezer']['quality'])
+    except Exception as e:
+        print(f"ERROR: new arl cookie does not work: {e}")
 
 
 class Deezer404Exception(Exception):
