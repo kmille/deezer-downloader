@@ -39,7 +39,7 @@ def load_config(config_abs):
 
     # file wins over env var; it is re-read at runtime (see deezer.reload_arl_if_changed)
     if "DEEZER_COOKIE_ARL_FILE" in os.environ.keys():
-        config["deezer"]["cookie_arl"] = Path(os.environ["DEEZER_COOKIE_ARL_FILE"]).read_text().strip()
+        config["deezer"]["cookie_arl"] = Path(os.environ["DEEZER_COOKIE_ARL_FILE"]).read_text(encoding="utf-8-sig").strip()
 
     if len(config["deezer"]["cookie_arl"].strip()) == 0:
         print("ERROR: cookie_arl must not be empty")

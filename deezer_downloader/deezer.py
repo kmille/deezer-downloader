@@ -100,7 +100,7 @@ def reload_arl_if_changed() -> None:
     if not arl_file:
         return
     try:
-        arl = Path(arl_file).read_text().strip()
+        arl = Path(arl_file).read_text(encoding="utf-8-sig").strip()
     except OSError as e:
         print(f"ERROR: could not read {arl_file}: {e}")
         return
