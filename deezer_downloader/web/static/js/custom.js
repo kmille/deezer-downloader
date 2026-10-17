@@ -293,6 +293,18 @@ $(document).ready(function() {
     });
     // END DEEZER FAVORITE SONGS
 
+    $("#deezer_arl_save").click(function() {
+        $.post(deezer_downloader_api_root + '/arl', JSON.stringify({ arl: $('#deezer-arl').val() }))
+            .done(function(data) {
+                $('#deezer-arl').val('');
+                $.jGrowl(data.env_override ? "ARL cookie updated and saved, but the DEEZER_COOKIE_ARL variable overrides it on restart. Remove the variable."
+                                           : "ARL cookie updated and saved", { life: 8000 });
+            })
+            .fail(function(xhr) {
+                $.jGrowl(xhr.responseJSON ? xhr.responseJSON.error : "Updating the ARL cookie failed", { life: 8000 });
+            });
+    });
+
 
     function show_tab(id_nav, id_content) {
     // nav 

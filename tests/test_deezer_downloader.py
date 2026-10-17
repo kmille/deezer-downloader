@@ -368,5 +368,32 @@ class TestYoutubeMethods(unittest.TestCase):
         self.assertEqual(pwn_succeeded, False)
 
 
+def test_update_arl(tmp_path, monkeypatch):
+    import deezer_downloader.deezer as dz
+    from deezer_downloader import configuration
+    ini = tmp_path / "deezer-downloader.ini"
+    ini.write_text("[deezer]\n; keep this comment\ncookie_arl = old\nquality = mp3\n")
+    monkeypatch.setattr(configuration, "config_path", str(ini))
+    monkeypatch.setitem(config["deezer"], "cookie_arl", "old")
+    monkeypatch.setattr(dz, "init_deezer_session", lambda *a: None)
+
+    with pytest.raises(dz.Deezer403Exception):
+        dz.update_arl("ab" * 96)  # real Deezer call with an invalid cookie
+    assert config["deezer"]["cookie_arl"] == "old"
+
+    class LoggedIn:
+        def json(self):
+            return {"results": {"USER": {"USER_ID": 42}}}
+    monkeypatch.setattr(dz.requests, "get", lambda *a, **k: LoggedIn())
+    dz.update_arl("new")
+    assert ini.read_text() == "[deezer]\n; keep this comment\ncookie_arl = new\nquality = mp3\n"
+    assert config["deezer"]["cookie_arl"] == "new"
+
+    ini.chmod(0o400)
+    with pytest.raises(OSError):
+        dz.update_arl("newer")  # cannot save -> nothing changes
+    assert config["deezer"]["cookie_arl"] == "new"
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -6,6 +6,10 @@ services:
       - DEEZER_COOKIE_ARL=changeme
     volumes:
       - ./downloads:/mnt/deezer-downloader
+      # optional: keep a cookie pasted in the web UI when the container is recreated
+      # (get the file with: docker run --rm kmille2/deezer-downloader cat /etc/deezer-downloader.ini > deezer-downloader.ini,
+      #  make it writable for uid 1000 and remove DEEZER_COOKIE_ARL above, it would override the file)
+      # - ./deezer-downloader.ini:/etc/deezer-downloader.ini
     ports:
       - "5000:5000"
     security_opt:

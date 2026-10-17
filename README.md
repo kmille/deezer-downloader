@@ -127,6 +127,13 @@ sudo docker run -p 5000:5000 --volume $(pwd)/downloads/:/mnt/deezer-downloader -
 xdg-open http://localhost:5000
 ```
 
+When the ARL cookie expires, paste a new one in the web UI (tab "Deezer", "Update Deezer ARL cookie"). It is checked against Deezer, used right away and saved as `cookie_arl` in the config file. The environment variable `DEEZER_COOKIE_ARL` overrides the config file on startup, so drop it if you use the web UI. To keep the cookie when the container is recreated, mount your own config file (writable for uid 1000):
+
+```bash
+sudo docker run --rm kmille2/deezer-downloader:latest cat /etc/deezer-downloader.ini > deezer-downloader.ini
+sudo docker run -p 5000:5000 --volume $(pwd)/downloads/:/mnt/deezer-downloader --volume $(pwd)/deezer-downloader.ini:/etc/deezer-downloader.ini kmille2/deezer-downloader:latest
+```
+
 ### Run with Vagrant
 
 ```bash	

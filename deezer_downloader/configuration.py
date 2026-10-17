@@ -1,18 +1,30 @@
 import sys
 import os
+import re
 from pathlib import Path
 from configparser import ConfigParser
 
 config = None
+config_path = None
+
+
+def save_arl(arl):
+    # rewrite only the cookie_arl line, ConfigParser.write() would drop all comments of the file
+    path = Path(config_path)
+    text, found = re.subn(r'^cookie_arl\s*=.*$', lambda _: f"cookie_arl = {arl}", path.read_text(), count=1, flags=re.M)
+    if not found:
+        raise OSError(f"no cookie_arl line in {path}")
+    path.write_text(text)
 
 
 def load_config(config_abs):
-    global config
+    global config, config_path
 
     if not os.path.exists(config_abs):
         print(f"Could not find config file: {config_abs}")
         sys.exit(1)
 
+    config_path = config_abs
     config = ConfigParser()
     config.read(config_abs)
 

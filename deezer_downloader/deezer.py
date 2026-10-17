@@ -3,6 +3,7 @@ import re
 import json
 from typing import Optional, Sequence
 
+from deezer_downloader import configuration
 from deezer_downloader.configuration import config
 
 from Crypto.Hash import MD5
@@ -90,6 +91,17 @@ def init_deezer_session(proxy_server: str, quality: str) -> None:
         session.proxies.update({"https": proxy_server})
     license_token, web_sound_quality = get_user_data()
     set_song_quality(quality, web_sound_quality)
+
+
+def update_arl(arl: str) -> None:
+    # validate a new arl cookie, save it to the config file and switch the session to it
+    resp = requests.get('https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token=',
+                        cookies={'arl': arl}, headers={'User-Agent': USER_AGENT}, proxies=session.proxies, timeout=10)
+    if resp.json()['results']['USER']['USER_ID'] == 0:
+        raise Deezer403Exception("Deezer does not accept this arl cookie")
+    configuration.save_arl(arl)  # first: if the file is not writable, nothing changes
+    config['deezer']['cookie_arl'] = arl
+    init_deezer_session(config['proxy']['server'], config['deezer']['quality'])
 
 
 class Deezer404Exception(Exception):

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import re
 from pathlib import Path
 from subprocess import Popen, PIPE
 from functools import wraps
@@ -11,7 +12,7 @@ import giphypop
 
 from deezer_downloader.configuration import config
 from deezer_downloader.web.music_backend import sched
-from deezer_downloader.deezer import deezer_search, init_deezer_session
+from deezer_downloader.deezer import deezer_search, init_deezer_session, update_arl
 
 app = Flask(__name__)
 
@@ -201,6 +202,30 @@ def deezer_download_song_or_album():
                                   add_to_playlist=user_input['add_to_playlist'],
                                   create_zip=user_input['create_zip'])
     return jsonify({"task_id": id(task), })
+
+
+@app.route('/arl', methods=['POST'])
+def set_arl():
+    """
+    replaces the Deezer arl cookie at runtime and saves it to the config file
+    para:
+        arl: the arl cookie copied from the browser
+    return:
+        json: { env_override: True if DEEZER_COOKIE_ARL will override the saved cookie on restart }
+    """
+    # no validate_schema: it prints the request into the log, and /debug shows the log
+    data = request.get_json(force=True, silent=True)
+    arl = str(data.get('arl', '')).strip() if isinstance(data, dict) else ''
+    if not re.fullmatch(r'[0-9A-Za-z]{100,300}', arl):
+        return jsonify({"error": "this does not look like an arl cookie"}), 400
+    try:
+        update_arl(arl)
+    except OSError as e:
+        return jsonify({"error": f"could not save the cookie to the config file ({e.strerror or e}). Is it writable?"}), 500
+    except Exception as e:
+        return jsonify({"error": f"cookie rejected: {e}"}), 400
+    print("arl cookie updated via web ui")
+    return jsonify({"env_override": "DEEZER_COOKIE_ARL" in os.environ})
 
 
 @app.route('/youtubedl', methods=['POST'])
