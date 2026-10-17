@@ -467,6 +467,35 @@ def parse_deezer_playlist(playlist_id):
     return playlist_name, json_data['SONGS']['data']
 
 
+def parse_deezer_show(show_url):
+    # returns (show name, [(episode title, direct mp3 url), ...]) of a podcast like https://www.deezer.com/en/show/2684332
+    show_id = re.search(r'/show/(\d+)', show_url)
+    if not show_id:
+        raise DeezerApiException("ERROR: could not extract show id from '{}'".format(show_url))
+
+    url_get_csrf_token = "https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token="
+    csrf_token = session.post(url_get_csrf_token).json()['results']['checkForm']
+    url_get_show = "https://www.deezer.com/ajax/gw-light.php?method=deezer.pageShow&input=3&api_version=1.0&api_token={}".format(csrf_token)
+    data = {'SHOW_ID': show_id.group(1), 'LANG': 'de', 'COUNTRY': 'DE', 'NB': 1000000, 'START': 0, 'USER_ID': 0}
+    json = session.post(url_get_show, json=data).json()
+    if len(json['error']) > 0:
+        raise DeezerApiException("ERROR: deezer api said {}".format(json['error']))
+
+    show_name = json['results']['DATA']['SHOW_NAME']
+    episodes = [(e['EPISODE_TITLE'], e['EPISODE_DIRECT_STREAM_URL']) for e in json['results']['EPISODES']['data']]
+    print("Show '{}' has {} episodes".format(show_name, len(episodes)))
+    return show_name, episodes
+
+
+def download_episode(url, output_file):
+    # episodes are plain files hosted by the publisher: no decryption, and no session so the arl cookie stays at deezer
+    with requests.get(url, stream=True, proxies=session.proxies, timeout=60) as response:
+        response.raise_for_status()
+        with open(output_file, "wb") as f:
+            for chunk in response.iter_content(chunk_size=65536):
+                f.write(chunk)
+
+
 def get_deezer_favorites(user_id: str) -> Optional[Sequence[int]]:
     if not user_id.isnumeric():
         raise Exception(f"User id '{user_id}' must be numeric")
