@@ -10,12 +10,12 @@ homepage = "https://github.com/kmille/deezer-downloader"
 
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 requests = {extras = ["socks"], version = "^2.28.2"}
 flask = "^3.0.3"
 python-mpd2 = "^3.0.5"
 yt-dlp = "*"
-pycryptodome = "^3.16.0"
+pycryptodome = "^4.6.0"
 jinja2 = "^3.1.2"
 giphypop = "^0.3"
 waitress = "^3.0.0"
@@ -25,7 +25,7 @@ pyotp = "^2.9.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.2"
-flake8 = "^7.1.1"
+flake8 = "^7.5.0"
 
 [build-system]
 requires = ["poetry-core"]
