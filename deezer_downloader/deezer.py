@@ -1,4 +1,5 @@
 import sys
+import os
 import re
 import json
 from typing import Optional, Sequence
@@ -25,6 +26,9 @@ TYPE_ARTIST = "artist"
 TYPE_ALBUM_TRACK = "album_track" # used for listing songs of an album
 TYPE_ARTIST_ALBUM = "artist_album" # used for listing albums of an artist
 TYPE_ARTIST_TOP = "artist_top" # used for listing top tracks of an artist
+TYPE_SHOW = "show" # podcast
+TYPE_EPISODE = "episode" # episode of a podcast
+TYPE_SHOW_EPISODE = "show_episode" # used for listing episodes of a podcast
 # END TYPES
 
 session = None
@@ -354,12 +358,15 @@ def get_song_infos_from_deezer_website(search_type, id):
 
 def deezer_search(search, search_type):
     # search: string (What are you looking for?)
-    # search_type: either one of the constants: TYPE_TRACK|TYPE_ALBUM|TYPE_ALBUM_TRACK (TYPE_PLAYLIST is not supported)
+    # search_type: either one of the constants: TYPE_TRACK|TYPE_ALBUM|TYPE_ALBUM_TRACK|TYPE_SHOW|TYPE_EPISODE|TYPE_SHOW_EPISODE (TYPE_PLAYLIST is not supported)
     # return: list of dicts (keys depend on search_type)
 
-    if search_type not in [TYPE_TRACK, TYPE_ALBUM, TYPE_ARTIST, TYPE_ALBUM_TRACK, TYPE_ARTIST_ALBUM, TYPE_ARTIST_TOP]:
+    if search_type not in [TYPE_TRACK, TYPE_ALBUM, TYPE_ARTIST, TYPE_ALBUM_TRACK, TYPE_ARTIST_ALBUM, TYPE_ARTIST_TOP,
+                           TYPE_SHOW, TYPE_EPISODE, TYPE_SHOW_EPISODE]:
         print("ERROR: search_type is wrong: {}".format(search_type))
         return []
+    if search_type in (TYPE_SHOW, TYPE_EPISODE, TYPE_SHOW_EPISODE):
+        return podcast_search(search, search_type)
     search = urllib.parse.quote_plus(search)
     if search_type == TYPE_ALBUM_TRACK:
         url = f"https://api.deezer.com//album/{search}"
@@ -467,33 +474,108 @@ def parse_deezer_playlist(playlist_id):
     return playlist_name, json_data['SONGS']['data']
 
 
-def parse_deezer_show(show_url):
-    # returns (show name, [(episode title, direct mp3 url), ...]) of a podcast like https://www.deezer.com/en/show/2684332
-    show_id = re.search(r'/show/(\d+)', show_url)
-    if not show_id:
-        raise DeezerApiException("ERROR: could not extract show id from '{}'".format(show_url))
-
+def gw_api_call(method: str, data: dict) -> dict:
+    # calls the private api of the Deezer website (needed for podcasts: the public api can't search episodes)
     url_get_csrf_token = "https://www.deezer.com/ajax/gw-light.php?method=deezer.getUserData&input=3&api_version=1.0&api_token="
     csrf_token = session.post(url_get_csrf_token).json()['results']['checkForm']
-    url_get_show = "https://www.deezer.com/ajax/gw-light.php?method=deezer.pageShow&input=3&api_version=1.0&api_token={}".format(csrf_token)
-    data = {'SHOW_ID': show_id.group(1), 'LANG': 'de', 'COUNTRY': 'DE', 'NB': 1000000, 'START': 0, 'USER_ID': 0}
-    json = session.post(url_get_show, json=data).json()
-    if len(json['error']) > 0:
-        raise DeezerApiException("ERROR: deezer api said {}".format(json['error']))
+    url = "https://www.deezer.com/ajax/gw-light.php?method={}&input=3&api_version=1.0&api_token={}".format(method, csrf_token)
+    resp = session.post(url, json=data).json()
+    if len(resp['error']) > 0:
+        raise DeezerApiException("ERROR: deezer api said {}".format(resp['error']))
+    return resp['results']
 
-    show_name = json['results']['DATA']['SHOW_NAME']
-    episodes = [(e['EPISODE_TITLE'], e['EPISODE_DIRECT_STREAM_URL']) for e in json['results']['EPISODES']['data']]
+
+def podcast_picture_url(md5: str) -> str:
+    return "https://cdn-images.dzcdn.net/images/talk/{}/56x56-000000-80-0-0.jpg".format(md5)
+
+
+def podcast_search(search, search_type):
+    # search_type: TYPE_SHOW|TYPE_EPISODE (search is a query) or TYPE_SHOW_EPISODE (search is the id of the show)
+    # return: list of dicts (keys depend on search_type)
+    try:
+        if search_type == TYPE_SHOW_EPISODE:
+            __, data = parse_deezer_show(search)
+        else:
+            search_filter = "SHOW" if search_type == TYPE_SHOW else "EPISODE"
+            data = gw_api_call("search.music", {"query": search, "filter": search_filter, "output": search_filter,
+                                                "start": 0, "nb": 50})['data']
+    except (requests.exceptions.RequestException, KeyError, DeezerApiException) as e:
+        print(f"ERROR: Could not search for podcasts: {e}")
+        return []
+
+    return_nice = []
+    for item in data:
+        if search_type == TYPE_SHOW:
+            return_nice.append({
+                'id': str(item['SHOW_ID']),
+                'id_type': TYPE_SHOW,
+                'show': item['SHOW_NAME'],
+                'show_id': item['SHOW_ID'],
+                'description': item.get('SHOW_DESCRIPTION', ''),
+                'img_url': podcast_picture_url(item['SHOW_ART_MD5']),
+            })
+        else:
+            return_nice.append({
+                'id': str(item['EPISODE_ID']),
+                'id_type': TYPE_EPISODE,
+                'title': item['EPISODE_TITLE'],
+                'show': item.get('SHOW_NAME', ''),
+                'show_id': item['SHOW_ID'],
+                'date': item.get('EPISODE_PUBLISHED_TIMESTAMP', '')[:10],
+                'duration': int(item.get('DURATION') or 0),
+                'img_url': podcast_picture_url(item.get('EPISODE_IMAGE_MD5') or item['SHOW_ART_MD5']),
+                # episodes are plain files hosted by the publisher, the browser can play them directly
+                'preview_url': item.get('EPISODE_DIRECT_STREAM_URL') or '',
+            })
+    return return_nice
+
+
+def parse_deezer_show(show_id):
+    # show_id: id of the show or the url of it (like https://www.deezer.com/en/show/2684332)
+    # return (show name, list of episodes, newest first) (episode is a dict with information about the episode)
+    # raises DeezerApiException if something with the Deezer API is broken
+    show_id = str(show_id)
+    regex = re.search(r'/show/(\d+)', show_id) or re.search(r'^(\d+)$', show_id)
+    if not regex:
+        raise DeezerApiException("ERROR: could not extract show id from '{}'".format(show_id))
+
+    data = {'SHOW_ID': regex.group(1), 'LANG': 'de', 'COUNTRY': 'DE', 'NB': 1000000, 'START': 0, 'USER_ID': 0}
+    json_data = gw_api_call("deezer.pageShow", data)
+    show_name = json_data['DATA']['SHOW_NAME']
+    episodes = json_data['EPISODES']['data']
+    for episode in episodes:
+        # the episodes of a show page do not contain the name of the show
+        episode.setdefault('SHOW_NAME', show_name)
+    episodes.sort(key=lambda e: e.get('EPISODE_PUBLISHED_TIMESTAMP', ''), reverse=True)
     print("Show '{}' has {} episodes".format(show_name, len(episodes)))
     return show_name, episodes
 
 
-def download_episode(url, output_file):
+def get_deezer_episode(episode_id):
+    # episode_id: id of the episode (like https://www.deezer.com/en/episode/965780761)
+    # return: dict with information about the episode
+    return gw_api_call("episode.getData", {'EPISODE_ID': str(episode_id)})
+
+
+def download_episode(episode: dict, output_file: str) -> None:
     # episodes are plain files hosted by the publisher: no decryption, and no session so the arl cookie stays at deezer
-    with requests.get(url, stream=True, proxies=session.proxies, timeout=60) as response:
-        response.raise_for_status()
-        with open(output_file, "wb") as f:
-            for chunk in response.iter_content(chunk_size=65536):
-                f.write(chunk)
+    url = episode.get('EPISODE_DIRECT_STREAM_URL')
+    if not url:
+        raise DeezerApiException("Episode '{}' is only hosted by Deezer. This is not supported.".format(episode['EPISODE_TITLE']))
+    # download to a temporary file first, so an aborted download is not skipped as 'already exists' next time
+    tmp_file = output_file + ".part"
+    try:
+        with requests.get(url, stream=True, proxies=session.proxies, headers={"User-Agent": USER_AGENT}, timeout=60) as response:
+            response.raise_for_status()
+            with open(tmp_file, "wb") as f:
+                for chunk in response.iter_content(chunk_size=65536):
+                    f.write(chunk)
+        os.replace(tmp_file, output_file)
+    except Exception as e:
+        if os.path.exists(tmp_file):
+            os.remove(tmp_file)
+        raise DeezerApiException(f"Could not download episode: {e}") from e
+    print("Download finished: {}".format(output_file))
 
 
 def get_deezer_favorites(user_id: str) -> Optional[Sequence[int]]:

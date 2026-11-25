@@ -10,7 +10,7 @@ from deezer_downloader.youtubedl import youtubedl_download
 from deezer_downloader.spotify import get_songs_from_spotify_website
 from deezer_downloader.deezer import TYPE_TRACK, TYPE_ALBUM, TYPE_PLAYLIST, get_song_infos_from_deezer_website, download_song, parse_deezer_playlist, deezer_search, get_deezer_favorites
 from deezer_downloader.deezer import Deezer403Exception, Deezer404Exception, DeezerApiException
-from deezer_downloader.deezer import get_file_extension, parse_deezer_show, download_episode
+from deezer_downloader.deezer import get_file_extension, parse_deezer_show, get_deezer_episode, download_episode
 from urllib.parse import urlparse
 
 from deezer_downloader.threadpool_queue import ThreadpoolScheduler, report_progress
@@ -19,7 +19,7 @@ sched = ThreadpoolScheduler()
 
 def check_download_dirs_exist():
     for directory in [config["download_dirs"]["songs"], config["download_dirs"]["zips"], config["download_dirs"]["albums"],
-                      config["download_dirs"]["playlists"], config["download_dirs"]["youtubedl"]]:
+                      config["download_dirs"]["playlists"], config["download_dirs"]["podcasts"], config["download_dirs"]["youtubedl"]]:
         os.makedirs(directory, exist_ok=True)
 
 
@@ -178,46 +178,70 @@ def download_deezer_album_and_queue_and_zip(album_id, add_to_playlist, create_zi
     return make_song_paths_relative_to_mpd_root(songs_absolute_location)
 
 
-def download_deezer_show(show_url):
-    show_name, episodes = parse_deezer_show(show_url)
-    show_dir = os.path.join(config["download_dirs"]["playlists"], clean_filename(show_name))
+def download_episode_and_get_absolute_filename(episode):
+    url = episode.get('EPISODE_DIRECT_STREAM_URL')
+    if not url:
+        raise DeezerApiException("Episode '{}' is only hosted by Deezer. This is not supported.".format(episode['EPISODE_TITLE']))
+    extension = os.path.splitext(urlparse(url).path)[1] or ".mp3"
+    # date as prefix => episodes are sorted chronologically in the dir listing
+    episode_filename = "{} - {}{}".format(episode.get('EPISODE_PUBLISHED_TIMESTAMP', '')[:10],
+                                          episode['EPISODE_TITLE'],
+                                          extension)
+    episode_filename = clean_filename(episode_filename)
+    show_dir = os.path.join(config["download_dirs"]["podcasts"], clean_filename(episode['SHOW_NAME']))
     os.makedirs(show_dir, exist_ok=True)
-    files = []
-    for i, (title, url) in enumerate(episodes):
+    absolute_filename = os.path.join(show_dir, episode_filename)
+
+    if os.path.exists(absolute_filename):
+        print("Skipping episode '{}'. Already exists.".format(absolute_filename))
+    else:
+        print("Downloading '{}'".format(episode_filename))
+        download_episode(episode, absolute_filename)
+    return absolute_filename
+
+
+@sched.register_command()
+def download_deezer_episode_and_queue(episode_id, add_to_playlist):
+    episode = get_deezer_episode(episode_id)
+    absolute_filename = download_episode_and_get_absolute_filename(episode)
+    update_mpd_db(absolute_filename, add_to_playlist)
+    return make_song_paths_relative_to_mpd_root([absolute_filename])
+
+
+@sched.register_command()
+def download_deezer_show_and_queue_and_zip(show_id, add_to_playlist, create_zip):
+    show_name, episodes = parse_deezer_show(show_id)
+    episodes_absolute_location = []
+    for i, episode in enumerate(episodes):
         report_progress(i, len(episodes))
-        if not url:
-            print(f"Warning: no download url for episode '{title}'. Skipping.")
-            continue
-        extension = os.path.splitext(urlparse(url).path)[1] or ".mp3"
-        absolute_filename = os.path.join(show_dir, clean_filename(title) + extension)
-        if os.path.exists(absolute_filename):
-            print("Skipping episode '{}'. Already exists.".format(absolute_filename))
-        else:
-            print("Downloading '{}'".format(title))
-            try:
-                download_episode(url, absolute_filename)
-            except Exception as e:
-                print(f"Warning: {e}. Continuing with show...")
-                continue
-        files.append(absolute_filename)
-    return files
+        try:
+            absolute_filename = download_episode_and_get_absolute_filename(episode)
+            episodes_absolute_location.append(absolute_filename)
+        except Exception as e:
+            print(f"Warning: {e}. Continuing with show...")
+    if not episodes_absolute_location:
+        raise DeezerApiException("Could not download any episode of '{}'".format(show_name))
+    update_mpd_db(episodes_absolute_location, add_to_playlist)
+    episodes_with_m3u8_file = create_m3u8_file(episodes_absolute_location)
+    if create_zip:
+        return [create_zip_file(episodes_with_m3u8_file)]
+    return make_song_paths_relative_to_mpd_root(episodes_absolute_location)
 
 
 @sched.register_command()
 def download_deezer_playlist_and_queue_and_zip(playlist_id, add_to_playlist, create_zip):
     if "/show/" in playlist_id:
-        # podcasts are pasted into the playlist field too
-        songs_absolute_location = download_deezer_show(playlist_id)
-    else:
-        playlist_name, songs = parse_deezer_playlist(playlist_id)
-        songs_absolute_location = []
-        for i, song in enumerate(songs):
-            report_progress(i, len(songs))
-            try:
-                absolute_filename = download_song_and_get_absolute_filename(TYPE_PLAYLIST, song, playlist_name)
-                songs_absolute_location.append(absolute_filename)
-            except Exception as e:
-                print(f"Warning: {e}. Continuing with playlist...")
+        # links to podcasts are accepted in the playlist field too
+        return download_deezer_show_and_queue_and_zip(playlist_id, add_to_playlist, create_zip)
+    playlist_name, songs = parse_deezer_playlist(playlist_id)
+    songs_absolute_location = []
+    for i, song in enumerate(songs):
+        report_progress(i, len(songs))
+        try:
+            absolute_filename = download_song_and_get_absolute_filename(TYPE_PLAYLIST, song, playlist_name)
+            songs_absolute_location.append(absolute_filename)
+        except Exception as e:
+            print(f"Warning: {e}. Continuing with playlist...")
     update_mpd_db(songs_absolute_location, add_to_playlist)
     songs_with_m3u8_file = create_m3u8_file(songs_absolute_location)
     if create_zip:

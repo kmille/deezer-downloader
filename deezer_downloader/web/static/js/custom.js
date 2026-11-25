@@ -3,21 +3,13 @@ function deezer_download(music_id, type, add_to_playlist, create_zip) {
     $.post(deezer_downloader_api_root + '/download',
         JSON.stringify({ type: type, music_id: parseInt(music_id), add_to_playlist: add_to_playlist, create_zip: create_zip}),
         function(data) {
+            var what = {album: "album", show: "podcast", episode: "episode"}[type] || "song";
             if(create_zip == true) {
                 text = "You like being offline? You will get a zip file!";
-            }
-            else if(type == "album") {
-                if(add_to_playlist == true) {
-                    text = "Good choice! The album will be downloaded and queued to the playlist";
-                } else {
-                    text = "Good choice! The album will be downloaded.";
-                }
+            } else if(add_to_playlist == true) {
+                text = "Good choice! The " + what + " will be downloaded and queued to the playlist";
             } else {
-                if(add_to_playlist == true) {
-                    text = "Good choice! The song will be downloaded and queued to the playlist";
-                } else {
-                    text = "Good choice! The song will be downloaded.";
-                }
+                text = "Good choice! The " + what + " will be downloaded.";
             }
             $.jGrowl(text, { life: 4000 });
             console.log(data);
@@ -36,6 +28,7 @@ $(document).ready(function() {
         $("#spotify_download_play").hide()
         $("#deezer_playlist_download_play").hide()
         $("#deezer_favorites_download_play").hide()
+        $("#show_download_play").hide()
     };
 
 
@@ -93,15 +86,40 @@ $(document).ready(function() {
         deezer_load_list(type, query);
     }
 
+    // header names of the columns artist, title and album
+    const column_names = {
+        show: ["Podcast", "Description", ""],
+        episode: ["Podcast", "Episode", "Date"],
+        show_episode: ["Podcast", "Episode", "Date"],
+    };
+
+    let current_show_id = null;
+
     function deezer_load_list(type, query) {
         $.post(deezer_downloader_api_root + '/search',
             JSON.stringify({ type: type, query: query.toString() }),
             function(data) {
                 $("#results > tbody").html("");
+                const names = column_names[type] || ["Artist", "Title", "Album"];
+                $("#col-artist").text(names[0]);
+                $("#col-title").text(names[1]);
+                $("#col-album").text(names[2]);
+                if (type === "show_episode" && data.length > 0) {
+                    // list of all episodes of a podcast (newest first): allow downloading all of them
+                    current_show_id = query;
+                    $("#show-actions-name").text(data[0].show + " (" + data.length + " episodes)");
+                    $("#show-actions").show();
+                } else {
+                    $("#show-actions").hide();
+                }
                 for (var i = 0; i < data.length; i++) {
                     drawTableEntry(data[i], type);
                 }
         });
+    }
+
+    function format_duration(seconds) {
+        return Math.round(seconds / 60) + " min";
     }
 
     function drawTableEntry(rowData, mtype) {
@@ -150,19 +168,52 @@ $(document).ready(function() {
                 .click(() => deezer_load_list("artist_top", rowData.artist_id)));
             button_col.append($('<button class="btn btn-default"> <i class="fa fa-list fa-lg" title="list artist albums" ></i> </button>')
                 .click(() => deezer_load_list("artist_album", rowData.artist_id)));
+        } else if (mtype === "show") {
+            $("#col-cover").show();
+            $("#col-artist").show();
+            $("#col-title").show();
+            $("#col-album").hide();
+            row.append($("<td><img src='"+rowData.img_url+"' style='cursor: pointer; border-radius: 3px'></td>")
+                .click(() => deezer_load_list("show_episode", rowData.show_id)));
+            row.append($("<td>").text(rowData.show));
+            const description = rowData.description.length > 150 ? rowData.description.substring(0, 150) + "…" : rowData.description;
+            row.append($("<td class='text-muted small'>").text(description));
+            button_col.append($('<button class="btn btn-default"> <i class="fa fa-list fa-lg" title="list episodes" ></i> </button>')
+                .click(() => deezer_load_list("show_episode", rowData.show_id)));
+        } else if (mtype === "episode" || mtype === "show_episode") {
+            $("#col-cover").show();
+            $("#col-artist").show();
+            $("#col-title").show();
+            $("#col-album").show();
+            row.append($("<td><img src='"+rowData.img_url+"' style='cursor: pointer; border-radius: 3px'></td>")
+                .click(() => play_preview(rowData.preview_url)));
+            if (mtype === "episode") {
+                // search results come from different podcasts: allow jumping to all episodes of the podcast
+                row.append($("<td>").append($("<a href='#'>").text(rowData.show)
+                    .click((e) => { e.preventDefault(); deezer_load_list("show_episode", rowData.show_id); })));
+            } else {
+                row.append($("<td>").text(rowData.show));
+            }
+            row.append($("<td>").text(rowData.title));
+            row.append($("<td style='white-space: nowrap'>").text(rowData.date + " (" + format_duration(rowData.duration) + ")"));
+            if (rowData.preview_url) {
+                button_col.append($('<button class="btn btn-default"> <i class="fa fa-headphones fa-lg" title="listen in browser" ></i> </button>')
+                    .click(() => play_preview(rowData.preview_url)));
+            }
         }
         
 
         if (mtype !== "artist") {
+            const download_title = rowData.id_type === "show" ? "download all episodes" : "download";
             if (show_mpd_features) {
-                button_col.append($('<button class="btn btn-default"> <i class="fa fa-play-circle fa-lg" title="download and queue to mpd" ></i> </button>')
+                button_col.append($('<button class="btn btn-default"> <i class="fa fa-play-circle fa-lg" title="' + download_title + ' and queue to mpd" ></i> </button>')
                     .click(() => deezer_download(rowData.id, rowData.id_type, true, false)));
             }
-            button_col.append($('<button class="btn btn-default" > <i class="fa fa-download fa-lg" title="download" ></i> </button>')
+            button_col.append($('<button class="btn btn-default" > <i class="fa fa-download fa-lg" title="' + download_title + '" ></i> </button>')
                 .click(() => deezer_download(rowData.id, rowData.id_type, false, false)));
         }
 
-        if(rowData.id_type == "album") {
+        if(rowData.id_type == "album" || rowData.id_type == "show") {
             button_col.append($('<button class="btn btn-default"> <i class="fa fa-file-archive-o fa-lg" title="download as zip file" ></i> </button>')
             .click(() => deezer_download(rowData.id, rowData.id_type, false, true)));
         }
@@ -206,32 +257,28 @@ $(document).ready(function() {
         search(search_type);
     });
 
-    $("#deezer-search-track").click(function() {
-        if (search_type == "track") return;
-        search_type = "track";
-        $("#deezer-search-track").addClass("active");
-        $("#deezer-search-album").removeClass("active");
-        $("#deezer-search-artist").removeClass("active");
+    $(".btn-category").click(function() {
+        const type = $(this).data("type");
+        if (search_type == type) return;
+        search_type = type;
+        $(".btn-category").removeClass("active");
+        $(this).addClass("active");
         search(search_type);
     });
 
-    $("#deezer-search-album").click(function() {
-        if (search_type == "album") return;
-        search_type = "album";
-        $("#deezer-search-album").addClass("active");
-        $("#deezer-search-track").removeClass("active");
-        $("#deezer-search-artist").removeClass("active");
-        search(search_type);
+    // BEGIN DEEZER PODCAST
+    $("#show_download_play").click(function() {
+        deezer_download(current_show_id, "show", true, false);
     });
 
-    $("#deezer-search-artist").click(function() {
-        if (search_type == "artist") return;
-        search_type = "artist";
-        $("#deezer-search-artist").addClass("active");
-        $("#deezer-search-track").removeClass("active");
-        $("#deezer-search-album").removeClass("active");
-        search(search_type);
+    $("#show_download").click(function() {
+        deezer_download(current_show_id, "show", false, false);
     });
+
+    $("#show_zip").click(function() {
+        deezer_download(current_show_id, "show", false, true);
+    });
+    // END DEEZER PODCAST
 
     
     $("#yt_download").click(function() {

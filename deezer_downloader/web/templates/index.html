@@ -87,9 +87,18 @@
         </div>
 
         <div class="tabs-category">
-            <button id="deezer-search-track" class="btn-category active" href="#">Tracks</button>
-            <button id="deezer-search-album" class="btn-category" href="#">Albums</button>
-            <button id="deezer-search-artist" class="btn-category" href="#">Artists</button>
+            <button id="deezer-search-track" class="btn-category active" data-type="track">Tracks</button>
+            <button id="deezer-search-album" class="btn-category" data-type="album">Albums</button>
+            <button id="deezer-search-artist" class="btn-category" data-type="artist">Artists</button>
+            <button id="deezer-search-show" class="btn-category" data-type="show">Podcasts</button>
+            <button id="deezer-search-episode" class="btn-category" data-type="episode">Episodes</button>
+        </div>
+
+        <div id="show-actions" style="display: none; margin-top: 10px">
+            <span id="show-actions-name" style="font-weight: bold"></span>
+            <button type="button" class="btn btn-info btn-sm" id="show_download_play">Download all & Play</button>
+            <button type="button" class="btn btn-info btn-sm" id="show_download">Download all episodes</button>
+            <button type="button" class="btn btn-info btn-sm" id="show_zip">Give me a zip</button>
         </div>
         
          <table id="results" class="table">
@@ -151,7 +160,7 @@
        <br>
        <h3>Download Deezer playlist</h3>
        <div class="input-group">
-           <input type="text" class="form-control" id="deezer-playlist-url" placeholder="url or id of the playlist" />
+           <input type="text" class="form-control" id="deezer-playlist-url" placeholder="url or id of the playlist (links to podcasts work too)" />
            &nbsp;
        </div>
        <br>
