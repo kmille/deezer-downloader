@@ -16,6 +16,7 @@ songs = %(base)s/songs
 albums = %(base)s/albums
 zips = %(base)s/zips
 playlists = %(base)s/playlists
+podcasts = %(base)s/podcasts
 youtubedl = %(base)s/youtube-dl
 
 [debug]

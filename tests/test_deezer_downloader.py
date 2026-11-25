@@ -16,8 +16,9 @@ else:
 load_config(config_file)
 from deezer_downloader.configuration import config
 
-from deezer_downloader.deezer import init_deezer_session, TYPE_TRACK, TYPE_ALBUM
+from deezer_downloader.deezer import init_deezer_session, TYPE_TRACK, TYPE_ALBUM, TYPE_SHOW, TYPE_EPISODE, TYPE_SHOW_EPISODE
 from deezer_downloader.deezer import deezer_search, get_song_infos_from_deezer_website, parse_deezer_playlist, download_song, get_deezer_favorites
+from deezer_downloader.deezer import parse_deezer_show, get_deezer_episode, download_episode
 from deezer_downloader.deezer import Deezer404Exception, DeezerApiException
 from deezer_downloader.spotify import get_songs_from_spotify_website, SpotifyWebsiteParserException, parse_uri, SpotifyInvalidUrlException
 from deezer_downloader.youtubedl import youtubedl_download, YoutubeDLFailedException, DownloadedFileNotFoundException
@@ -208,6 +209,63 @@ class TestDeezerMethods(unittest.TestCase):
         for song in songs:
             self.assertIsInstance(song, int)
     # END: get_deezer_favorites
+
+    # BEGIN: podcasts
+    def test_deezer_search_show_valid(self):
+        shows = deezer_search("checkpod", TYPE_SHOW)
+        self.assertIsInstance(shows, list)
+        for show in shows:
+            self.assertSetEqual(set(show.keys()), {'id', 'id_type', 'show', 'show_id', 'description', 'img_url'})
+        self.assertIn("2684332", [show['id'] for show in shows])
+
+    def test_deezer_search_episode_valid(self):
+        episodes = deezer_search("checkpod rollenbilder", TYPE_EPISODE)
+        self.assertIsInstance(episodes, list)
+        e = episodes[0]
+        self.assertSetEqual(set(e.keys()), {'id', 'id_type', 'title', 'show', 'show_id', 'date', 'duration', 'img_url', 'preview_url'})
+        self.assertEqual(e['id'], '965780761')
+        self.assertEqual(e['id_type'], 'episode')
+        self.assertEqual(e['show_id'], '2684332')
+        self.assertIn('Rollenbilder', e['title'])
+
+    def test_deezer_search_episode_invalid_no_episode_found(self):
+        episodes = deezer_search("8f49834zf934fdshfkhejw", TYPE_EPISODE)
+        self.assertListEqual(episodes, [])
+
+    def test_deezer_list_show_episodes_newest_first(self):
+        episodes = deezer_search("2684332", TYPE_SHOW_EPISODE)
+        self.assertGreater(len(episodes), 100)
+        dates = [e['date'] for e in episodes]
+        self.assertListEqual(dates, sorted(dates, reverse=True))
+
+    def test_parse_valid_deezer_show_with_url(self):
+        show_name, episodes = parse_deezer_show("https://www.deezer.com/de/show/2684332")
+        self.assertEqual(show_name, "CheckPod - Der Podcast mit Checker Tobi")
+        self.assertGreater(len(episodes), 100)
+        for episode in episodes:
+            self.assertEqual(episode['SHOW_NAME'], show_name)
+
+    def test_parse_invalid_deezer_show_with_url(self):
+        with self.assertRaises(DeezerApiException):
+            parse_deezer_show("https://www.heise.de")
+
+    def test_download_episode_valid(self):
+        test_episode = Path("/tmp/episode-965780761.mp3")
+        test_episode.unlink(missing_ok=True)
+
+        episode = get_deezer_episode("965780761")
+        self.assertEqual(episode['SHOW_NAME'], "CheckPod - Der Podcast mit Checker Tobi")
+        download_episode(episode, test_episode.as_posix())
+        try:
+            MP3(test_episode)
+        except MutagenError as e:
+            pytest.fail(f"File is not in mp3 format: {e}")
+        test_episode.unlink()
+
+    def test_download_episode_without_url(self):
+        with self.assertRaises(DeezerApiException):
+            download_episode({'EPISODE_TITLE': 'only hosted by deezer', 'EPISODE_DIRECT_STREAM_URL': ''}, "/tmp/does-not-matter.mp3")
+    # END: podcasts
 
     # BEGIN: download_song
     @pytest.mark.skipif(config["deezer"].get("quality", "mp3") == "flac", reason="skiping deezer mp3 download. Quality set to flac")

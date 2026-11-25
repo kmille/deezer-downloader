@@ -44,8 +44,8 @@ def validate_schema(*parameters_to_check):
             if set(j.keys()) != set(parameters_to_check):
                 return jsonify({"error": 'parameters missing, required fields: {}'.format(parameters_to_check)}), 400
             if "type" in j.keys():
-                if j['type'] not in ["album", "track", "artist", "album_track", "artist_album", "artist_top"]:
-                    return jsonify({"error": "type must be album, track, artist, album_track, artist_album or artist_top"}), 400
+                if j['type'] not in ["album", "track", "artist", "album_track", "artist_album", "artist_top", "show", "episode", "show_episode"]:
+                    return jsonify({"error": "type must be album, track, artist, album_track, artist_album, artist_top, show, episode or show_episode"}), 400
             if "music_id" in j.keys():
                 if type(j['music_id']) is not int:
                     return jsonify({"error": "music_id must be a integer"}), 400
@@ -168,10 +168,10 @@ def search():
     """
     searches for available music in the Deezer library
     para:
-        type: track|album|album_track
-        query: search query
+        type: track|album|album_track|show|episode|show_episode
+        query: search query (show_episode: id of the show)
     return:
-        json: [ { artist, id, (title|album) } ]
+        json: [ { artist, id, (title|album) } ] or for podcasts [ { id, show, (title|description) } ]
     """
     user_input = request.get_json(force=True)
     results = deezer_search(user_input['query'], user_input['type'])
@@ -182,12 +182,12 @@ def search():
 @validate_schema("type", "music_id", "add_to_playlist", "create_zip")
 def deezer_download_song_or_album():
     """
-    downloads a song or an album from Deezer to the dir specified in settings.py
+    downloads a song, an album, a podcast episode or a whole podcast from Deezer to the dir specified in settings.py
     para:
-        type: album|track
-        music_id: id of the album or track (int)
+        type: album|track|episode|show
+        music_id: id of the album, track, episode or show (int)
         add_to_playlist: True|False (add to mpd playlist)
-        create_zip: True|False (create a zip for the album)
+        create_zip: True|False (create a zip for the album or show)
     """
     user_input = request.get_json(force=True)
     desc = "Downloading {}".format(user_input['type'])
@@ -195,6 +195,15 @@ def deezer_download_song_or_album():
         task = sched.enqueue_task(desc, "download_deezer_song_and_queue",
                                   track_id=user_input['music_id'],
                                   add_to_playlist=user_input['add_to_playlist'])
+    elif user_input['type'] == "episode":
+        task = sched.enqueue_task(desc, "download_deezer_episode_and_queue",
+                                  episode_id=user_input['music_id'],
+                                  add_to_playlist=user_input['add_to_playlist'])
+    elif user_input['type'] == "show":
+        task = sched.enqueue_task(desc, "download_deezer_show_and_queue_and_zip",
+                                  show_id=user_input['music_id'],
+                                  add_to_playlist=user_input['add_to_playlist'],
+                                  create_zip=user_input['create_zip'])
     else:
         task = sched.enqueue_task(desc, "download_deezer_album_and_queue_and_zip",
                                   album_id=user_input['music_id'],
